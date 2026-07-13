@@ -49,11 +49,24 @@ Custode delle Stelle, Matrona degli Arcani, Guardiano Dimensionale, Drago Stella
 ### Obiettivo
 Recuperare i 7 frammenti della **Lancia delle Stelle** e sconfiggere il Re dei Gatti Mannari.
 
-### Controlli
-- **WASD / Frecce** — movimento
-- **Spazio / J** — attacco
-- **E** — abilità speciale
+### Controlli (stile Vampire Survivors)
+- **WASD / Frecce** — solo movimento (le armi attaccano automaticamente)
+- **↑↓ + Invio** — scegli power-up al level-up
 - **Invio** — avanzare tra schermate
+
+### Armi uniche per eroe
+| Eroe | Arma | Stile VS |
+|------|------|----------|
+| **Kael** | Shuriken Orbitale | Orbitanti + scaglio al bersaglio vicino |
+| **Zara** | Spada Laser | Arco di taglio frontale (Whip) |
+| **Vex** | Burst di Plasma | Esplosione ad area (Garlic) |
+| **Nia** | Dardi Cercatori | Auto-mira nemico più vicino (Magic Wand) |
+| **Ryn** | Onda Arcana | Anelli espansivi (Holy Water) |
+
+### Power-up
+- **Level-up**: Potenza, Celerità, Quantità, Area, Agilità, Cuore Alieno, Magnete XP, Rigenerazione
+- **Upgrade arma** specifico per ogni eroe
+- **Pickup a terra**: cura, danno temporaneo, velocità, magnete XP
 
 ## Licenza
 

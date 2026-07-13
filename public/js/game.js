@@ -10,8 +10,9 @@
     TITLE: "title",
     STORY: "story",
     SELECT: "select",
-    PLAYING: "playing",
     LEVEL_INTRO: "level_intro",
+    PLAYING: "playing",
+    LEVEL_UP: "level_up",
     LEVEL_CLEAR: "level_clear",
     GAME_OVER: "game_over",
     VICTORY: "victory",
@@ -24,14 +25,15 @@
       color: "#1e90ff",
       accent: "#c0c0c0",
       emoji: "🥷",
-      desc: "Ninja furtivo — shuriken e mimetizzazione",
-      speed: 4.2,
+      desc: "Shuriken orbitanti — colpiscono il nemico più vicino",
+      weapon: "orbit_shuriken",
+      weaponName: "Shuriken Orbitale",
+      speed: 3.8,
       hp: 100,
-      damage: 12,
-      attackRate: 18,
-      range: 120,
-      projectile: "shuriken",
-      special: { name: "Mimetizzazione", cooldown: 300, duration: 120 },
+      baseDamage: 10,
+      baseCooldown: 50,
+      baseArea: 1,
+      baseAmount: 2,
     },
     {
       id: "zara",
@@ -39,14 +41,15 @@
       color: "#9b30ff",
       accent: "#39ff14",
       emoji: "⚔️",
-      desc: "Leader coraggiosa — spade laser",
-      speed: 3.6,
+      desc: "Spade laser — arco di taglio frontale automatico",
+      weapon: "laser_arc",
+      weaponName: "Spada Laser",
+      speed: 3.2,
       hp: 110,
-      damage: 18,
-      attackRate: 22,
-      range: 90,
-      projectile: "laser",
-      special: { name: "Raffica Laser", cooldown: 240, damage: 35 },
+      baseDamage: 14,
+      baseCooldown: 45,
+      baseArea: 1.1,
+      baseAmount: 1,
     },
     {
       id: "vex",
@@ -54,14 +57,15 @@
       color: "#708090",
       accent: "#ffd700",
       emoji: "🛡️",
-      desc: "Guerriero corazzato — armi futuristiche",
-      speed: 2.8,
+      desc: "Plasma corazzato — esplosioni ad area intorno a te",
+      weapon: "plasma_burst",
+      weaponName: "Burst di Plasma",
+      speed: 2.6,
       hp: 160,
-      damage: 22,
-      attackRate: 30,
-      range: 100,
-      projectile: "plasma",
-      special: { name: "Scudo Esplosivo", cooldown: 360, radius: 100 },
+      baseDamage: 18,
+      baseCooldown: 70,
+      baseArea: 1.2,
+      baseAmount: 1,
     },
     {
       id: "nia",
@@ -69,14 +73,15 @@
       color: "#c0c0c0",
       accent: "#ff69b4",
       emoji: "🎯",
-      desc: "Agile specialista — armi da lancio",
-      speed: 4.5,
+      desc: "Dardi a ricerca — bersaglia automaticamente i nemici",
+      weapon: "homing_dart",
+      weaponName: "Dardi Cercatori",
+      speed: 4.0,
       hp: 85,
-      damage: 14,
-      attackRate: 14,
-      range: 140,
-      projectile: "dart",
-      special: { name: "Tempesta di Dardi", cooldown: 200, count: 8 },
+      baseDamage: 8,
+      baseCooldown: 28,
+      baseArea: 1,
+      baseAmount: 2,
     },
     {
       id: "ryn",
@@ -84,141 +89,207 @@
       color: "#00f5ff",
       accent: "#ffd700",
       emoji: "✨",
-      desc: "Saggio arcano — bastone telescopico",
-      speed: 3.4,
+      desc: "Onde arcane — anelli espansivi dal bastone",
+      weapon: "arcane_wave",
+      weaponName: "Onda Arcana",
+      speed: 3.0,
       hp: 90,
-      damage: 16,
-      attackRate: 24,
-      range: 110,
-      projectile: "arcane",
-      special: { name: "Onda Arcana", cooldown: 280, radius: 130 },
+      baseDamage: 12,
+      baseCooldown: 55,
+      baseArea: 1.15,
+      baseAmount: 1,
     },
   ];
+
+  const POWERUP_POOL = [
+    { id: "potenza", name: "Potenza", desc: "Danno +12%", max: 5, icon: "💥" },
+    { id: "celerita", name: "Celerità", desc: "Attacco +10% veloce", max: 5, icon: "⚡" },
+    { id: "quantita", name: "Quantità", desc: "+1 proiettile/colpo", max: 4, icon: "🔢" },
+    { id: "area", name: "Area", desc: "Raggio attacco +15%", max: 4, icon: "🌀" },
+    { id: "velocita", name: "Agilità", desc: "Movimento +8%", max: 4, icon: "💨" },
+    { id: "cuore", name: "Cuore Alieno", desc: "HP massimi +25", max: 5, icon: "💚" },
+    { id: "magnete", name: "Magnete XP", desc: "Raggio raccolta +35%", max: 3, icon: "🧲" },
+    { id: "rigenerazione", name: "Rigenerazione", desc: "+0.4 HP/frame", max: 3, icon: "♻️" },
+  ];
+
+  const WEAPON_UPGRADES = {
+    orbit_shuriken: { name: "Shuriken Affilati", desc: "Orbitanti +1, danno +15%" },
+    laser_arc: { name: "Spada Estesa", desc: "Arco più ampio, danno +15%" },
+    plasma_burst: { name: "Plasma Concentrato", desc: "Esplosione più grande, danno +20%" },
+    homing_dart: { name: "Dardi Veloci", desc: "+1 dardo, cadenza +10%" },
+    arcane_wave: { name: "Onda Potenziata", desc: "Onde +1, raggio +20%" },
+  };
 
   const LEVELS = [
     {
       name: "Addestramento",
-      story: "I cinque ninja alieni si preparano alla guerra. Elimina i gatti mannari di addestramento.",
+      theme: "training",
+      story: "Campo olografico di addestramento. Sopravvivi 45 secondi ai gatti mannari simulati.",
       bg: ["#0d1b2a", "#1b263b"],
-      enemyCount: 5,
-      enemyHp: 30,
-      enemySpeed: 1.2,
+      floor: "#152238",
+      accent: "#00f5ff",
+      duration: 45 * 60,
+      spawnRate: 90,
+      enemyHp: 25,
+      enemySpeed: 1.1,
       boss: null,
       fragment: false,
     },
     {
       name: "Città Alienigena",
-      story: "Le città del pianeta sono sotto assedio. Libera il distretto centrale dagli invasori felini.",
+      theme: "alien_city",
+      story: "Grattacieli neon sotto assedio. Resisti 50 secondi nell'area urbana.",
       bg: ["#1a0a2e", "#2d1b4e"],
-      enemyCount: 8,
+      floor: "#1e1040",
+      accent: "#b026ff",
+      duration: 50 * 60,
+      spawnRate: 80,
+      enemyHp: 35,
+      enemySpeed: 1.3,
+      boss: null,
+      fragment: false,
+    },
+    {
+      name: "Bosco Infestato",
+      theme: "forest",
+      story: "Un bosco bioluminescente infestato. Sopravvivi 55 secondi tra gli alberi.",
+      bg: ["#0a1f0a", "#1a3a1a"],
+      floor: "#0f2a12",
+      accent: "#39ff14",
+      duration: 55 * 60,
+      spawnRate: 75,
       enemyHp: 40,
       enemySpeed: 1.5,
       boss: null,
       fragment: false,
     },
     {
-      name: "Bosco Infestato",
-      story: "Un bosco alieno infestato da gatti mannari. Avanza verso il tempio antico.",
-      bg: ["#0a1f0a", "#1a3a1a"],
-      enemyCount: 10,
+      name: "Tempio Antico",
+      theme: "temple",
+      story: "Pilastri millenari e torce aliene. Sconfiggi il Custode delle Stelle.",
+      bg: ["#2a1a0a", "#4a3020"],
+      floor: "#3a2818",
+      accent: "#ffd700",
+      duration: 60 * 60,
+      spawnRate: 70,
       enemyHp: 45,
       enemySpeed: 1.6,
-      boss: null,
-      fragment: false,
-    },
-    {
-      name: "Tempio Antico",
-      story: "Nel tempio dorme il Custode delle Stelle. Sconfiggilo per avanzare nella missione.",
-      bg: ["#2a1a0a", "#4a3020"],
-      enemyCount: 6,
-      enemyHp: 50,
-      enemySpeed: 1.7,
-      boss: { name: "Custode delle Stelle", hp: 280, speed: 1.4, size: 36, color: "#ffd700" },
+      boss: { name: "Custode delle Stelle", hp: 350, speed: 1.3, size: 38, color: "#ffd700" },
       fragment: true,
     },
     {
       name: "Sottomondo Felino",
-      story: "Scendi nelle gallerie sotterranee dei Gatti Mannari. La Matrona degli Arcani ti attende.",
+      theme: "underworld",
+      story: "Gallerie laviche e cristalli rossi. Affronta la Matrona degli Arcani.",
       bg: ["#1a0a0a", "#3a1515"],
-      enemyCount: 10,
-      enemyHp: 55,
-      enemySpeed: 1.8,
-      boss: { name: "Matrona degli Arcani", hp: 320, speed: 1.5, size: 34, color: "#ff4466" },
+      floor: "#2a1010",
+      accent: "#ff4466",
+      duration: 60 * 60,
+      spawnRate: 65,
+      enemyHp: 50,
+      enemySpeed: 1.7,
+      boss: { name: "Matrona degli Arcani", hp: 400, speed: 1.4, size: 36, color: "#ff4466" },
       fragment: true,
     },
     {
       name: "Tempio delle Stelle",
-      story: "Un tempio tra le dimensioni. Il Guardiano Dimensionale protegge un frammento della Lancia.",
+      theme: "star_temple",
+      story: "Portali dimensionali e rune stellari. Batti il Guardiano Dimensionale.",
       bg: ["#0a0a2a", "#1a1a5a"],
-      enemyCount: 8,
-      enemyHp: 60,
-      enemySpeed: 1.9,
-      boss: { name: "Guardiano Dimensionale", hp: 350, speed: 1.6, size: 38, color: "#7b68ee" },
+      floor: "#12124a",
+      accent: "#7b68ee",
+      duration: 65 * 60,
+      spawnRate: 60,
+      enemyHp: 55,
+      enemySpeed: 1.8,
+      boss: { name: "Guardiano Dimensionale", hp: 450, speed: 1.5, size: 40, color: "#7b68ee" },
       fragment: true,
     },
     {
       name: "Battaglia sulla Luna",
-      story: "Sulla superficie lunare, il Drago Stellare sputa fuoco cosmico contro la squadra.",
+      theme: "moon",
+      story: "Crateri e cielo stellato. Il Drago Stellare attacca dalla superficie lunare.",
       bg: ["#1a1a2a", "#2a2a4a"],
-      enemyCount: 10,
-      enemyHp: 65,
-      enemySpeed: 2.0,
-      boss: { name: "Drago Stellare", hp: 400, speed: 1.3, size: 42, color: "#ff6347" },
+      floor: "#3a3a4a",
+      accent: "#ff6347",
+      duration: 65 * 60,
+      spawnRate: 58,
+      enemyHp: 60,
+      enemySpeed: 1.9,
+      boss: { name: "Drago Stellare", hp: 500, speed: 1.2, size: 44, color: "#ff6347" },
       fragment: true,
     },
     {
       name: "Città Maledetta",
-      story: "Una città corrotta dal caos felino. Il Signore del Caos domina le rovine.",
+      theme: "cursed_city",
+      story: "Rovine corrotte e nebbia viola. Il Signore del Caos domina le strade.",
       bg: ["#1a0a1a", "#3a1a3a"],
-      enemyCount: 12,
-      enemyHp: 70,
-      enemySpeed: 2.1,
-      boss: { name: "Signore del Caos", hp: 420, speed: 1.7, size: 40, color: "#9400d3" },
+      floor: "#2a1530",
+      accent: "#9400d3",
+      duration: 70 * 60,
+      spawnRate: 55,
+      enemyHp: 65,
+      enemySpeed: 2.0,
+      boss: { name: "Signore del Caos", hp: 520, speed: 1.6, size: 42, color: "#9400d3" },
       fragment: true,
     },
     {
       name: "Rifugio delle Stelle",
-      story: "L'ultimo rifugio prima del confronto. La Matriarca del Mondo Felino fa la guardia.",
+      theme: "star_refuge",
+      story: "Cristalli di luce e energia cosmica. La Matriarca del Mondo Felino attende.",
       bg: ["#0a1a2a", "#1a3a5a"],
-      enemyCount: 10,
-      enemyHp: 75,
-      enemySpeed: 2.2,
-      boss: { name: "Matriarca del Mondo Felino", hp: 450, speed: 1.8, size: 38, color: "#ff8c00" },
+      floor: "#102840",
+      accent: "#ff8c00",
+      duration: 70 * 60,
+      spawnRate: 52,
+      enemyHp: 70,
+      enemySpeed: 2.1,
+      boss: { name: "Matriarca del Mondo Felino", hp: 550, speed: 1.7, size: 40, color: "#ff8c00" },
       fragment: true,
     },
     {
       name: "Confronto Finale",
-      story: "Sulla Luna, il Re dei Gatti Mannari e il Guardiano dell'Universo proteggono la Lancia delle Stelle. È ora della battaglia finale!",
+      theme: "final",
+      story: "La Luna. Il Re dei Gatti Mannari e il Guardiano dell'Universo proteggono la Lancia.",
       bg: ["#0a0a1a", "#1a0a2a"],
-      enemyCount: 8,
-      enemyHp: 80,
-      enemySpeed: 2.3,
-      boss: { name: "Re dei Gatti Mannari", hp: 500, speed: 1.5, size: 44, color: "#ff2200" },
-      finalBoss: { name: "Guardiano dell'Universo", hp: 350, speed: 1.9, size: 40, color: "#00f5ff" },
+      floor: "#2a2a35",
+      accent: "#ff2200",
+      duration: 75 * 60,
+      spawnRate: 48,
+      enemyHp: 75,
+      enemySpeed: 2.2,
+      boss: { name: "Re dei Gatti Mannari", hp: 600, speed: 1.4, size: 46, color: "#ff2200" },
+      finalBoss: { name: "Guardiano dell'Universo", hp: 400, speed: 1.8, size: 42, color: "#00f5ff" },
       fragment: true,
     },
   ];
 
   const keys = {};
-  let mouse = { x: W / 2, y: H / 2 };
   let state = STATE.TITLE;
   let selectedHero = null;
   let currentLevel = 0;
   let fragments = 0;
   let introTimer = 0;
-  let clearTimer = 0;
   let titlePulse = 0;
+  let levelUpChoices = [];
+  let levelUpSelected = 0;
 
   let player = null;
   let enemies = [];
   let projectiles = [];
   let particles = [];
-  let obstacles = [];
+  let xpGems = [];
+  let pickups = [];
+  let waves = [];
+  let orbiters = [];
+  let decor = [];
+  let levelTimer = 0;
+  let spawnTimer = 0;
+  let pickupTimer = 0;
   let bossSpawned = false;
   let finalBossSpawned = false;
-  let enemiesKilled = 0;
-  let enemiesToSpawn = 0;
-  let spawnTimer = 0;
+  let bossPhase = false;
+  let kills = 0;
 
   document.addEventListener("keydown", (e) => {
     keys[e.code] = true;
@@ -228,13 +299,18 @@
     handleInput(e.code);
   });
   document.addEventListener("keyup", (e) => { keys[e.code] = false; });
-  canvas.addEventListener("mousemove", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouse.x = (e.clientX - rect.left) * (W / rect.width);
-    mouse.y = (e.clientY - rect.top) * (H / rect.height);
-  });
 
   function handleInput(code) {
+    if (state === STATE.LEVEL_UP) {
+      if (code === "ArrowUp" || code === "KeyW") levelUpSelected = (levelUpSelected + 2) % 3;
+      if (code === "ArrowDown" || code === "KeyS") levelUpSelected = (levelUpSelected + 1) % 3;
+      if (code === "Enter" || code === "Space" || code.startsWith("Digit")) {
+        const idx = code.startsWith("Digit") ? parseInt(code.replace("Digit", ""), 10) - 1 : levelUpSelected;
+        if (idx >= 0 && idx < levelUpChoices.length) applyPowerUp(levelUpChoices[idx]);
+      }
+      return;
+    }
+
     if (code === "Enter" || code === "Space") {
       if (state === STATE.TITLE) { state = STATE.STORY; return; }
       if (state === STATE.STORY) { state = STATE.SELECT; return; }
@@ -246,7 +322,19 @@
       const idx = parseInt(code.replace("Digit", ""), 10) - 1;
       if (idx >= 0 && idx < HEROES.length) selectHero(idx);
     }
-    if (state === STATE.PLAYING && code === "KeyE") useSpecial();
+  }
+
+  function createStats(hero) {
+    return {
+      damage: hero.baseDamage,
+      cooldownMult: 1,
+      area: hero.baseArea,
+      amount: hero.baseAmount,
+      speed: hero.speed,
+      magnet: 60,
+      regen: 0,
+      weaponLevel: 1,
+    };
   }
 
   function selectHero(idx) {
@@ -254,8 +342,8 @@
     currentLevel = 0;
     fragments = 0;
     state = STATE.LEVEL_INTRO;
-    introTimer = 180;
-    initLevel();
+    introTimer = 150;
+    initLevel(true);
   }
 
   function resetGame() {
@@ -267,48 +355,110 @@
     enemies = [];
     projectiles = [];
     particles = [];
+    xpGems = [];
+    pickups = [];
+    waves = [];
+    orbiters = [];
   }
 
-  function initLevel() {
+  function initLevel(resetPlayer = false) {
     const level = LEVELS[currentLevel];
     const hero = selectedHero;
-    player = {
-      x: W / 2,
-      y: H - 80,
-      vx: 0,
-      vy: 0,
-      hp: hero.hp,
-      maxHp: hero.hp,
-      angle: -Math.PI / 2,
-      attackCooldown: 0,
-      specialCooldown: 0,
-      stealthTimer: 0,
-      invulnerable: 0,
-      hero,
-    };
+
+    if (resetPlayer || !player) {
+      player = {
+        x: W / 2,
+        y: H / 2,
+        hp: hero.hp,
+        maxHp: hero.hp,
+        angle: 0,
+        vx: 0,
+        vy: 0,
+        invulnerable: 0,
+        weaponTimer: 0,
+        hero,
+        stats: createStats(hero),
+        upgrades: {},
+        xp: 0,
+        level: 1,
+        xpToNext: 8,
+        tempBuff: 0,
+        tempSpeed: 0,
+      };
+    } else {
+      player.x = W / 2;
+      player.y = H / 2;
+      player.invulnerable = 60;
+    }
+
     enemies = [];
     projectiles = [];
     particles = [];
-    obstacles = generateObstacles(currentLevel);
+    xpGems = [];
+    pickups = [];
+    waves = [];
+    orbiters = initOrbiters();
+    decor = generateDecor(level.theme);
+    levelTimer = level.duration;
+    spawnTimer = 30;
+    pickupTimer = 600;
     bossSpawned = false;
     finalBossSpawned = false;
-    enemiesKilled = 0;
-    enemiesToSpawn = level.enemyCount;
-    spawnTimer = 0;
+    bossPhase = false;
+    kills = 0;
   }
 
-  function generateObstacles(levelIdx) {
-    const obs = [];
-    const count = 3 + Math.floor(levelIdx / 2);
-    for (let i = 0; i < count; i++) {
-      obs.push({
-        x: 80 + Math.random() * (W - 160),
-        y: 80 + Math.random() * (H - 200),
-        w: 40 + Math.random() * 60,
-        h: 30 + Math.random() * 50,
-      });
+  function initOrbiters() {
+    if (selectedHero.weapon !== "orbit_shuriken") return [];
+    const count = Math.floor(player.stats.amount);
+    return Array.from({ length: count }, (_, i) => ({
+      angle: (Math.PI * 2 * i) / count,
+      dist: 45 * player.stats.area,
+    }));
+  }
+
+  function generateDecor(theme) {
+    const items = [];
+    const rnd = (n) => Math.random() * n;
+    switch (theme) {
+      case "training":
+        for (let i = 0; i < 12; i++) items.push({ type: "holo_ring", x: rnd(W), y: rnd(H), r: 15 + rnd(20) });
+        break;
+      case "alien_city":
+        for (let i = 0; i < 8; i++) {
+          const windows = [];
+          for (let wy = 0; wy < 5; wy++) {
+            for (let wx = 0; wx < 3; wx++) windows.push(Math.random() > 0.4);
+          }
+          items.push({ type: "building", x: i * 120 + 20, y: H - 80 - rnd(120), w: 60 + rnd(40), h: 80 + rnd(100), windows });
+        }
+        break;
+      case "forest":
+        for (let i = 0; i < 18; i++) items.push({ type: "tree", x: rnd(W), y: rnd(H), r: 20 + rnd(25) });
+        break;
+      case "temple":
+        for (let i = 0; i < 6; i++) items.push({ type: "pillar", x: 80 + i * 140, y: 60 + rnd(40), h: 100 + rnd(80) });
+        break;
+      case "underworld":
+        for (let i = 0; i < 10; i++) items.push({ type: "stalactite", x: rnd(W), y: rnd(60), h: 30 + rnd(50) });
+        break;
+      case "star_temple":
+        for (let i = 0; i < 8; i++) items.push({ type: "rune", x: rnd(W), y: rnd(H), r: 12 + rnd(15) });
+        break;
+      case "moon":
+        for (let i = 0; i < 14; i++) items.push({ type: "crater", x: rnd(W), y: rnd(H), r: 10 + rnd(30) });
+        break;
+      case "cursed_city":
+        for (let i = 0; i < 10; i++) items.push({ type: "ruin", x: rnd(W), y: rnd(H), w: 30 + rnd(50), h: 20 + rnd(40) });
+        break;
+      case "star_refuge":
+        for (let i = 0; i < 12; i++) items.push({ type: "crystal", x: rnd(W), y: rnd(H), h: 20 + rnd(40) });
+        break;
+      case "final":
+        for (let i = 0; i < 6; i++) items.push({ type: "moon_rock", x: rnd(W), y: rnd(H), r: 15 + rnd(25) });
+        break;
     }
-    return obs;
+    return items;
   }
 
   function startLevel() {
@@ -322,228 +472,368 @@
     }
     currentLevel++;
     state = STATE.LEVEL_INTRO;
-    introTimer = 180;
-    initLevel();
+    introTimer = 150;
+    initLevel(false);
+  }
+
+  function getCooldown() {
+    return Math.max(12, Math.floor(player.hero.baseCooldown * player.stats.cooldownMult));
+  }
+
+  function getDamage(mult = 1) {
+    const buff = player.tempBuff > 0 ? 1.4 : 1;
+    return player.stats.damage * mult * buff * (1 + (player.stats.weaponLevel - 1) * 0.12);
+  }
+
+  function nearestEnemy() {
+    let best = null;
+    let bestDist = Infinity;
+    enemies.forEach((e) => {
+      const d = Math.hypot(e.x - player.x, e.y - player.y);
+      if (d < bestDist) { bestDist = d; best = e; }
+    });
+    return best;
+  }
+
+  function nearestEnemies(count) {
+    return [...enemies]
+      .map((e) => ({ e, d: Math.hypot(e.x - player.x, e.y - player.y) }))
+      .sort((a, b) => a.d - b.d)
+      .slice(0, count)
+      .map((x) => x.e);
+  }
+
+  function autoAttack() {
+    const weapon = player.hero.weapon;
+    const amount = Math.floor(player.stats.amount);
+    const area = player.stats.area;
+
+    switch (weapon) {
+      case "orbit_shuriken": {
+        const target = nearestEnemy();
+        if (target) {
+          const angle = Math.atan2(target.y - player.y, target.x - player.x);
+          for (let i = 0; i < amount; i++) {
+            const spread = (i - (amount - 1) / 2) * 0.15;
+            projectiles.push({
+              x: player.x, y: player.y,
+              vx: Math.cos(angle + spread) * 9,
+              vy: Math.sin(angle + spread) * 9,
+              damage: getDamage(),
+              type: "shuriken",
+              life: 50,
+              piercing: false,
+            });
+          }
+        }
+        orbiters = initOrbiters();
+        break;
+      }
+      case "laser_arc": {
+        const arc = Math.PI * 0.55 * area;
+        enemies.forEach((e) => {
+          const angle = Math.atan2(e.y - player.y, e.x - player.x);
+          let diff = angle - player.angle;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          if (Math.abs(diff) < arc / 2 && Math.hypot(e.x - player.x, e.y - player.y) < 130 * area) {
+            e.hp -= getDamage(1.2);
+            addParticles(e.x, e.y, "#39ff14", 4);
+          }
+        });
+        projectiles.push({ type: "arc_slash", x: player.x, y: player.y, angle: player.angle, arc, range: 130 * area, life: 12, damage: 0 });
+        break;
+      }
+      case "plasma_burst": {
+        const radius = 75 * area;
+        enemies.forEach((e) => {
+          if (Math.hypot(e.x - player.x, e.y - player.y) < radius) {
+            e.hp -= getDamage(1.3);
+            addParticles(e.x, e.y, "#ff6347", 6);
+          }
+        });
+        waves.push({ x: player.x, y: player.y, r: 10, maxR: radius, life: 20, color: "#ff6347" });
+        addParticles(player.x, player.y, "#ffd700", 15);
+        break;
+      }
+      case "homing_dart": {
+        const targets = nearestEnemies(amount);
+        targets.forEach((t) => {
+          const angle = Math.atan2(t.y - player.y, t.x - player.x);
+          projectiles.push({
+            x: player.x, y: player.y,
+            vx: Math.cos(angle) * 10,
+            vy: Math.sin(angle) * 10,
+            damage: getDamage(),
+            type: "dart",
+            life: 60,
+            homing: true,
+            target: t,
+          });
+        });
+        break;
+      }
+      case "arcane_wave": {
+        for (let i = 0; i < amount; i++) {
+          setTimeout(() => {
+            if (state === STATE.PLAYING && player) {
+              waves.push({
+                x: player.x, y: player.y, r: 15,
+                maxR: 160 * area,
+                expand: 4,
+                life: 50,
+                color: "#00f5ff",
+                damage: getDamage(),
+                hit: new Set(),
+              });
+            }
+          }, i * 200);
+        }
+        break;
+      }
+    }
+  }
+
+  function updateOrbiters() {
+    if (player.hero.weapon !== "orbit_shuriken") return;
+    orbiters.forEach((o) => {
+      o.angle += 0.06;
+      const ox = player.x + Math.cos(o.angle) * o.dist;
+      const oy = player.y + Math.sin(o.angle) * o.dist;
+      enemies.forEach((e) => {
+        if (Math.hypot(e.x - ox, e.y - oy) < e.size + 8) {
+          e.hp -= getDamage(0.3);
+        }
+      });
+    });
   }
 
   function spawnEnemy(isBoss = false, bossData = null) {
     const level = LEVELS[currentLevel];
     const side = Math.floor(Math.random() * 4);
     let x, y;
-    if (side === 0) { x = Math.random() * W; y = -20; }
-    else if (side === 1) { x = W + 20; y = Math.random() * H; }
-    else if (side === 2) { x = Math.random() * W; y = H + 20; }
-    else { x = -20; y = Math.random() * H; }
+    if (side === 0) { x = Math.random() * W; y = -25; }
+    else if (side === 1) { x = W + 25; y = Math.random() * H; }
+    else if (side === 2) { x = Math.random() * W; y = H + 25; }
+    else { x = -25; y = Math.random() * H; }
 
     if (isBoss && bossData) {
       enemies.push({
-        x: W / 2,
-        y: 60,
-        hp: bossData.hp,
-        maxHp: bossData.hp,
-        speed: bossData.speed,
-        size: bossData.size,
-        color: bossData.color,
-        isBoss: true,
-        name: bossData.name,
-        attackTimer: 0,
-        emoji: "🐱",
+        x: W / 2, y: 80,
+        hp: bossData.hp, maxHp: bossData.hp,
+        speed: bossData.speed, size: bossData.size,
+        color: bossData.color, isBoss: true, name: bossData.name,
       });
-      addParticles(W / 2, 60, bossData.color, 20);
+      addParticles(W / 2, 80, bossData.color, 25);
+      bossPhase = true;
       return;
     }
 
+    const scale = 1 + (level.duration - levelTimer) / level.duration * 0.5;
     enemies.push({
       x, y,
-      hp: level.enemyHp,
-      maxHp: level.enemyHp,
-      speed: level.enemySpeed,
-      size: 18,
+      hp: Math.floor(level.enemyHp * scale),
+      maxHp: Math.floor(level.enemyHp * scale),
+      speed: level.enemySpeed * (0.9 + Math.random() * 0.3),
+      size: 16 + Math.floor(Math.random() * 4),
       color: "#cc8844",
       isBoss: false,
-      attackTimer: 0,
-      emoji: "🐱",
     });
   }
 
-  function useSpecial() {
-    if (!player || player.specialCooldown > 0) return;
-    const h = player.hero;
-    player.specialCooldown = h.special.cooldown;
-
-    switch (h.id) {
-      case "kael":
-        player.stealthTimer = h.special.duration;
-        player.invulnerable = h.special.duration;
-        addParticles(player.x, player.y, h.color, 15);
-        break;
-      case "zara":
-        for (let i = -2; i <= 2; i++) {
-          const angle = player.angle + i * 0.3;
-          projectiles.push(makeProjectile(player.x, player.y, angle, h.damage * 2, h.projectile, true));
-        }
-        break;
-      case "vex":
-        enemies.forEach((e) => {
-          const dist = Math.hypot(e.x - player.x, e.y - player.y);
-          if (dist < h.special.radius) {
-            e.hp -= 50;
-            addParticles(e.x, e.y, "#ffd700", 8);
-          }
-        });
-        addParticles(player.x, player.y, h.accent, 25);
-        break;
-      case "nia":
-        for (let i = 0; i < h.special.count; i++) {
-          const angle = (Math.PI * 2 * i) / h.special.count;
-          projectiles.push(makeProjectile(player.x, player.y, angle, h.damage, h.projectile, true));
-        }
-        break;
-      case "ryn":
-        enemies.forEach((e) => {
-          const dist = Math.hypot(e.x - player.x, e.y - player.y);
-          if (dist < h.special.radius) {
-            e.hp -= 40;
-            addParticles(e.x, e.y, h.color, 6);
-          }
-        });
-        addParticles(player.x, player.y, h.accent, 20);
-        break;
-    }
+  function spawnPickup() {
+    const types = ["heal", "damage", "speed", "magnet"];
+    const type = types[Math.floor(Math.random() * types.length)];
+    pickups.push({
+      x: 60 + Math.random() * (W - 120),
+      y: 60 + Math.random() * (H - 120),
+      type,
+      life: 600,
+    });
   }
 
-  function makeProjectile(x, y, angle, damage, type, isSpecial = false) {
-    const speed = isSpecial ? 8 : 7;
-    return {
-      x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      damage,
-      type,
-      life: 80,
-      isSpecial,
-    };
+  function dropXp(x, y, amount) {
+    xpGems.push({ x, y, value: amount, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2 });
+  }
+
+  function applyPowerUp(choice) {
+    if (!choice) return;
+    const up = player.upgrades;
+    up[choice.id] = (up[choice.id] || 0) + 1;
+
+    switch (choice.id) {
+      case "potenza": player.stats.damage *= 1.12; break;
+      case "celerita": player.stats.cooldownMult *= 0.9; break;
+      case "quantita": player.stats.amount += 1; orbiters = initOrbiters(); break;
+      case "area": player.stats.area *= 1.15; orbiters = initOrbiters(); break;
+      case "velocita": player.stats.speed *= 1.08; break;
+      case "cuore": player.maxHp += 25; player.hp = Math.min(player.hp + 25, player.maxHp); break;
+      case "magnete": player.stats.magnet *= 1.35; break;
+      case "rigenerazione": player.stats.regen += 0.4; break;
+      case "weapon_up": player.stats.weaponLevel++; break;
+    }
+
+    player.invulnerable = 45;
+    state = STATE.PLAYING;
+    levelUpChoices = [];
+  }
+
+  function triggerLevelUp() {
+    const owned = player.upgrades;
+    const pool = [];
+
+    POWERUP_POOL.forEach((p) => {
+      if ((owned[p.id] || 0) < p.max) pool.push({ ...p, kind: "passive" });
+    });
+
+    const wUp = WEAPON_UPGRADES[player.hero.weapon];
+    if (player.stats.weaponLevel < 5) {
+      pool.push({ id: "weapon_up", name: wUp.name, desc: wUp.desc, icon: "🗡️", kind: "weapon" });
+    }
+
+    levelUpChoices = [];
+    const shuffled = pool.sort(() => Math.random() - 0.5);
+    for (let i = 0; i < Math.min(3, shuffled.length); i++) {
+      levelUpChoices.push(shuffled[i]);
+    }
+
+    levelUpSelected = 0;
+    state = STATE.LEVEL_UP;
+  }
+
+  function addXp(amount) {
+    player.xp += amount;
+    while (player.xp >= player.xpToNext) {
+      player.xp -= player.xpToNext;
+      player.level++;
+      player.xpToNext = 8 + player.level * 6;
+      triggerLevelUp();
+      return;
+    }
   }
 
   function addParticles(x, y, color, count) {
     for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 1 + Math.random() * 3;
-      particles.push({
-        x, y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 20 + Math.random() * 20,
-        color,
-        size: 2 + Math.random() * 3,
-      });
+      const a = Math.random() * Math.PI * 2;
+      const s = 1 + Math.random() * 3;
+      particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 25 + Math.random() * 15, color, size: 2 + Math.random() * 3 });
     }
-  }
-
-  function rectCircleCollide(rx, ry, rw, rh, cx, cy, cr) {
-    const closestX = Math.max(rx, Math.min(cx, rx + rw));
-    const closestY = Math.max(ry, Math.min(cy, ry + rh));
-    return Math.hypot(cx - closestX, cy - closestY) < cr;
   }
 
   function updatePlaying() {
     const level = LEVELS[currentLevel];
-    const h = player.hero;
 
-    let dx = 0;
-    let dy = 0;
+    let dx = 0, dy = 0;
     if (keys.ArrowLeft || keys.KeyA) dx -= 1;
     if (keys.ArrowRight || keys.KeyD) dx += 1;
     if (keys.ArrowUp || keys.KeyW) dy -= 1;
     if (keys.ArrowDown || keys.KeyS) dy += 1;
 
-    const speed = h.speed * (player.stealthTimer > 0 ? 1.5 : 1);
+    const spd = player.stats.speed * (player.tempSpeed > 0 ? 1.35 : 1);
     if (dx !== 0 || dy !== 0) {
       const len = Math.hypot(dx, dy);
-      player.vx = (dx / len) * speed;
-      player.vy = (dy / len) * speed;
+      player.vx = (dx / len) * spd;
+      player.vy = (dy / len) * spd;
       player.angle = Math.atan2(dy, dx);
     } else {
-      player.vx *= 0.8;
-      player.vy *= 0.8;
-      player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+      player.vx *= 0.85;
+      player.vy *= 0.85;
     }
 
-    player.x += player.vx;
-    player.y += player.vy;
-    player.x = Math.max(20, Math.min(W - 20, player.x));
-    player.y = Math.max(20, Math.min(H - 20, player.y));
+    player.x = Math.max(22, Math.min(W - 22, player.x + player.vx));
+    player.y = Math.max(22, Math.min(H - 22, player.y + player.vy));
 
-    obstacles.forEach((o) => {
-      if (rectCircleCollide(o.x, o.y, o.w, o.h, player.x, player.y, 14)) {
-        player.x -= player.vx;
-        player.y -= player.vy;
-      }
-    });
-
-    if (player.attackCooldown > 0) player.attackCooldown--;
-    if (player.specialCooldown > 0) player.specialCooldown--;
-    if (player.stealthTimer > 0) player.stealthTimer--;
     if (player.invulnerable > 0) player.invulnerable--;
-
-    if ((keys.Space || keys.KeyJ) && player.attackCooldown <= 0) {
-      projectiles.push(makeProjectile(player.x, player.y, player.angle, h.damage, h.projectile));
-      player.attackCooldown = h.attackRate;
+    if (player.tempBuff > 0) player.tempBuff--;
+    if (player.tempSpeed > 0) player.tempSpeed--;
+    if (player.stats.regen > 0 && player.hp < player.maxHp) {
+      player.hp = Math.min(player.maxHp, player.hp + player.stats.regen);
     }
 
-    if (spawnTimer > 0) spawnTimer--;
-    else if (enemiesToSpawn > 0) {
-      spawnEnemy();
-      enemiesToSpawn--;
-      spawnTimer = 40;
+    player.weaponTimer--;
+    if (player.weaponTimer <= 0) {
+      autoAttack();
+      player.weaponTimer = getCooldown();
     }
 
-    if (enemiesToSpawn === 0 && enemiesKilled >= level.enemyCount && !bossSpawned && level.boss) {
+    updateOrbiters();
+
+    if (!bossPhase) {
+      levelTimer--;
+      if (spawnTimer > 0) spawnTimer--;
+      else {
+        spawnEnemy();
+        const rate = Math.max(25, level.spawnRate - Math.floor((level.duration - levelTimer) / 60));
+        spawnTimer = rate;
+      }
+    }
+
+    if (!bossSpawned && levelTimer <= 0 && level.boss) {
       spawnEnemy(true, level.boss);
       bossSpawned = true;
+    } else if (!bossSpawned && levelTimer <= 0 && !level.boss) {
+      state = STATE.LEVEL_CLEAR;
+      return;
     }
 
+    if (pickupTimer > 0) pickupTimer--;
+    else { spawnPickup(); pickupTimer = 480 + Math.random() * 240; }
+
     projectiles.forEach((p) => {
+      if (p.type === "arc_slash") { p.life--; return; }
+      if (p.homing && p.target && enemies.includes(p.target)) {
+        const angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
+        p.vx = Math.cos(angle) * 11;
+        p.vy = Math.sin(angle) * 11;
+      }
       p.x += p.vx;
       p.y += p.vy;
       p.life--;
       enemies.forEach((e) => {
-        if (p.life > 0 && Math.hypot(p.x - e.x, p.y - e.y) < e.size) {
+        if (p.life > 0 && Math.hypot(p.x - e.x, p.y - e.y) < e.size + 4) {
           e.hp -= p.damage;
-          p.life = 0;
-          addParticles(e.x, e.y, e.color, 5);
+          if (!p.piercing) p.life = 0;
+          addParticles(e.x, e.y, e.color, 3);
         }
       });
     });
-    projectiles = projectiles.filter((p) => p.life > 0 && p.x > -20 && p.x < W + 20 && p.y > -20 && p.y < H + 20);
+    projectiles = projectiles.filter((p) => p.life > 0);
+
+    waves.forEach((w) => {
+      if (w.expand) {
+        w.r += w.expand;
+        enemies.forEach((e) => {
+          const d = Math.hypot(e.x - w.x, e.y - w.y);
+          if (d < w.r && d > w.r - w.expand - 2 && !w.hit.has(e)) {
+            w.hit.add(e);
+            e.hp -= w.damage;
+            addParticles(e.x, e.y, w.color, 4);
+          }
+        });
+      }
+      w.life--;
+    });
+    waves = waves.filter((w) => w.life > 0);
 
     enemies.forEach((e) => {
       const angle = Math.atan2(player.y - e.y, player.x - e.x);
       e.x += Math.cos(angle) * e.speed;
       e.y += Math.sin(angle) * e.speed;
-
-      obstacles.forEach((o) => {
-        if (rectCircleCollide(o.x, o.y, o.w, o.h, e.x, e.y, e.size)) {
-          e.x -= Math.cos(angle) * e.speed;
-          e.y -= Math.sin(angle) * e.speed;
-        }
-      });
-
-      e.attackTimer++;
-      const dist = Math.hypot(player.x - e.x, player.y - e.y);
-      if (dist < e.size + 14 && player.invulnerable <= 0) {
-        const dmg = e.isBoss ? 12 : 5;
-        player.hp -= dmg;
-        player.invulnerable = 30;
-        addParticles(player.x, player.y, "#ff0000", 8);
+      if (Math.hypot(player.x - e.x, player.y - e.y) < e.size + 14 && player.invulnerable <= 0) {
+        player.hp -= e.isBoss ? 10 : 4;
+        player.invulnerable = 25;
+        addParticles(player.x, player.y, "#ff0000", 6);
       }
     });
 
     const dead = enemies.filter((e) => e.hp <= 0);
     dead.forEach((e) => {
-      addParticles(e.x, e.y, e.color, e.isBoss ? 30 : 10);
-      if (!e.isBoss) enemiesKilled++;
-      else {
+      addParticles(e.x, e.y, e.color, e.isBoss ? 35 : 8);
+      kills++;
+      if (!e.isBoss) {
+        dropXp(e.x, e.y, e.isBoss ? 15 : 3 + Math.floor(currentLevel / 2));
+      } else {
+        dropXp(e.x, e.y, 30);
         if (level.fragment) fragments++;
         if (level.finalBoss && e.name === "Re dei Gatti Mannari" && !finalBossSpawned) {
           setTimeout(() => {
@@ -551,60 +841,154 @@
               spawnEnemy(true, level.finalBoss);
               finalBossSpawned = true;
             }
-          }, 1500);
+          }, 2000);
+        } else if (!level.finalBoss || finalBossSpawned) {
+          state = STATE.LEVEL_CLEAR;
         }
       }
     });
     enemies = enemies.filter((e) => e.hp > 0);
 
-    particles.forEach((p) => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life--;
-      p.vx *= 0.95;
-      p.vy *= 0.95;
+    xpGems.forEach((g) => {
+      g.x += g.vx;
+      g.y += g.vy;
+      g.vx *= 0.9;
+      g.vy *= 0.9;
+      const dist = Math.hypot(player.x - g.x, player.y - g.y);
+      if (dist < player.stats.magnet) {
+        const a = Math.atan2(player.y - g.y, player.x - g.x);
+        g.x += Math.cos(a) * 6;
+        g.y += Math.sin(a) * 6;
+      }
+      if (dist < 18) {
+        addXp(g.value);
+        g.collected = true;
+        addParticles(g.x, g.y, "#00f5ff", 4);
+      }
     });
+    xpGems = xpGems.filter((g) => !g.collected);
+
+    pickups.forEach((p) => {
+      p.life--;
+      if (Math.hypot(player.x - p.x, player.y - p.y) < 22) {
+        if (p.type === "heal") player.hp = Math.min(player.maxHp, player.hp + 30);
+        if (p.type === "damage") player.tempBuff = 600;
+        if (p.type === "speed") player.tempSpeed = 600;
+        if (p.type === "magnet") xpGems.forEach((g) => { g.x = player.x; g.y = player.y; g.collected = true; addXp(g.value); });
+        addParticles(p.x, p.y, "#ffd700", 10);
+        p.collected = true;
+      }
+    });
+    pickups = pickups.filter((p) => !p.collected && p.life > 0);
+
+    particles.forEach((p) => { p.x += p.vx; p.y += p.vy; p.life--; p.vx *= 0.94; p.vy *= 0.94; });
     particles = particles.filter((p) => p.life > 0);
 
-    if (player.hp <= 0) {
-      state = STATE.GAME_OVER;
-    }
-
-    const allCleared = enemiesToSpawn === 0 && enemies.length === 0 &&
-      enemiesKilled >= level.enemyCount &&
-      (!level.boss || bossSpawned) &&
-      (!level.finalBoss || finalBossSpawned);
-
-    if (allCleared) {
-      state = STATE.LEVEL_CLEAR;
-      clearTimer = 120;
-    }
+    if (player.hp <= 0) state = STATE.GAME_OVER;
   }
 
-  function drawStars(bg) {
-    ctx.fillStyle = bg[0];
+  function drawLevelBackground(level) {
+    ctx.fillStyle = level.bg[0];
     ctx.fillRect(0, 0, W, H);
-    for (let i = 0; i < 80; i++) {
-      const sx = (i * 137 + currentLevel * 50) % W;
-      const sy = (i * 89 + currentLevel * 30) % H;
-      ctx.fillStyle = `rgba(255,255,255,${0.2 + (i % 5) * 0.1})`;
-      ctx.fillRect(sx, sy, 1 + (i % 2), 1 + (i % 2));
+
+    ctx.fillStyle = level.floor;
+    ctx.globalAlpha = 0.5;
+    for (let x = 0; x < W; x += 40) {
+      for (let y = 0; y < H; y += 40) {
+        if ((x / 40 + y / 40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
+      }
     }
-    const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W * 0.7);
-    grad.addColorStop(0, "transparent");
-    grad.addColorStop(1, bg[1] + "88");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+
+    decor.forEach((d) => drawDecor(d, level));
   }
 
-  function drawObstacles() {
-    obstacles.forEach((o) => {
-      ctx.fillStyle = "rgba(60,60,90,0.8)";
-      ctx.strokeStyle = "rgba(0,245,255,0.3)";
-      ctx.lineWidth = 2;
-      ctx.fillRect(o.x, o.y, o.w, o.h);
-      ctx.strokeRect(o.x, o.y, o.w, o.h);
-    });
+  function drawDecor(d, level) {
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    switch (d.type) {
+      case "holo_ring":
+        ctx.strokeStyle = level.accent;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.stroke();
+        break;
+      case "building":
+        ctx.fillStyle = "#0a0520";
+        ctx.fillRect(d.x, d.y, d.w, d.h);
+        if (d.windows) {
+          let idx = 0;
+          for (let wy = d.y + 10; wy < d.y + d.h - 10; wy += 18) {
+            for (let wx = d.x + 8; wx < d.x + d.w - 8; wx += 14) {
+              ctx.fillStyle = d.windows[idx++] ? level.accent : "#1a1040";
+              ctx.globalAlpha = 0.6;
+              ctx.fillRect(wx, wy, 8, 10);
+            }
+          }
+        }
+        break;
+      case "tree":
+        ctx.fillStyle = "#0a3a0a";
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#2a1a0a";
+        ctx.fillRect(d.x - 4, d.y, 8, d.r);
+        break;
+      case "pillar":
+        ctx.fillStyle = "#5a4a30";
+        ctx.fillRect(d.x, d.y, 20, d.h);
+        ctx.fillStyle = level.accent;
+        ctx.globalAlpha = 0.5;
+        ctx.fillRect(d.x - 2, d.y, 24, 8);
+        break;
+      case "stalactite":
+        ctx.fillStyle = "#4a2020";
+        ctx.beginPath();
+        ctx.moveTo(d.x, 0);
+        ctx.lineTo(d.x - 8, d.h);
+        ctx.lineTo(d.x + 8, d.h);
+        ctx.fill();
+        break;
+      case "rune":
+        ctx.strokeStyle = level.accent;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = level.accent;
+        ctx.font = "14px serif";
+        ctx.fillText("✦", d.x - 5, d.y + 5);
+        break;
+      case "crater":
+        ctx.fillStyle = "#2a2a35";
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#4a4a55";
+        ctx.stroke();
+        break;
+      case "ruin":
+        ctx.fillStyle = "#3a2540";
+        ctx.fillRect(d.x, d.y, d.w, d.h);
+        break;
+      case "crystal":
+        ctx.fillStyle = level.accent;
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y - d.h);
+        ctx.lineTo(d.x - 8, d.y);
+        ctx.lineTo(d.x + 8, d.y);
+        ctx.fill();
+        break;
+      case "moon_rock":
+        ctx.fillStyle = "#4a4a55";
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+    }
+    ctx.restore();
   }
 
   function drawPlayer() {
@@ -612,9 +996,20 @@
     const h = p.hero;
     ctx.save();
     ctx.translate(p.x, p.y);
-    ctx.rotate(p.angle);
 
-    if (p.stealthTimer > 0) ctx.globalAlpha = 0.4;
+    if (p.hero.weapon === "orbit_shuriken") {
+      orbiters.forEach((o) => {
+        const ox = Math.cos(o.angle) * o.dist;
+        const oy = Math.sin(o.angle) * o.dist;
+        ctx.fillStyle = h.accent;
+        ctx.beginPath();
+        ctx.moveTo(ox, oy - 6);
+        ctx.lineTo(ox + 5, oy);
+        ctx.lineTo(ox, oy + 6);
+        ctx.lineTo(ox - 5, oy);
+        ctx.fill();
+      });
+    }
 
     ctx.fillStyle = h.color;
     ctx.beginPath();
@@ -623,75 +1018,108 @@
     ctx.strokeStyle = h.accent;
     ctx.lineWidth = 2;
     ctx.stroke();
-
     ctx.font = "18px serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(h.emoji, 0, 0);
-
     ctx.restore();
 
     if (p.invulnerable > 0 && p.invulnerable % 6 < 3) {
       ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, 22, 0, Math.PI * 2);
       ctx.stroke();
     }
   }
 
   function drawEnemies() {
     enemies.forEach((e) => {
-      ctx.save();
-      ctx.translate(e.x, e.y);
       ctx.fillStyle = e.color;
       ctx.beginPath();
-      ctx.arc(0, 0, e.size, 0, Math.PI * 2);
+      ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
       ctx.fill();
       ctx.font = `${e.size}px serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(e.isBoss ? "😾" : e.emoji, 0, 0);
-      ctx.restore();
-
+      ctx.fillText(e.isBoss ? "😾" : "🐱", e.x, e.y);
       if (e.isBoss) {
-        const barW = e.size * 2;
-        ctx.fillStyle = "#333";
-        ctx.fillRect(e.x - barW / 2, e.y - e.size - 14, barW, 6);
+        const barW = e.size * 2.5;
+        ctx.fillStyle = "#222";
+        ctx.fillRect(e.x - barW / 2, e.y - e.size - 16, barW, 7);
         ctx.fillStyle = e.color;
-        ctx.fillRect(e.x - barW / 2, e.y - e.size - 14, barW * (e.hp / e.maxHp), 6);
+        ctx.fillRect(e.x - barW / 2, e.y - e.size - 16, barW * (e.hp / e.maxHp), 7);
         ctx.fillStyle = "#fff";
         ctx.font = "11px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(e.name, e.x, e.y - e.size - 20);
+        ctx.fillText(e.name, e.x, e.y - e.size - 22);
       }
     });
   }
 
   function drawProjectiles() {
+    const colors = { shuriken: "#c0c0c0", dart: "#ff69b4", laser: "#39ff14" };
     projectiles.forEach((p) => {
-      const colors = {
-        shuriken: "#c0c0c0",
-        laser: "#39ff14",
-        plasma: "#ff6347",
-        dart: "#ff69b4",
-        arcane: "#00f5ff",
-      };
+      if (p.type === "arc_slash") {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.strokeStyle = "rgba(57,255,20,0.7)";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, p.range, -p.arc / 2, p.arc / 2);
+        ctx.stroke();
+        ctx.restore();
+        return;
+      }
       ctx.fillStyle = colors[p.type] || "#fff";
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.isSpecial ? 6 : 4, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
       ctx.fill();
-      if (p.isSpecial) {
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
+    });
+  }
+
+  function drawWaves() {
+    waves.forEach((w) => {
+      ctx.strokeStyle = w.color;
+      ctx.globalAlpha = w.life / 30;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.r || w.maxR * (1 - w.life / 20), 0, Math.PI * 2);
+      ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawXpGems() {
+    xpGems.forEach((g) => {
+      ctx.fillStyle = "#00f5ff";
+      ctx.beginPath();
+      ctx.moveTo(g.x, g.y - 5);
+      ctx.lineTo(g.x + 4, g.y);
+      ctx.lineTo(g.x, g.y + 5);
+      ctx.lineTo(g.x - 4, g.y);
+      ctx.fill();
+    });
+  }
+
+  function drawPickups() {
+    const icons = { heal: "💚", damage: "💥", speed: "💨", magnet: "🧲" };
+    const colors = { heal: "#39ff14", damage: "#ff6347", speed: "#00f5ff", magnet: "#ffd700" };
+    pickups.forEach((p) => {
+      ctx.fillStyle = colors[p.type];
+      ctx.globalAlpha = 0.3 + (p.life % 30) / 60;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.font = "16px serif";
+      ctx.textAlign = "center";
+      ctx.fillText(icons[p.type], p.x, p.y + 5);
     });
   }
 
   function drawParticles() {
     particles.forEach((p) => {
-      ctx.globalAlpha = p.life / 40;
+      ctx.globalAlpha = p.life / 35;
       ctx.fillStyle = p.color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -702,141 +1130,159 @@
 
   function drawHUD() {
     const level = LEVELS[currentLevel];
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillRect(0, 0, W, 50);
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(0, 0, W, 56);
 
-    ctx.fillStyle = "#00f5ff";
-    ctx.font = "bold 16px sans-serif";
+    ctx.fillStyle = level.accent;
+    ctx.font = "bold 15px sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText(`${level.name} — ${player.hero.name}`, 16, 22);
-
-    ctx.fillStyle = "#888";
+    ctx.fillText(`${level.name}`, 14, 20);
+    ctx.fillStyle = "#aaa";
     ctx.font = "12px sans-serif";
-    ctx.fillText(`Frammenti Lancia: ${fragments}/7`, 16, 40);
+    ctx.fillText(`${player.hero.name} ${player.hero.emoji} | Lv.${player.level} | Uccisi: ${kills}`, 14, 38);
 
-    const barX = W - 220;
+    const secs = Math.max(0, Math.ceil(levelTimer / 60));
+    ctx.textAlign = "center";
+    ctx.fillStyle = bossPhase ? "#ff4444" : "#fff";
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillText(bossPhase ? "⚔️ FASE BOSS" : `⏱ ${secs}s`, W / 2, 22);
+
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#ffd700";
+    ctx.fillText(`⭐ Frammenti: ${fragments}/7`, W - 14, 20);
+
+    const barX = W - 210;
     ctx.fillStyle = "#333";
-    ctx.fillRect(barX, 14, 200, 16);
+    ctx.fillRect(barX, 34, 196, 14);
     ctx.fillStyle = player.hp > 30 ? "#39ff14" : "#ff4444";
-    ctx.fillRect(barX, 14, 200 * (player.hp / player.maxHp), 16);
+    ctx.fillRect(barX, 34, 196 * (player.hp / player.maxHp), 14);
     ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(barX, 14, 200, 16);
-    ctx.fillStyle = "#fff";
-    ctx.font = "11px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`HP ${Math.max(0, Math.ceil(player.hp))}/${player.maxHp}`, barX + 100, 26);
+    ctx.strokeRect(barX, 34, 196, 14);
 
-    if (player.specialCooldown > 0) {
-      ctx.fillStyle = "#666";
-      ctx.textAlign = "right";
-      ctx.fillText(`Speciale: ${Math.ceil(player.specialCooldown / 60)}s`, W - 16, 40);
-    } else {
-      ctx.fillStyle = "#b026ff";
-      ctx.textAlign = "right";
-      ctx.fillText("Speciale: [E] pronto!", W - 16, 40);
-    }
+    const xpBarW = 196;
+    const xpX = 14;
+    ctx.fillStyle = "#222";
+    ctx.fillRect(xpX, 44, xpBarW, 8);
+    ctx.fillStyle = "#00f5ff";
+    ctx.fillRect(xpX, 44, xpBarW * (player.xp / player.xpToNext), 8);
 
-    ctx.fillStyle = "#888";
+    ctx.fillStyle = "#666";
     ctx.textAlign = "center";
     ctx.font = "11px sans-serif";
-    ctx.fillText("WASD/↑↓←→ muovi | SPAZIO/J attacca | E speciale", W / 2, H - 10);
+    ctx.fillText("WASD / Frecce — solo movimento | Armi automatiche stile Vampire Survivors", W / 2, H - 8);
+  }
+
+  function drawLevelUp() {
+    const level = LEVELS[currentLevel];
+    drawLevelBackground(level);
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = "#ffd700";
+    ctx.font = "bold 32px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`LEVEL UP! — Livello ${player.level}`, W / 2, 80);
+
+    levelUpChoices.forEach((c, i) => {
+      const y = 180 + i * 110;
+      const selected = i === levelUpSelected;
+      ctx.fillStyle = selected ? "rgba(176,38,255,0.4)" : "rgba(20,20,50,0.8)";
+      ctx.strokeStyle = selected ? "#b026ff" : "#444";
+      ctx.lineWidth = selected ? 3 : 1;
+      ctx.fillRect(W / 2 - 280, y - 40, 560, 90);
+      ctx.strokeRect(W / 2 - 280, y - 40, 560, 90);
+
+      ctx.font = "28px serif";
+      ctx.fillText(c.icon || "✨", W / 2 - 240, y + 5);
+      ctx.fillStyle = selected ? "#fff" : "#ccc";
+      ctx.font = "bold 18px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(`${i + 1}. ${c.name}`, W / 2 - 190, y - 8);
+      ctx.fillStyle = "#888";
+      ctx.font = "14px sans-serif";
+      ctx.fillText(c.desc, W / 2 - 190, y + 18);
+    });
+
+    ctx.fillStyle = "#aaa";
+    ctx.textAlign = "center";
+    ctx.font = "14px sans-serif";
+    ctx.fillText("↑↓ seleziona — INVIO / 1-3 per scegliere il power-up", W / 2, H - 40);
   }
 
   function drawTextScreen(title, lines, sub = "") {
-    drawStars(["#050510", "#0a0a2a"]);
+    drawLevelBackground(LEVELS[0]);
     titlePulse += 0.05;
-    const glow = 0.5 + Math.sin(titlePulse) * 0.3;
-
-    ctx.fillStyle = `rgba(0,245,255,${glow})`;
-    ctx.font = "bold 42px sans-serif";
+    ctx.fillStyle = `rgba(0,245,255,${0.5 + Math.sin(titlePulse) * 0.3})`;
+    ctx.font = "bold 40px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(title, W / 2, 100);
-
     ctx.fillStyle = "#e8e8ff";
     ctx.font = "16px sans-serif";
-    let y = 180;
+    let y = 170;
     lines.forEach((line) => {
-      if (line === "") { y += 10; return; }
-      const words = line.split(" ");
-      let current = "";
-      words.forEach((word) => {
-        const test = current + word + " ";
-        if (ctx.measureText(test).width > W - 120) {
-          ctx.fillText(current, W / 2, y);
-          y += 26;
-          current = word + " ";
-        } else {
-          current = test;
-        }
-      });
-      if (current) { ctx.fillText(current, W / 2, y); y += 26; }
+      if (!line) { y += 10; return; }
+      ctx.fillText(line, W / 2, y);
+      y += 28;
     });
-
     if (sub) {
       ctx.fillStyle = "#b026ff";
-      ctx.font = "18px sans-serif";
-      ctx.fillText(sub, W / 2, H - 60);
+      ctx.font = "17px sans-serif";
+      ctx.fillText(sub, W / 2, H - 50);
     }
   }
 
   function drawTitle() {
     drawTextScreen("Ninja Alieni vs Gatti Mannari", [
-      "Cinque ninja alieni difendono il loro pianeta",
-      "dall'invasione dei Gatti Mannari.",
-      "",
-      "Recupera la Lancia delle Stelle!",
-    ], "Premi INVIO o SPAZIO per iniziare");
+      "Sopravvivi alle orde di Gatti Mannari!",
+      "Muoviti, le armi attaccano da sole.",
+      "Raccogli XP, potenzia il tuo ninja.",
+      "", "Recupera la Lancia delle Stelle!",
+    ], "INVIO per iniziare");
   }
 
   function drawStory() {
     drawTextScreen("La Trama", [
-      "Zara, Kael, Vex, Nia e Ryn sono l'élite ninja aliena.",
-      "I Gatti Mannari, guidati dal loro Re, invadono il pianeta.",
-      "",
-      "La squadra deve attraversare città aliene, foreste, templi",
-      "e dimensioni misteriose per recuperare la Lancia delle Stelle.",
-      "",
-      "Il viaggio termina con lo scontro finale sulla Luna.",
-    ], "Premi INVIO per scegliere il tuo eroe");
+      "Zara, Kael, Vex, Nia e Ryn — l'élite ninja aliena.",
+      "I Gatti Mannari invadono il pianeta.",
+      "Attraversa 10 location fino alla Luna.",
+      "Ogni arma è unica. Ogni livello ha il suo boss.",
+    ], "INVIO per scegliere l'eroe");
   }
 
   function drawSelect() {
-    drawStars(["#0a0a1a", "#1a0a2a"]);
+    drawLevelBackground(LEVELS[0]);
     ctx.fillStyle = "#00f5ff";
-    ctx.font = "bold 28px sans-serif";
+    ctx.font = "bold 26px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Scegli il tuo Ninja Alieno", W / 2, 50);
+    ctx.fillText("Scegli il tuo Ninja — Arma unica", W / 2, 45);
     ctx.fillStyle = "#888";
-    ctx.font="14px sans-serif";
-    ctx.fillText("Premi 1-5 per selezionare", W / 2, 80);
+    ctx.font = "13px sans-serif";
+    ctx.fillText("Premi 1-5 | Stile Vampire Survivors: solo movimento", W / 2, 72);
 
     HEROES.forEach((h, i) => {
       const col = i % 3;
       const row = Math.floor(i / 3);
-      const cx = 160 + col * 320;
-      const cy = 180 + row * 200;
-      const cardW = 280;
-      const cardH = 170;
-
-      ctx.fillStyle = "rgba(20,20,50,0.8)";
+      const cx = 165 + col * 315;
+      const cy = 175 + row * 195;
+      const cw = 270, ch = 165;
+      ctx.fillStyle = "rgba(20,20,50,0.85)";
       ctx.strokeStyle = h.color;
       ctx.lineWidth = 2;
-      ctx.fillRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH);
-      ctx.strokeRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH);
-
-      ctx.font = "36px serif";
-      ctx.fillText(h.emoji, cx - cardW / 2 + 40, cy - 20);
+      ctx.fillRect(cx - cw / 2, cy - ch / 2, cw, ch);
+      ctx.strokeRect(cx - cw / 2, cy - ch / 2, cw, ch);
+      ctx.font = "32px serif";
+      ctx.fillText(h.emoji, cx - cw / 2 + 35, cy - 15);
       ctx.fillStyle = h.color;
-      ctx.font = "bold 20px sans-serif";
+      ctx.font = "bold 18px sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(`${i + 1}. ${h.name}`, cx - cardW / 2 + 70, cy - 30);
+      ctx.fillText(`${i + 1}. ${h.name}`, cx - cw / 2 + 65, cy - 25);
       ctx.fillStyle = "#aaa";
-      ctx.font = "13px sans-serif";
-      ctx.fillText(h.desc, cx - cardW / 2 + 20, cy + 10);
-      ctx.fillText(`HP:${h.hp} SPD:${h.speed} DMG:${h.damage}`, cx - cardW / 2 + 20, cy + 35);
+      ctx.font = "12px sans-serif";
+      ctx.fillText(h.desc, cx - cw / 2 + 15, cy + 5, cw - 30);
       ctx.fillStyle = h.accent;
-      ctx.fillText(`Speciale: ${h.special.name}`, cx - cardW / 2 + 20, cy + 58);
+      ctx.fillText(`⚔ ${h.weaponName}`, cx - cw / 2 + 15, cy + 30);
+      ctx.fillStyle = "#666";
+      ctx.fillText(`HP ${h.hp} | SPD ${h.speed}`, cx - cw / 2 + 15, cy + 52);
     });
   }
 
@@ -845,75 +1291,58 @@
     drawTextScreen(`Livello ${currentLevel + 1}: ${level.name}`, [
       level.story,
       "",
-      `Eroe: ${selectedHero.name} ${selectedHero.emoji}`,
-      level.boss ? `Boss: ${level.boss.name}` : "Nessun boss — addestramento",
-      level.finalBoss ? `Boss finale: ${level.finalBoss.name}` : "",
-    ], introTimer > 0 ? "..." : "Premi INVIO per iniziare");
+      `Arma: ${selectedHero.weaponName}`,
+      level.boss ? `Boss: ${level.boss.name}` : `Sopravvivi ${Math.ceil(level.duration / 60)} secondi`,
+    ], introTimer > 0 ? "..." : "INVIO per iniziare");
     if (introTimer > 0) introTimer--;
   }
 
   function drawLevelClear() {
     const level = LEVELS[currentLevel];
-    drawStars(level.bg);
+    drawLevelBackground(level);
     ctx.fillStyle = "#39ff14";
-    ctx.font = "bold 36px sans-serif";
+    ctx.font = "bold 34px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Livello Completato!", W / 2, H / 2 - 40);
+    ctx.fillText("Livello Completato!", W / 2, H / 2 - 50);
     if (level.fragment) {
       ctx.fillStyle = "#ffd700";
-      ctx.font = "20px sans-serif";
-      ctx.fillText("⭐ Frammento della Lancia delle Stelle recuperato!", W / 2, H / 2);
+      ctx.font = "18px sans-serif";
+      ctx.fillText("⭐ Frammento della Lancia delle Stelle!", W / 2, H / 2);
     }
     ctx.fillStyle = "#aaa";
-    ctx.font = "16px sans-serif";
-    if (currentLevel < LEVELS.length - 1) {
-      ctx.fillText("Premi INVIO per il prossimo livello", W / 2, H / 2 + 50);
-    } else {
-      ctx.fillText("Premi INVIO per la schermata finale", W / 2, H / 2 + 50);
-    }
-    if (clearTimer > 0) clearTimer--;
+    ctx.fillText(`Livello personaggio: ${player.level} | Uccisi: ${kills}`, W / 2, H / 2 + 40);
+    ctx.fillText("INVIO — prossimo livello", W / 2, H / 2 + 75);
   }
 
   function drawGameOver() {
     drawTextScreen("Game Over", [
-      `${selectedHero?.name || "Ninja"} è stato sconfitto dai Gatti Mannari.`,
-      "",
-      "I felini mannari dominano ancora il pianeta...",
-    ], "Premi INVIO per riprovare");
+      `${selectedHero?.name} è caduto.`,
+      `Hai raggiunto il livello ${player?.level || 1}.`,
+      "I Gatti Mannari dominano ancora...",
+    ], "INVIO per riprovare");
   }
 
   function drawVictory() {
-    drawStars(["#0a0a2a", "#2a0a4a"]);
+    drawLevelBackground(LEVELS[9]);
     ctx.fillStyle = "#ffd700";
-    ctx.font = "bold 40px sans-serif";
+    ctx.font = "bold 38px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("VITTORIA!", W / 2, 120);
-
+    ctx.fillText("VITTORIA!", W / 2, 110);
     ctx.fillStyle = "#e8e8ff";
-    ctx.font = "18px sans-serif";
-    const lines = [
-      "La Lancia delle Stelle è stata ricomposta!",
-      "Il Re dei Gatti Mannari e il Guardiano dell'Universo",
-      "sono stati sconfitti.",
-      "",
-      `${selectedHero.name} e la squadra ninja aliena`,
-      "hanno salvato il pianeta!",
-      "",
-      `Frammenti recuperati: ${fragments}/7`,
-      `Livelli completati: ${LEVELS.length}`,
-    ];
-    let y = 200;
-    lines.forEach((l) => { ctx.fillText(l, W / 2, y); y += 30; });
-
+    ctx.font = "17px sans-serif";
+    ["La Lancia delle Stelle è completa!", "Il pianeta è salvo.", "",
+      `Frammenti: ${fragments}/7 | Livello finale: ${player.level}`,
+    ].forEach((l, i) => ctx.fillText(l, W / 2, 180 + i * 30));
     ctx.fillStyle = "#00f5ff";
-    ctx.font = "16px sans-serif";
-    ctx.fillText("Premi INVIO per tornare al menu", W / 2, H - 50);
+    ctx.fillText("INVIO — menu principale", W / 2, H - 50);
   }
 
   function drawPlaying() {
     const level = LEVELS[currentLevel];
-    drawStars(level.bg);
-    drawObstacles();
+    drawLevelBackground(level);
+    drawWaves();
+    drawXpGems();
+    drawPickups();
     drawParticles();
     drawProjectiles();
     drawEnemies();
@@ -922,14 +1351,8 @@
   }
 
   function update() {
-    switch (state) {
-      case STATE.PLAYING:
-        updatePlaying();
-        break;
-      case STATE.LEVEL_INTRO:
-        if (introTimer > 0) introTimer--;
-        break;
-    }
+    if (state === STATE.PLAYING) updatePlaying();
+    if (state === STATE.LEVEL_INTRO && introTimer > 0) introTimer--;
   }
 
   function draw() {
@@ -939,6 +1362,7 @@
       case STATE.SELECT: drawSelect(); break;
       case STATE.LEVEL_INTRO: drawLevelIntro(); break;
       case STATE.PLAYING: drawPlaying(); break;
+      case STATE.LEVEL_UP: drawLevelUp(); break;
       case STATE.LEVEL_CLEAR: drawLevelClear(); break;
       case STATE.GAME_OVER: drawGameOver(); break;
       case STATE.VICTORY: drawVictory(); break;
