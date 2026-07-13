@@ -321,6 +321,79 @@
     mouse.screenY = (e.clientY - rect.top) * sy;
   });
 
+  const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
+
+  function canvasCoords(touch) {
+    const rect = canvas.getBoundingClientRect();
+    const sx = W / rect.width;
+    const sy = H / rect.height;
+    return {
+      x: (touch.clientX - rect.left) * sx,
+      y: (touch.clientY - rect.top) * sy,
+    };
+  }
+
+  function setTouchKeys() {
+    keys.KeyW = keys.KeyA = keys.KeyS = keys.KeyD = false;
+    if (!joy.active) return;
+    const dx = joy.x - joy.ox;
+    const dy = joy.y - joy.oy;
+    const t = 14;
+    if (dy < -t) keys.KeyW = true;
+    if (dy > t) keys.KeyS = true;
+    if (dx < -t) keys.KeyA = true;
+    if (dx > t) keys.KeyD = true;
+  }
+
+  canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    for (const t of e.changedTouches) {
+      const c = canvasCoords(t);
+      if (c.x < W * 0.42 && c.y > H * 0.45 && !joy.active) {
+        joy.active = true;
+        joy.id = t.identifier;
+        joy.ox = c.x;
+        joy.oy = c.y;
+        joy.x = c.x;
+        joy.y = c.y;
+      }
+      mouse.screenX = c.x;
+      mouse.screenY = c.y;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    for (const t of e.changedTouches) {
+      const c = canvasCoords(t);
+      if (joy.active && t.identifier === joy.id) {
+        joy.x = c.x;
+        joy.y = c.y;
+      } else {
+        mouse.screenX = c.x;
+        mouse.screenY = c.y;
+      }
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", (e) => {
+    for (const t of e.changedTouches) {
+      if (joy.active && t.identifier === joy.id) {
+        joy.active = false;
+        joy.id = null;
+      }
+    }
+  });
+
+  canvas.addEventListener("touchcancel", (e) => {
+    for (const t of e.changedTouches) {
+      if (joy.active && t.identifier === joy.id) {
+        joy.active = false;
+        joy.id = null;
+      }
+    }
+  });
+
   function updateMouseWorld() {
     mouse.worldX = mouse.screenX + camera.x;
     mouse.worldY = mouse.screenY + camera.y;
@@ -500,8 +573,8 @@
   function updateCamera() {
     const tx = player.x - W / 2;
     const ty = player.y - H / 2;
-    camera.x += (tx - camera.x) * 0.12;
-    camera.y += (ty - camera.y) * 0.12;
+    camera.x += (tx - camera.x) * 0.08;
+    camera.y += (ty - camera.y) * 0.08;
     camera.x = Math.max(0, Math.min(WORLD_W - W, camera.x));
     camera.y = Math.max(0, Math.min(WORLD_H - H, camera.y));
   }
@@ -683,7 +756,7 @@
   function updateOrbiters() {
     if (player.hero.weapon !== "orbit_shuriken") return;
     orbiters.forEach((o) => {
-      o.angle += 0.06;
+      o.angle += 0.035;
       const ox = player.x + Math.cos(o.angle) * o.dist;
       const oy = player.y + Math.sin(o.angle) * o.dist;
       enemies.forEach((e) => {
@@ -823,6 +896,7 @@
 
     updateMouseWorld();
     player.aimAngle = getAimAngle();
+    setTouchKeys();
 
     let dx = 0, dy = 0;
     if (keys.ArrowLeft || keys.KeyA) dx -= 1;
@@ -1215,6 +1289,19 @@
   }
 
   function drawCrosshair() {
+    if (joy.active) {
+      const maxR = 50;
+      const dx = Math.max(-maxR, Math.min(maxR, joy.x - joy.ox));
+      const dy = Math.max(-maxR, Math.min(maxR, joy.y - joy.oy));
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.beginPath();
+      ctx.arc(joy.ox, joy.oy, 55, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(0,245,255,0.5)";
+      ctx.beginPath();
+      ctx.arc(joy.ox + dx, joy.oy + dy, 22, 0, Math.PI * 2);
+      ctx.fill();
+    }
     const x = mouse.screenX;
     const y = mouse.screenY;
     ctx.strokeStyle = "rgba(0,245,255,0.7)";

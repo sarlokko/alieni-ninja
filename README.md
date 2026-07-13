@@ -17,6 +17,17 @@ public/
 package.json
 ```
 
+## Gioca online (cellulare e remoto)
+
+Il gioco è pubblicato su **GitHub Pages**:
+
+- **Landing:** https://sarlokko.github.io/alieni-ninja/
+- **Gioco:** https://sarlokko.github.io/alieni-ninja/game.html
+
+Apri il link dal browser del cellulare. Controlli touch:
+- **Sinistra (joystick):** movimento
+- **Destra / dito sullo schermo:** mira
+
 ## Avvio locale
 
 ```bash
