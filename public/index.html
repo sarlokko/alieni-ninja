@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alieni Ninja — Missione Galattica</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="stars stars-2"></div>
+  <div class="stars stars-3"></div>
+
+  <header class="header">
+    <nav class="nav">
+      <span class="logo">👽🥷 Alieni Ninja</span>
+      <ul class="nav-links">
+        <li><a href="#missione">Missione</a></li>
+        <li><a href="#squadra">Squadra</a></li>
+        <li><a href="#contatto">Contatto</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <p class="tagline">Nell'ombra delle stelle, i ninja incontrano l'ignoto</p>
+        <h1>Alieni Ninja</h1>
+        <p class="subtitle">
+          Un'élite intergalattica di guerrieri silenziosi che difende la Terra
+          da minacce extraterrestri. Tecnologia aliena. Disciplina ninja.
+        </p>
+        <button id="launch-btn" class="btn-primary" type="button">
+          Lancia missione
+        </button>
+        <p id="mission-message" class="mission-message" aria-live="polite"></p>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="alien">👽</div>
+        <div class="ninja">🥷</div>
+        <div class="orbit"></div>
+      </div>
+    </section>
+
+    <section id="missione" class="section">
+      <h2>La Missione</h2>
+      <div class="cards">
+        <article class="card">
+          <span class="card-icon">🛸</span>
+          <h3>Ricognizione</h3>
+          <p>Scansiona settori sconosciuti e intercetta segnali alieni prima che raggiungano l'atmosfera.</p>
+        </article>
+        <article class="card">
+          <span class="card-icon">⚔️</span>
+          <h3>Combattimento</h3>
+          <p>Arte marziale fusionata con armamenti plasmatici. Silenzio letale nello spazio profondo.</p>
+        </article>
+        <article class="card">
+          <span class="card-icon">🌌</span>
+          <h3>Protezione</h3>
+          <p>Salvaguarda l'umanità mantenendo l'equilibrio tra due mondi, due culture, un solo destino.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="squadra" class="section section-alt">
+      <h2>La Squadra</h2>
+      <div class="squad">
+        <div class="member">
+          <div class="member-avatar">🥷</div>
+          <h3>Shadow Kaze</h3>
+          <p>Capo ninja. Maestro del movimento zero-gravità.</p>
+        </div>
+        <div class="member">
+          <div class="member-avatar">👽</div>
+          <h3>Zyx-7</h3>
+          <p>Comandante alieno. Esperto in telepatia tattica.</p>
+        </div>
+        <div class="member">
+          <div class="member-avatar">🤖</div>
+          <h3>Unit-0</h3>
+          <p>Cyborg ibrido. Ponte tra tecnologia e tradizione.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="contatto" class="footer">
+    <p>© 2026 Alieni Ninja — Progetto Galattico</p>
+    <p class="footer-tag">「 宇宙忍者 」</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
