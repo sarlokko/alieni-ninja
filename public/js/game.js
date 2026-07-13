@@ -5,9 +5,17 @@
   const ctx = canvas.getContext("2d");
   const W = canvas.width;
   const H = canvas.height;
-  const WORLD_W = 4800;
-  const WORLD_H = 3600;
+  const WORLD_W = 9600;
+  const WORLD_H = 7200;
   const { SPRITES, drawSpriteCentered, PX } = window.PixelSprites;
+
+  const ENEMY_TYPES = {
+    kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.55, speedMult: 0.5,  damage: 2, size: 12, xp: 2, weight: 40 },
+    tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.9,  speedMult: 0.65, damage: 3, size: 14, xp: 3, weight: 35 },
+    hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore",      hpMult: 0.75, speedMult: 0.85, damage: 4, size: 15, xp: 4, weight: 22 },
+    werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro",   hpMult: 1.6,  speedMult: 0.55, damage: 6, size: 18, xp: 7, weight: 18 },
+    shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Felina",    hpMult: 0.5,  speedMult: 1.0,  damage: 5, size: 13, xp: 5, weight: 12 },
+  };
 
   const STATE = {
     TITLE: "title",
@@ -28,13 +36,13 @@
       color: "#1e90ff",
       accent: "#c0c0c0",
       emoji: "🥷",
-      desc: "Shuriken orbitanti — colpiscono il nemico più vicino",
+      desc: "Shuriken verso il cursore del mouse",
       weapon: "orbit_shuriken",
       weaponName: "Shuriken Orbitale",
-      speed: 3.8,
+      speed: 2.1,
       hp: 100,
       baseDamage: 10,
-      baseCooldown: 50,
+      baseCooldown: 72,
       baseArea: 1,
       baseAmount: 2,
     },
@@ -44,13 +52,13 @@
       color: "#9b30ff",
       accent: "#39ff14",
       emoji: "⚔️",
-      desc: "Spade laser — arco di taglio frontale automatico",
+      desc: "Arco laser verso il cursore",
       weapon: "laser_arc",
       weaponName: "Spada Laser",
-      speed: 3.2,
+      speed: 1.8,
       hp: 110,
       baseDamage: 14,
-      baseCooldown: 45,
+      baseCooldown: 65,
       baseArea: 1.1,
       baseAmount: 1,
     },
@@ -60,13 +68,13 @@
       color: "#708090",
       accent: "#ffd700",
       emoji: "🛡️",
-      desc: "Plasma corazzato — esplosioni ad area intorno a te",
+      desc: "Sfere di plasma verso il cursore",
       weapon: "plasma_burst",
       weaponName: "Burst di Plasma",
-      speed: 2.6,
+      speed: 1.5,
       hp: 160,
       baseDamage: 18,
-      baseCooldown: 70,
+      baseCooldown: 95,
       baseArea: 1.2,
       baseAmount: 1,
     },
@@ -76,13 +84,13 @@
       color: "#c0c0c0",
       accent: "#ff69b4",
       emoji: "🎯",
-      desc: "Dardi a ricerca — bersaglia automaticamente i nemici",
+      desc: "Dardi verso il cursore con auto-mira",
       weapon: "homing_dart",
       weaponName: "Dardi Cercatori",
-      speed: 4.0,
+      speed: 2.3,
       hp: 85,
       baseDamage: 8,
-      baseCooldown: 28,
+      baseCooldown: 42,
       baseArea: 1,
       baseAmount: 2,
     },
@@ -92,13 +100,13 @@
       color: "#00f5ff",
       accent: "#ffd700",
       emoji: "✨",
-      desc: "Onde arcane — anelli espansivi dal bastone",
+      desc: "Onda arcana verso il cursore",
       weapon: "arcane_wave",
       weaponName: "Onda Arcana",
-      speed: 3.0,
+      speed: 1.7,
       hp: 90,
       baseDamage: 12,
-      baseCooldown: 55,
+      baseCooldown: 78,
       baseArea: 1.15,
       baseAmount: 1,
     },
@@ -132,9 +140,9 @@
       floor: "#152238",
       accent: "#00f5ff",
       duration: 45 * 60,
-      spawnRate: 90,
+      spawnRate: 150,
       enemyHp: 25,
-      enemySpeed: 1.1,
+      enemySpeed: 0.55,
       boss: null,
       fragment: false,
     },
@@ -146,9 +154,9 @@
       floor: "#1e1040",
       accent: "#b026ff",
       duration: 50 * 60,
-      spawnRate: 80,
+      spawnRate: 135,
       enemyHp: 35,
-      enemySpeed: 1.3,
+      enemySpeed: 0.65,
       boss: null,
       fragment: false,
     },
@@ -160,9 +168,9 @@
       floor: "#0f2a12",
       accent: "#39ff14",
       duration: 55 * 60,
-      spawnRate: 75,
+      spawnRate: 125,
       enemyHp: 40,
-      enemySpeed: 1.5,
+      enemySpeed: 0.72,
       boss: null,
       fragment: false,
     },
@@ -174,10 +182,10 @@
       floor: "#3a2818",
       accent: "#ffd700",
       duration: 60 * 60,
-      spawnRate: 70,
+      spawnRate: 115,
       enemyHp: 45,
-      enemySpeed: 1.6,
-      boss: { name: "Custode delle Stelle", hp: 350, speed: 1.3, size: 38, color: "#ffd700" },
+      enemySpeed: 0.78,
+      boss: { name: "Custode delle Stelle", hp: 350, speed: 0.7, size: 38, color: "#ffd700", sprite: "cat_boss" },
       fragment: true,
     },
     {
@@ -188,10 +196,10 @@
       floor: "#2a1010",
       accent: "#ff4466",
       duration: 60 * 60,
-      spawnRate: 65,
+      spawnRate: 110,
       enemyHp: 50,
-      enemySpeed: 1.7,
-      boss: { name: "Matrona degli Arcani", hp: 400, speed: 1.4, size: 36, color: "#ff4466" },
+      enemySpeed: 0.82,
+      boss: { name: "Matrona degli Arcani", hp: 400, speed: 0.75, size: 36, color: "#ff4466", sprite: "cat_boss" },
       fragment: true,
     },
     {
@@ -202,10 +210,10 @@
       floor: "#12124a",
       accent: "#7b68ee",
       duration: 65 * 60,
-      spawnRate: 60,
+      spawnRate: 105,
       enemyHp: 55,
-      enemySpeed: 1.8,
-      boss: { name: "Guardiano Dimensionale", hp: 450, speed: 1.5, size: 40, color: "#7b68ee" },
+      enemySpeed: 0.86,
+      boss: { name: "Guardiano Dimensionale", hp: 450, speed: 0.8, size: 40, color: "#7b68ee", sprite: "cat_boss" },
       fragment: true,
     },
     {
@@ -216,10 +224,10 @@
       floor: "#3a3a4a",
       accent: "#ff6347",
       duration: 65 * 60,
-      spawnRate: 58,
+      spawnRate: 100,
       enemyHp: 60,
-      enemySpeed: 1.9,
-      boss: { name: "Drago Stellare", hp: 500, speed: 1.2, size: 44, color: "#ff6347" },
+      enemySpeed: 0.88,
+      boss: { name: "Drago Stellare", hp: 500, speed: 0.65, size: 44, color: "#ff6347", sprite: "cat_boss" },
       fragment: true,
     },
     {
@@ -230,10 +238,10 @@
       floor: "#2a1530",
       accent: "#9400d3",
       duration: 70 * 60,
-      spawnRate: 55,
+      spawnRate: 95,
       enemyHp: 65,
-      enemySpeed: 2.0,
-      boss: { name: "Signore del Caos", hp: 520, speed: 1.6, size: 42, color: "#9400d3" },
+      enemySpeed: 0.92,
+      boss: { name: "Signore del Caos", hp: 520, speed: 0.85, size: 42, color: "#9400d3", sprite: "cat_boss" },
       fragment: true,
     },
     {
@@ -244,10 +252,10 @@
       floor: "#102840",
       accent: "#ff8c00",
       duration: 70 * 60,
-      spawnRate: 52,
+      spawnRate: 90,
       enemyHp: 70,
-      enemySpeed: 2.1,
-      boss: { name: "Matriarca del Mondo Felino", hp: 550, speed: 1.7, size: 40, color: "#ff8c00" },
+      enemySpeed: 0.95,
+      boss: { name: "Matriarca del Mondo Felino", hp: 550, speed: 0.88, size: 40, color: "#ff8c00", sprite: "cat_boss" },
       fragment: true,
     },
     {
@@ -258,16 +266,17 @@
       floor: "#2a2a35",
       accent: "#ff2200",
       duration: 75 * 60,
-      spawnRate: 48,
+      spawnRate: 85,
       enemyHp: 75,
-      enemySpeed: 2.2,
-      boss: { name: "Re dei Gatti Mannari", hp: 600, speed: 1.4, size: 46, color: "#ff2200" },
-      finalBoss: { name: "Guardiano dell'Universo", hp: 400, speed: 1.8, size: 42, color: "#00f5ff" },
+      enemySpeed: 0.98,
+      boss: { name: "Re dei Gatti Mannari", hp: 600, speed: 0.72, size: 46, color: "#ff2200", sprite: "cat_boss" },
+      finalBoss: { name: "Guardiano dell'Universo", hp: 400, speed: 0.9, size: 42, color: "#00f5ff", sprite: "cat_boss" },
       fragment: true,
     },
   ];
 
   const keys = {};
+  let mouse = { screenX: W / 2, screenY: H / 2, worldX: WORLD_W / 2, worldY: WORLD_H / 2 };
   let state = STATE.TITLE;
   let selectedHero = null;
   let currentLevel = 0;
@@ -303,6 +312,23 @@
     handleInput(e.code);
   });
   document.addEventListener("keyup", (e) => { keys[e.code] = false; });
+
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const sx = W / rect.width;
+    const sy = H / rect.height;
+    mouse.screenX = (e.clientX - rect.left) * sx;
+    mouse.screenY = (e.clientY - rect.top) * sy;
+  });
+
+  function updateMouseWorld() {
+    mouse.worldX = mouse.screenX + camera.x;
+    mouse.worldY = mouse.screenY + camera.y;
+  }
+
+  function getAimAngle() {
+    return Math.atan2(mouse.worldY - player.y, mouse.worldX - player.x);
+  }
 
   function handleInput(code) {
     if (state === STATE.LEVEL_UP) {
@@ -376,6 +402,7 @@
         hp: hero.hp,
         maxHp: hero.hp,
         angle: 0,
+        aimAngle: 0,
         vx: 0,
         vy: 0,
         invulnerable: 0,
@@ -427,8 +454,8 @@
   function generateDecor(theme) {
     const items = [];
     const rnd = (n) => Math.random() * n;
-    const count = { training: 40, alien_city: 35, forest: 55, temple: 30, underworld: 45,
-      star_temple: 40, moon: 50, cursed_city: 45, star_refuge: 48, final: 35 };
+    const count = { training: 80, alien_city: 70, forest: 110, temple: 60, underworld: 90,
+      star_temple: 80, moon: 100, cursed_city: 90, star_refuge: 95, final: 70 };
     const n = count[theme] || 30;
 
     switch (theme) {
@@ -526,91 +553,127 @@
       .map((x) => x.e);
   }
 
+  function pickEnemyType() {
+    const level = LEVELS[currentLevel];
+    const progress = 1 - levelTimer / level.duration;
+    const pool = [];
+
+    const add = (id, w) => {
+      const t = ENEMY_TYPES[id];
+      if (t) pool.push({ type: t, weight: w });
+    };
+
+    if (progress < 0.25) {
+      add("kitten", 55); add("tabby", 45);
+    } else if (progress < 0.5) {
+      add("kitten", 30); add("tabby", 40); add("hunter", 20); add("werewolf", 10);
+    } else if (progress < 0.75) {
+      add("tabby", 25); add("hunter", 30); add("werewolf", 25); add("shadow", 20);
+    } else {
+      add("hunter", 20); add("werewolf", 35); add("shadow", 30); add("tabby", 15);
+    }
+
+    const total = pool.reduce((s, p) => s + p.weight, 0);
+    let roll = Math.random() * total;
+    for (const p of pool) {
+      roll -= p.weight;
+      if (roll <= 0) return p.type;
+    }
+    return ENEMY_TYPES.tabby;
+  }
+
   function autoAttack() {
     const weapon = player.hero.weapon;
     const amount = Math.floor(player.stats.amount);
     const area = player.stats.area;
+    const aim = player.aimAngle;
+    const projSpeed = 5.5;
 
     switch (weapon) {
       case "orbit_shuriken": {
-        const target = nearestEnemy();
-        if (target) {
-          const angle = Math.atan2(target.y - player.y, target.x - player.x);
-          for (let i = 0; i < amount; i++) {
-            const spread = (i - (amount - 1) / 2) * 0.15;
-            projectiles.push({
-              x: player.x, y: player.y,
-              vx: Math.cos(angle + spread) * 9,
-              vy: Math.sin(angle + spread) * 9,
-              damage: getDamage(),
-              type: "shuriken",
-              life: 50,
-              piercing: false,
-            });
-          }
+        for (let i = 0; i < amount; i++) {
+          const spread = (i - (amount - 1) / 2) * 0.12;
+          const angle = aim + spread;
+          projectiles.push({
+            x: player.x, y: player.y,
+            vx: Math.cos(angle) * projSpeed,
+            vy: Math.sin(angle) * projSpeed,
+            damage: getDamage(),
+            type: "shuriken",
+            life: 70,
+            piercing: false,
+          });
         }
         orbiters = initOrbiters();
         break;
       }
       case "laser_arc": {
-        const arc = Math.PI * 0.55 * area;
+        const arc = Math.PI * 0.5 * area;
         enemies.forEach((e) => {
           const angle = Math.atan2(e.y - player.y, e.x - player.x);
-          let diff = angle - player.angle;
+          let diff = angle - aim;
           while (diff > Math.PI) diff -= Math.PI * 2;
           while (diff < -Math.PI) diff += Math.PI * 2;
-          if (Math.abs(diff) < arc / 2 && Math.hypot(e.x - player.x, e.y - player.y) < 130 * area) {
+          if (Math.abs(diff) < arc / 2 && Math.hypot(e.x - player.x, e.y - player.y) < 140 * area) {
             e.hp -= getDamage(1.2);
             addParticles(e.x, e.y, "#39ff14", 4);
           }
         });
-        projectiles.push({ type: "arc_slash", x: player.x, y: player.y, angle: player.angle, arc, range: 130 * area, life: 12, damage: 0 });
+        projectiles.push({ type: "arc_slash", x: player.x, y: player.y, angle: aim, arc, range: 140 * area, life: 14, damage: 0 });
         break;
       }
       case "plasma_burst": {
-        const radius = 75 * area;
-        enemies.forEach((e) => {
-          if (Math.hypot(e.x - player.x, e.y - player.y) < radius) {
-            e.hp -= getDamage(1.3);
-            addParticles(e.x, e.y, "#ff6347", 6);
-          }
-        });
-        waves.push({ x: player.x, y: player.y, r: 10, maxR: radius, life: 20, color: "#ff6347" });
-        addParticles(player.x, player.y, "#ffd700", 15);
+        for (let i = 0; i < amount; i++) {
+          const spread = (i - (amount - 1) / 2) * 0.18;
+          const angle = aim + spread;
+          projectiles.push({
+            x: player.x, y: player.y,
+            vx: Math.cos(angle) * (projSpeed - 1),
+            vy: Math.sin(angle) * (projSpeed - 1),
+            damage: getDamage(1.4),
+            type: "plasma",
+            life: 55,
+            size: 8 + area * 2,
+            piercing: true,
+          });
+        }
+        addParticles(player.x, player.y, "#ffd700", 8);
         break;
       }
       case "homing_dart": {
-        const targets = nearestEnemies(amount);
-        targets.forEach((t) => {
-          const angle = Math.atan2(t.y - player.y, t.x - player.x);
+        for (let i = 0; i < amount; i++) {
+          const spread = (i - (amount - 1) / 2) * 0.1;
+          const angle = aim + spread;
+          const target = nearestEnemy();
           projectiles.push({
             x: player.x, y: player.y,
-            vx: Math.cos(angle) * 10,
-            vy: Math.sin(angle) * 10,
+            vx: Math.cos(angle) * (projSpeed + 1),
+            vy: Math.sin(angle) * (projSpeed + 1),
             damage: getDamage(),
             type: "dart",
-            life: 60,
-            homing: true,
-            target: t,
+            life: 75,
+            homing: !!target,
+            target: target || null,
           });
-        });
+        }
         break;
       }
       case "arcane_wave": {
         for (let i = 0; i < amount; i++) {
-          setTimeout(() => {
-            if (state === STATE.PLAYING && player) {
-              waves.push({
-                x: player.x, y: player.y, r: 15,
-                maxR: 160 * area,
-                expand: 4,
-                life: 50,
-                color: "#00f5ff",
-                damage: getDamage(),
-                hit: new Set(),
-              });
-            }
-          }, i * 200);
+          const spread = (i - (amount - 1) / 2) * 0.2;
+          const angle = aim + spread;
+          projectiles.push({
+            x: player.x, y: player.y,
+            vx: Math.cos(angle) * 3,
+            vy: Math.sin(angle) * 3,
+            damage: getDamage(),
+            type: "arcane_orb",
+            life: 90,
+            expand: 2.5 * area,
+            maxR: 50 * area,
+            r: 8,
+            hit: new Set(),
+          });
         }
         break;
       }
@@ -641,6 +704,8 @@
         hp: bossData.hp, maxHp: bossData.hp,
         speed: bossData.speed, size: bossData.size,
         color: bossData.color, isBoss: true, name: bossData.name,
+        sprite: bossData.sprite || "cat_boss",
+        damage: 8,
       });
       addParticles(player.x, player.y - 220, bossData.color, 25);
       bossPhase = true;
@@ -654,15 +719,21 @@
     x = Math.max(50, Math.min(WORLD_W - 50, x));
     y = Math.max(50, Math.min(WORLD_H - 50, y));
 
-    const scale = 1 + (level.duration - levelTimer) / level.duration * 0.5;
+    const etype = pickEnemyType();
+    const scale = 1 + (level.duration - levelTimer) / level.duration * 0.4;
     enemies.push({
       x, y,
-      hp: Math.floor(level.enemyHp * scale),
-      maxHp: Math.floor(level.enemyHp * scale),
-      speed: level.enemySpeed * (0.9 + Math.random() * 0.3),
-      size: 16 + Math.floor(Math.random() * 4),
+      hp: Math.floor(level.enemyHp * etype.hpMult * scale),
+      maxHp: Math.floor(level.enemyHp * etype.hpMult * scale),
+      speed: level.enemySpeed * etype.speedMult * (0.92 + Math.random() * 0.16),
+      size: etype.size,
       color: "#cc8844",
       isBoss: false,
+      typeId: etype.id,
+      typeName: etype.name,
+      sprite: etype.sprite,
+      damage: etype.damage,
+      xp: etype.xp,
     });
   }
 
@@ -750,6 +821,9 @@
   function updatePlaying() {
     const level = LEVELS[currentLevel];
 
+    updateMouseWorld();
+    player.aimAngle = getAimAngle();
+
     let dx = 0, dy = 0;
     if (keys.ArrowLeft || keys.KeyA) dx -= 1;
     if (keys.ArrowRight || keys.KeyD) dx += 1;
@@ -761,7 +835,6 @@
       const len = Math.hypot(dx, dy);
       player.vx = (dx / len) * spd;
       player.vy = (dy / len) * spd;
-      player.angle = Math.atan2(dy, dx);
     } else {
       player.vx *= 0.85;
       player.vy *= 0.85;
@@ -792,7 +865,7 @@
       if (spawnTimer > 0) spawnTimer--;
       else {
         spawnEnemy();
-        const rate = Math.max(25, level.spawnRate - Math.floor((level.duration - levelTimer) / 60));
+        const rate = Math.max(60, level.spawnRate - Math.floor((level.duration - levelTimer) / 90));
         spawnTimer = rate;
       }
     }
@@ -810,16 +883,32 @@
 
     projectiles.forEach((p) => {
       if (p.type === "arc_slash") { p.life--; return; }
+      if (p.type === "arcane_orb") {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.r += p.expand;
+        p.life--;
+        enemies.forEach((e) => {
+          const d = Math.hypot(e.x - p.x, e.y - p.y);
+          if (d < p.r && !p.hit.has(e)) {
+            p.hit.add(e);
+            e.hp -= p.damage * 0.35;
+            addParticles(e.x, e.y, "#00f5ff", 3);
+          }
+        });
+        return;
+      }
       if (p.homing && p.target && enemies.includes(p.target)) {
         const angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
-        p.vx = Math.cos(angle) * 11;
-        p.vy = Math.sin(angle) * 11;
+        p.vx = Math.cos(angle) * 6.5;
+        p.vy = Math.sin(angle) * 6.5;
       }
       p.x += p.vx;
       p.y += p.vy;
       p.life--;
       enemies.forEach((e) => {
-        if (p.life > 0 && Math.hypot(p.x - e.x, p.y - e.y) < e.size + 4) {
+        const hitR = (p.size || 5) + e.size * 0.5;
+        if (p.life > 0 && Math.hypot(p.x - e.x, p.y - e.y) < hitR) {
           e.hp -= p.damage;
           if (!p.piercing) p.life = 0;
           addParticles(e.x, e.y, e.color, 3);
@@ -849,7 +938,8 @@
       e.x += Math.cos(angle) * e.speed;
       e.y += Math.sin(angle) * e.speed;
       if (Math.hypot(player.x - e.x, player.y - e.y) < e.size + 14 && player.invulnerable <= 0) {
-        player.hp -= e.isBoss ? 10 : 4;
+        const dmg = e.isBoss ? 8 : (e.damage || 3);
+        player.hp -= dmg;
         player.invulnerable = 25;
         addParticles(player.x, player.y, "#ff0000", 6);
       }
@@ -860,7 +950,7 @@
       addParticles(e.x, e.y, e.color, e.isBoss ? 35 : 8);
       kills++;
       if (!e.isBoss) {
-        dropXp(e.x, e.y, e.isBoss ? 15 : 3 + Math.floor(currentLevel / 2));
+        dropXp(e.x, e.y, e.xp || (3 + Math.floor(currentLevel / 2)));
       } else {
         dropXp(e.x, e.y, 30);
         if (level.fragment) fragments++;
@@ -886,8 +976,8 @@
       const dist = Math.hypot(player.x - g.x, player.y - g.y);
       if (dist < player.stats.magnet) {
         const a = Math.atan2(player.y - g.y, player.x - g.x);
-        g.x += Math.cos(a) * 6;
-        g.y += Math.sin(a) * 6;
+        g.x += Math.cos(a) * 4;
+        g.y += Math.sin(a) * 4;
       }
       if (dist < 18) {
         addXp(g.value);
@@ -1041,7 +1131,7 @@
 
   function drawPlayer() {
     const p = player;
-    const facingLeft = p.vx < -0.1 || (Math.abs(p.vx) < 0.1 && Math.cos(p.angle) < 0);
+    const facingLeft = Math.cos(p.aimAngle) < 0;
 
     if (p.hero.weapon === "orbit_shuriken") {
       orbiters.forEach((o) => {
@@ -1063,53 +1153,82 @@
       ctx.strokeStyle = "#fff";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 28, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
       ctx.stroke();
     }
   }
 
   function drawEnemies() {
     enemies.forEach((e) => {
-      if (!isOnScreen(e.x, e.y, 60)) return;
-      const sprite = e.isBoss ? SPRITES.cat_boss : SPRITES.cat;
-      const scale = e.isBoss ? PX + 1 : PX;
+      if (!isOnScreen(e.x, e.y, 80)) return;
+      const spriteKey = e.sprite || (e.isBoss ? "cat_boss" : "cat_tabby");
+      const sprite = SPRITES[spriteKey] || SPRITES.cat_tabby;
+      const scale = e.isBoss ? PX + 2 : PX;
       const facingLeft = e.x > player.x;
       drawSpriteCentered(ctx, sprite, e.x, e.y, scale, facingLeft);
 
       if (e.isBoss) {
-        const barW = 120;
+        const barW = 140;
         ctx.fillStyle = "#222";
-        ctx.fillRect(e.x - barW / 2, e.y - 50, barW, 8);
+        ctx.fillRect(e.x - barW / 2, e.y - 55, barW, 8);
         ctx.fillStyle = e.color;
-        ctx.fillRect(e.x - barW / 2, e.y - 50, barW * (e.hp / e.maxHp), 8);
+        ctx.fillRect(e.x - barW / 2, e.y - 55, barW * (e.hp / e.maxHp), 8);
         ctx.fillStyle = "#fff";
         ctx.font = "bold 11px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(e.name, e.x, e.y - 58);
+        ctx.fillText(e.name, e.x, e.y - 64);
       }
     });
   }
 
   function drawProjectiles() {
-    const colors = { shuriken: "#c0c0c0", dart: "#ff69b4", laser: "#39ff14" };
+    const colors = { shuriken: "#c0c0c0", dart: "#ff69b4", plasma: "#ff6347", laser: "#39ff14" };
     projectiles.forEach((p) => {
       if (p.type === "arc_slash") {
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.angle);
-        ctx.strokeStyle = "rgba(57,255,20,0.7)";
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = "rgba(57,255,20,0.75)";
+        ctx.lineWidth = 5;
         ctx.beginPath();
         ctx.arc(0, 0, p.range, -p.arc / 2, p.arc / 2);
         ctx.stroke();
         ctx.restore();
         return;
       }
+      if (p.type === "arcane_orb") {
+        ctx.strokeStyle = "rgba(0,245,255,0.6)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(0,245,255,0.25)";
+        ctx.fill();
+        return;
+      }
+      const r = p.size || 5;
       ctx.fillStyle = colors[p.type] || "#fff";
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
       ctx.fill();
     });
+  }
+
+  function drawCrosshair() {
+    const x = mouse.screenX;
+    const y = mouse.screenY;
+    ctx.strokeStyle = "rgba(0,245,255,0.7)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x - 10, y);
+    ctx.lineTo(x + 10, y);
+    ctx.moveTo(x, y - 10);
+    ctx.lineTo(x, y + 10);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(0,245,255,0.5)";
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   function drawWaves() {
@@ -1217,7 +1336,7 @@
     ctx.fillStyle = "#666";
     ctx.textAlign = "center";
     ctx.font = "11px sans-serif";
-    ctx.fillText("WASD / Frecce — muoviti nel mondo | Camera segue il ninja | Armi automatiche", W / 2, H - 8);
+    ctx.fillText("WASD muovi | Mouse mira | Armi automatiche verso il cursore", W / 2, H - 8);
   }
 
   function drawLevelUp() {
@@ -1314,7 +1433,7 @@
     ctx.fillText("Scegli il tuo Ninja — Sprite pixel unici", W / 2, 45);
     ctx.fillStyle = "#888";
     ctx.font = "13px sans-serif";
-    ctx.fillText("Premi 1-5 | Mondo ampio con camera che segue il personaggio", W / 2, 72);
+    ctx.fillText("Premi 1-5 | Mondo 9600×7200 | Mouse per mirare", W / 2, 72);
 
     HEROES.forEach((h, i) => {
       const col = i % 3;
@@ -1417,6 +1536,7 @@
     drawPlayer();
 
     ctx.restore();
+    drawCrosshair();
     drawHUD();
   }
 
