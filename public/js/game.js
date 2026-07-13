@@ -5,6 +5,9 @@
   const ctx = canvas.getContext("2d");
   const W = canvas.width;
   const H = canvas.height;
+  const WORLD_W = 4800;
+  const WORLD_H = 3600;
+  const { SPRITES, drawSpriteCentered, PX } = window.PixelSprites;
 
   const STATE = {
     TITLE: "title",
@@ -290,6 +293,7 @@
   let finalBossSpawned = false;
   let bossPhase = false;
   let kills = 0;
+  let camera = { x: 0, y: 0 };
 
   document.addEventListener("keydown", (e) => {
     keys[e.code] = true;
@@ -331,7 +335,7 @@
       area: hero.baseArea,
       amount: hero.baseAmount,
       speed: hero.speed,
-      magnet: 60,
+      magnet: 90,
       regen: 0,
       weaponLevel: 1,
     };
@@ -367,8 +371,8 @@
 
     if (resetPlayer || !player) {
       player = {
-        x: W / 2,
-        y: H / 2,
+        x: WORLD_W / 2,
+        y: WORLD_H / 2,
         hp: hero.hp,
         maxHp: hero.hp,
         angle: 0,
@@ -386,10 +390,13 @@
         tempSpeed: 0,
       };
     } else {
-      player.x = W / 2;
-      player.y = H / 2;
+      player.x = WORLD_W / 2;
+      player.y = WORLD_H / 2;
       player.invulnerable = 60;
     }
+
+    camera.x = player.x - W / 2;
+    camera.y = player.y - H / 2;
 
     enemies = [];
     projectiles = [];
@@ -420,45 +427,61 @@
   function generateDecor(theme) {
     const items = [];
     const rnd = (n) => Math.random() * n;
+    const count = { training: 40, alien_city: 35, forest: 55, temple: 30, underworld: 45,
+      star_temple: 40, moon: 50, cursed_city: 45, star_refuge: 48, final: 35 };
+    const n = count[theme] || 30;
+
     switch (theme) {
       case "training":
-        for (let i = 0; i < 12; i++) items.push({ type: "holo_ring", x: rnd(W), y: rnd(H), r: 15 + rnd(20) });
+        for (let i = 0; i < n; i++) items.push({ type: "holo_ring", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 15 + rnd(25) });
         break;
       case "alien_city":
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < n; i++) {
           const windows = [];
-          for (let wy = 0; wy < 5; wy++) {
-            for (let wx = 0; wx < 3; wx++) windows.push(Math.random() > 0.4);
-          }
-          items.push({ type: "building", x: i * 120 + 20, y: H - 80 - rnd(120), w: 60 + rnd(40), h: 80 + rnd(100), windows });
+          for (let wy = 0; wy < 5; wy++) for (let wx = 0; wx < 3; wx++) windows.push(Math.random() > 0.4);
+          items.push({ type: "building", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 50 + rnd(50), h: 70 + rnd(90), windows });
         }
         break;
       case "forest":
-        for (let i = 0; i < 18; i++) items.push({ type: "tree", x: rnd(W), y: rnd(H), r: 20 + rnd(25) });
+        for (let i = 0; i < n; i++) items.push({ type: "tree", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 18 + rnd(28) });
         break;
       case "temple":
-        for (let i = 0; i < 6; i++) items.push({ type: "pillar", x: 80 + i * 140, y: 60 + rnd(40), h: 100 + rnd(80) });
+        for (let i = 0; i < n; i++) items.push({ type: "pillar", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 80 + rnd(100) });
         break;
       case "underworld":
-        for (let i = 0; i < 10; i++) items.push({ type: "stalactite", x: rnd(W), y: rnd(60), h: 30 + rnd(50) });
+        for (let i = 0; i < n; i++) items.push({ type: "stalactite", x: rnd(WORLD_W), y: rnd(WORLD_H * 0.4), h: 25 + rnd(55) });
         break;
       case "star_temple":
-        for (let i = 0; i < 8; i++) items.push({ type: "rune", x: rnd(W), y: rnd(H), r: 12 + rnd(15) });
+        for (let i = 0; i < n; i++) items.push({ type: "rune", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 10 + rnd(18) });
         break;
       case "moon":
-        for (let i = 0; i < 14; i++) items.push({ type: "crater", x: rnd(W), y: rnd(H), r: 10 + rnd(30) });
+        for (let i = 0; i < n; i++) items.push({ type: "crater", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(35) });
         break;
       case "cursed_city":
-        for (let i = 0; i < 10; i++) items.push({ type: "ruin", x: rnd(W), y: rnd(H), w: 30 + rnd(50), h: 20 + rnd(40) });
+        for (let i = 0; i < n; i++) items.push({ type: "ruin", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 25 + rnd(55), h: 18 + rnd(45) });
         break;
       case "star_refuge":
-        for (let i = 0; i < 12; i++) items.push({ type: "crystal", x: rnd(W), y: rnd(H), h: 20 + rnd(40) });
+        for (let i = 0; i < n; i++) items.push({ type: "crystal", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 18 + rnd(45) });
         break;
       case "final":
-        for (let i = 0; i < 6; i++) items.push({ type: "moon_rock", x: rnd(W), y: rnd(H), r: 15 + rnd(25) });
+        for (let i = 0; i < n; i++) items.push({ type: "moon_rock", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(30) });
         break;
     }
     return items;
+  }
+
+  function updateCamera() {
+    const tx = player.x - W / 2;
+    const ty = player.y - H / 2;
+    camera.x += (tx - camera.x) * 0.12;
+    camera.y += (ty - camera.y) * 0.12;
+    camera.x = Math.max(0, Math.min(WORLD_W - W, camera.x));
+    camera.y = Math.max(0, Math.min(WORLD_H - H, camera.y));
+  }
+
+  function isOnScreen(wx, wy, margin = 80) {
+    return wx > camera.x - margin && wx < camera.x + W + margin &&
+           wy > camera.y - margin && wy < camera.y + H + margin;
   }
 
   function startLevel() {
@@ -610,24 +633,26 @@
 
   function spawnEnemy(isBoss = false, bossData = null) {
     const level = LEVELS[currentLevel];
-    const side = Math.floor(Math.random() * 4);
-    let x, y;
-    if (side === 0) { x = Math.random() * W; y = -25; }
-    else if (side === 1) { x = W + 25; y = Math.random() * H; }
-    else if (side === 2) { x = Math.random() * W; y = H + 25; }
-    else { x = -25; y = Math.random() * H; }
 
     if (isBoss && bossData) {
       enemies.push({
-        x: W / 2, y: 80,
+        x: player.x,
+        y: Math.max(80, player.y - 220),
         hp: bossData.hp, maxHp: bossData.hp,
         speed: bossData.speed, size: bossData.size,
         color: bossData.color, isBoss: true, name: bossData.name,
       });
-      addParticles(W / 2, 80, bossData.color, 25);
+      addParticles(player.x, player.y - 220, bossData.color, 25);
       bossPhase = true;
       return;
     }
+
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.max(W, H) * 0.52 + 50 + Math.random() * 100;
+    let x = player.x + Math.cos(angle) * dist;
+    let y = player.y + Math.sin(angle) * dist;
+    x = Math.max(50, Math.min(WORLD_W - 50, x));
+    y = Math.max(50, Math.min(WORLD_H - 50, y));
 
     const scale = 1 + (level.duration - levelTimer) / level.duration * 0.5;
     enemies.push({
@@ -644,9 +669,11 @@
   function spawnPickup() {
     const types = ["heal", "damage", "speed", "magnet"];
     const type = types[Math.floor(Math.random() * types.length)];
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 120 + Math.random() * 280;
     pickups.push({
-      x: 60 + Math.random() * (W - 120),
-      y: 60 + Math.random() * (H - 120),
+      x: Math.max(60, Math.min(WORLD_W - 60, player.x + Math.cos(angle) * dist)),
+      y: Math.max(60, Math.min(WORLD_H - 60, player.y + Math.sin(angle) * dist)),
       type,
       life: 600,
     });
@@ -740,8 +767,10 @@
       player.vy *= 0.85;
     }
 
-    player.x = Math.max(22, Math.min(W - 22, player.x + player.vx));
-    player.y = Math.max(22, Math.min(H - 22, player.y + player.vy));
+    player.x = Math.max(40, Math.min(WORLD_W - 40, player.x + player.vx));
+    player.y = Math.max(40, Math.min(WORLD_H - 40, player.y + player.vy));
+
+    updateCamera();
 
     if (player.invulnerable > 0) player.invulnerable--;
     if (player.tempBuff > 0) player.tempBuff--;
@@ -797,7 +826,7 @@
         }
       });
     });
-    projectiles = projectiles.filter((p) => p.life > 0);
+    projectiles = projectiles.filter((p) => p.life > 0 && p.x > -80 && p.x < WORLD_W + 80 && p.y > -80 && p.y < WORLD_H + 80);
 
     waves.forEach((w) => {
       if (w.expand) {
@@ -887,23 +916,42 @@
     if (player.hp <= 0) state = STATE.GAME_OVER;
   }
 
-  function drawLevelBackground(level) {
+  function drawMenuBackground(level) {
     ctx.fillStyle = level.bg[0];
     ctx.fillRect(0, 0, W, H);
+    const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W * 0.6);
+    grad.addColorStop(0, level.bg[1] + "44");
+    grad.addColorStop(1, level.bg[0]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawWorldBackground(level) {
+    ctx.fillStyle = level.bg[0];
+    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
 
     ctx.fillStyle = level.floor;
-    ctx.globalAlpha = 0.5;
-    for (let x = 0; x < W; x += 40) {
-      for (let y = 0; y < H; y += 40) {
-        if ((x / 40 + y / 40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
+    ctx.globalAlpha = 0.4;
+    for (let x = 0; x < WORLD_W; x += 64) {
+      for (let y = 0; y < WORLD_H; y += 64) {
+        if ((x / 64 + y / 64) % 2 === 0) ctx.fillRect(x, y, 64, 64);
       }
     }
     ctx.globalAlpha = 1;
 
-    decor.forEach((d) => drawDecor(d, level));
+    ctx.strokeStyle = level.accent;
+    ctx.lineWidth = 6;
+    ctx.globalAlpha = 0.25;
+    ctx.strokeRect(30, 30, WORLD_W - 60, WORLD_H - 60);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawLevelBackground(level) {
+    drawMenuBackground(level);
   }
 
   function drawDecor(d, level) {
+    if (!isOnScreen(d.x, d.y, 120)) return;
     ctx.save();
     ctx.globalAlpha = 0.35;
     switch (d.type) {
@@ -993,64 +1041,51 @@
 
   function drawPlayer() {
     const p = player;
-    const h = p.hero;
-    ctx.save();
-    ctx.translate(p.x, p.y);
+    const facingLeft = p.vx < -0.1 || (Math.abs(p.vx) < 0.1 && Math.cos(p.angle) < 0);
 
     if (p.hero.weapon === "orbit_shuriken") {
       orbiters.forEach((o) => {
-        const ox = Math.cos(o.angle) * o.dist;
-        const oy = Math.sin(o.angle) * o.dist;
-        ctx.fillStyle = h.accent;
+        const ox = p.x + Math.cos(o.angle) * o.dist;
+        const oy = p.y + Math.sin(o.angle) * o.dist;
+        ctx.fillStyle = p.hero.accent;
         ctx.beginPath();
-        ctx.moveTo(ox, oy - 6);
-        ctx.lineTo(ox + 5, oy);
-        ctx.lineTo(ox, oy + 6);
-        ctx.lineTo(ox - 5, oy);
+        ctx.moveTo(ox, oy - 7);
+        ctx.lineTo(ox + 6, oy);
+        ctx.lineTo(ox, oy + 7);
+        ctx.lineTo(ox - 6, oy);
         ctx.fill();
       });
     }
 
-    ctx.fillStyle = h.color;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = h.accent;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.font = "18px serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(h.emoji, 0, 0);
-    ctx.restore();
+    drawSpriteCentered(ctx, SPRITES[p.hero.id], p.x, p.y, PX, facingLeft);
 
     if (p.invulnerable > 0 && p.invulnerable % 6 < 3) {
       ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 22, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, 28, 0, Math.PI * 2);
       ctx.stroke();
     }
   }
 
   function drawEnemies() {
     enemies.forEach((e) => {
-      ctx.fillStyle = e.color;
-      ctx.beginPath();
-      ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.font = `${e.size}px serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(e.isBoss ? "😾" : "🐱", e.x, e.y);
+      if (!isOnScreen(e.x, e.y, 60)) return;
+      const sprite = e.isBoss ? SPRITES.cat_boss : SPRITES.cat;
+      const scale = e.isBoss ? PX + 1 : PX;
+      const facingLeft = e.x > player.x;
+      drawSpriteCentered(ctx, sprite, e.x, e.y, scale, facingLeft);
+
       if (e.isBoss) {
-        const barW = e.size * 2.5;
+        const barW = 120;
         ctx.fillStyle = "#222";
-        ctx.fillRect(e.x - barW / 2, e.y - e.size - 16, barW, 7);
+        ctx.fillRect(e.x - barW / 2, e.y - 50, barW, 8);
         ctx.fillStyle = e.color;
-        ctx.fillRect(e.x - barW / 2, e.y - e.size - 16, barW * (e.hp / e.maxHp), 7);
+        ctx.fillRect(e.x - barW / 2, e.y - 50, barW * (e.hp / e.maxHp), 8);
         ctx.fillStyle = "#fff";
-        ctx.font = "11px sans-serif";
-        ctx.fillText(e.name, e.x, e.y - e.size - 22);
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(e.name, e.x, e.y - 58);
       }
     });
   }
@@ -1139,7 +1174,7 @@
     ctx.fillText(`${level.name}`, 14, 20);
     ctx.fillStyle = "#aaa";
     ctx.font = "12px sans-serif";
-    ctx.fillText(`${player.hero.name} ${player.hero.emoji} | Lv.${player.level} | Uccisi: ${kills}`, 14, 38);
+    ctx.fillText(`${player.hero.name} | Lv.${player.level} | Uccisi: ${kills}`, 14, 38);
 
     const secs = Math.max(0, Math.ceil(levelTimer / 60));
     ctx.textAlign = "center";
@@ -1166,16 +1201,38 @@
     ctx.fillStyle = "#00f5ff";
     ctx.fillRect(xpX, 44, xpBarW * (player.xp / player.xpToNext), 8);
 
+    const mapW = 100;
+    const mapH = 70;
+    const mapX = W - mapW - 14;
+    const mapY = H - mapH - 14;
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(mapX, mapY, mapW, mapH);
+    ctx.strokeStyle = level.accent;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(mapX, mapY, mapW, mapH);
+    const px = mapX + (player.x / WORLD_W) * mapW;
+    const py = mapY + (player.y / WORLD_H) * mapH;
+    ctx.fillStyle = player.hero.color;
+    ctx.fillRect(px - 2, py - 2, 4, 4);
     ctx.fillStyle = "#666";
     ctx.textAlign = "center";
     ctx.font = "11px sans-serif";
-    ctx.fillText("WASD / Frecce — solo movimento | Armi automatiche stile Vampire Survivors", W / 2, H - 8);
+    ctx.fillText("WASD / Frecce — muoviti nel mondo | Camera segue il ninja | Armi automatiche", W / 2, H - 8);
   }
 
   function drawLevelUp() {
-    const level = LEVELS[currentLevel];
-    drawLevelBackground(level);
-    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.save();
+    ctx.translate(-Math.floor(camera.x), -Math.floor(camera.y));
+    drawWorldBackground(LEVELS[currentLevel]);
+    decor.forEach((d) => drawDecor(d, LEVELS[currentLevel]));
+    drawEnemies();
+    drawPlayer();
+    ctx.restore();
+
+    ctx.fillStyle = "rgba(0,0,0,0.75)";
     ctx.fillRect(0, 0, W, H);
 
     ctx.fillStyle = "#ffd700";
@@ -1250,39 +1307,40 @@
   }
 
   function drawSelect() {
-    drawLevelBackground(LEVELS[0]);
+    drawMenuBackground(LEVELS[0]);
     ctx.fillStyle = "#00f5ff";
     ctx.font = "bold 26px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Scegli il tuo Ninja — Arma unica", W / 2, 45);
+    ctx.fillText("Scegli il tuo Ninja — Sprite pixel unici", W / 2, 45);
     ctx.fillStyle = "#888";
     ctx.font = "13px sans-serif";
-    ctx.fillText("Premi 1-5 | Stile Vampire Survivors: solo movimento", W / 2, 72);
+    ctx.fillText("Premi 1-5 | Mondo ampio con camera che segue il personaggio", W / 2, 72);
 
     HEROES.forEach((h, i) => {
       const col = i % 3;
       const row = Math.floor(i / 3);
-      const cx = 165 + col * 315;
-      const cy = 175 + row * 195;
-      const cw = 270, ch = 165;
+      const cx = 200 + col * 340;
+      const cy = 200 + row * 210;
+      const cw = 290, ch = 175;
       ctx.fillStyle = "rgba(20,20,50,0.85)";
       ctx.strokeStyle = h.color;
       ctx.lineWidth = 2;
       ctx.fillRect(cx - cw / 2, cy - ch / 2, cw, ch);
       ctx.strokeRect(cx - cw / 2, cy - ch / 2, cw, ch);
-      ctx.font = "32px serif";
-      ctx.fillText(h.emoji, cx - cw / 2 + 35, cy - 15);
+
+      drawSpriteCentered(ctx, SPRITES[h.id], cx - cw / 2 + 50, cy - 10, PX + 1, false);
+
       ctx.fillStyle = h.color;
       ctx.font = "bold 18px sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(`${i + 1}. ${h.name}`, cx - cw / 2 + 65, cy - 25);
+      ctx.fillText(`${i + 1}. ${h.name}`, cx - cw / 2 + 95, cy - 30);
       ctx.fillStyle = "#aaa";
       ctx.font = "12px sans-serif";
-      ctx.fillText(h.desc, cx - cw / 2 + 15, cy + 5, cw - 30);
+      ctx.fillText(h.desc, cx - cw / 2 + 15, cy + 15, cw - 30);
       ctx.fillStyle = h.accent;
-      ctx.fillText(`⚔ ${h.weaponName}`, cx - cw / 2 + 15, cy + 30);
+      ctx.fillText(`⚔ ${h.weaponName}`, cx - cw / 2 + 15, cy + 40);
       ctx.fillStyle = "#666";
-      ctx.fillText(`HP ${h.hp} | SPD ${h.speed}`, cx - cw / 2 + 15, cy + 52);
+      ctx.fillText(`HP ${h.hp} | SPD ${h.speed}`, cx - cw / 2 + 15, cy + 62);
     });
   }
 
@@ -1299,7 +1357,9 @@
 
   function drawLevelClear() {
     const level = LEVELS[currentLevel];
-    drawLevelBackground(level);
+    drawPlaying();
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = "#39ff14";
     ctx.font = "bold 34px sans-serif";
     ctx.textAlign = "center";
@@ -1339,7 +1399,15 @@
 
   function drawPlaying() {
     const level = LEVELS[currentLevel];
-    drawLevelBackground(level);
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.save();
+    ctx.translate(-Math.floor(camera.x), -Math.floor(camera.y));
+
+    drawWorldBackground(level);
+    decor.forEach((d) => drawDecor(d, level));
     drawWaves();
     drawXpGems();
     drawPickups();
@@ -1347,6 +1415,8 @@
     drawProjectiles();
     drawEnemies();
     drawPlayer();
+
+    ctx.restore();
     drawHUD();
   }
 

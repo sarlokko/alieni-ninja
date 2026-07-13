@@ -27,6 +27,12 @@ npm start
 - Landing: [http://localhost:3000](http://localhost:3000)
 - Gioco: [http://localhost:3000/game.html](http://localhost:3000/game.html)
 
+### Grafica pixel e mondo VS
+- **5 sprite pixel unici** per ogni eroe (Kael, Zara, Vex, Nia, Ryn)
+- **Mondo ampio** 4800×3600 con camera che segue il personaggio
+- **Viewport** 1280×720 — esplora la mappa come in Vampire Survivors
+- Mini-mappa in basso a destra
+
 ## Videogioco: Ninja Alieni vs Gatti Mannari
 
 Basato sulle idee del PDF di concept, il gioco include:
