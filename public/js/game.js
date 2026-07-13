@@ -303,6 +303,16 @@
   let bossPhase = false;
   let kills = 0;
   let camera = { x: 0, y: 0 };
+  let lastMenuTap = 0;
+
+  const MENU_STATES = new Set([
+    STATE.TITLE, STATE.STORY, STATE.SELECT, STATE.LEVEL_INTRO,
+    STATE.LEVEL_UP, STATE.LEVEL_CLEAR, STATE.GAME_OVER, STATE.VICTORY,
+  ]);
+
+  function isMenuState() {
+    return MENU_STATES.has(state);
+  }
 
   document.addEventListener("keydown", (e) => {
     keys[e.code] = true;
@@ -349,6 +359,14 @@
     e.preventDefault();
     for (const t of e.changedTouches) {
       const c = canvasCoords(t);
+      mouse.screenX = c.x;
+      mouse.screenY = c.y;
+
+      if (isMenuState()) {
+        handleMenuTap(c.x, c.y);
+        continue;
+      }
+
       if (c.x < W * 0.42 && c.y > H * 0.45 && !joy.active) {
         joy.active = true;
         joy.id = t.identifier;
@@ -357,10 +375,16 @@
         joy.x = c.x;
         joy.y = c.y;
       }
-      mouse.screenX = c.x;
-      mouse.screenY = c.y;
     }
   }, { passive: false });
+
+  canvas.addEventListener("click", (e) => {
+    if (!isMenuState()) return;
+    const rect = canvas.getBoundingClientRect();
+    const sx = W / rect.width;
+    const sy = H / rect.height;
+    handleMenuTap((e.clientX - rect.left) * sx, (e.clientY - rect.top) * sy);
+  });
 
   canvas.addEventListener("touchmove", (e) => {
     e.preventDefault();
@@ -415,16 +439,73 @@
     }
 
     if (code === "Enter" || code === "Space") {
-      if (state === STATE.TITLE) { state = STATE.STORY; return; }
-      if (state === STATE.STORY) { state = STATE.SELECT; return; }
-      if (state === STATE.LEVEL_INTRO && introTimer <= 0) { startLevel(); return; }
-      if (state === STATE.LEVEL_CLEAR) { nextLevel(); return; }
-      if (state === STATE.GAME_OVER || state === STATE.VICTORY) { resetGame(); return; }
+      handleMenuConfirm();
     }
     if (state === STATE.SELECT && code.startsWith("Digit")) {
       const idx = parseInt(code.replace("Digit", ""), 10) - 1;
       if (idx >= 0 && idx < HEROES.length) selectHero(idx);
     }
+  }
+
+  function handleMenuConfirm() {
+    if (state === STATE.TITLE) { state = STATE.STORY; return; }
+    if (state === STATE.STORY) { state = STATE.SELECT; return; }
+    if (state === STATE.LEVEL_INTRO && introTimer <= 0) { startLevel(); return; }
+    if (state === STATE.LEVEL_CLEAR) { nextLevel(); return; }
+    if (state === STATE.GAME_OVER || state === STATE.VICTORY) { resetGame(); return; }
+    if (state === STATE.LEVEL_UP && levelUpChoices.length) {
+      applyPowerUp(levelUpChoices[levelUpSelected]);
+    }
+  }
+
+  function getHeroCardRect(i) {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const cx = 200 + col * 340;
+    const cy = 200 + row * 210;
+    const cw = 290;
+    const ch = 175;
+    return { x: cx - cw / 2, y: cy - ch / 2, w: cw, h: ch };
+  }
+
+  function getLevelUpCardRect(i) {
+    const y = 180 + i * 110;
+    return { x: W / 2 - 280, y: y - 40, w: 560, h: 90 };
+  }
+
+  function pointInRect(px, py, r) {
+    return px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h;
+  }
+
+  function handleMenuTap(x, y) {
+    if (!isMenuState()) return;
+    const now = Date.now();
+    if (now - lastMenuTap < 400) return;
+    lastMenuTap = now;
+
+    if (state === STATE.LEVEL_UP) {
+      for (let i = 0; i < levelUpChoices.length; i++) {
+        if (pointInRect(x, y, getLevelUpCardRect(i))) {
+          applyPowerUp(levelUpChoices[i]);
+          return;
+        }
+      }
+      handleMenuConfirm();
+      return;
+    }
+
+    if (state === STATE.SELECT) {
+      for (let i = 0; i < HEROES.length; i++) {
+        if (pointInRect(x, y, getHeroCardRect(i))) {
+          selectHero(i);
+          return;
+        }
+      }
+      return;
+    }
+
+    if (state === STATE.LEVEL_INTRO && introTimer > 0) return;
+    handleMenuConfirm();
   }
 
   function createStats(hero) {
@@ -1469,7 +1550,7 @@
     ctx.fillStyle = "#aaa";
     ctx.textAlign = "center";
     ctx.font = "14px sans-serif";
-    ctx.fillText("↑↓ seleziona — INVIO / 1-3 per scegliere il power-up", W / 2, H - 40);
+    ctx.fillText("Tocca un potenziamento per sceglierlo", W / 2, H - 40);
   }
 
   function drawTextScreen(title, lines, sub = "") {
@@ -1500,7 +1581,7 @@
       "Muoviti, le armi attaccano da sole.",
       "Raccogli XP, potenzia il tuo ninja.",
       "", "Recupera la Lancia delle Stelle!",
-    ], "INVIO per iniziare");
+    ], "Tocca lo schermo per iniziare");
   }
 
   function drawStory() {
@@ -1509,7 +1590,7 @@
       "I Gatti Mannari invadono il pianeta.",
       "Attraversa 10 location fino alla Luna.",
       "Ogni arma è unica. Ogni livello ha il suo boss.",
-    ], "INVIO per scegliere l'eroe");
+    ], "Tocca per scegliere l'eroe");
   }
 
   function drawSelect() {
@@ -1520,7 +1601,7 @@
     ctx.fillText("Scegli il tuo Ninja — Sprite pixel unici", W / 2, 45);
     ctx.fillStyle = "#888";
     ctx.font = "13px sans-serif";
-    ctx.fillText("Premi 1-5 | Mondo 9600×7200 | Mouse per mirare", W / 2, 72);
+    ctx.fillText("Tocca un eroe per selezionarlo", W / 2, 72);
 
     HEROES.forEach((h, i) => {
       const col = i % 3;
@@ -1557,7 +1638,7 @@
       "",
       `Arma: ${selectedHero.weaponName}`,
       level.boss ? `Boss: ${level.boss.name}` : `Sopravvivi ${Math.ceil(level.duration / 60)} secondi`,
-    ], introTimer > 0 ? "..." : "INVIO per iniziare");
+    ], introTimer > 0 ? "..." : "Tocca per iniziare il livello");
     if (introTimer > 0) introTimer--;
   }
 
@@ -1577,7 +1658,7 @@
     }
     ctx.fillStyle = "#aaa";
     ctx.fillText(`Livello personaggio: ${player.level} | Uccisi: ${kills}`, W / 2, H / 2 + 40);
-    ctx.fillText("INVIO — prossimo livello", W / 2, H / 2 + 75);
+    ctx.fillText("Tocca — prossimo livello", W / 2, H / 2 + 75);
   }
 
   function drawGameOver() {
@@ -1585,7 +1666,7 @@
       `${selectedHero?.name} è caduto.`,
       `Hai raggiunto il livello ${player?.level || 1}.`,
       "I Gatti Mannari dominano ancora...",
-    ], "INVIO per riprovare");
+    ], "Tocca per riprovare");
   }
 
   function drawVictory() {
@@ -1600,7 +1681,7 @@
       `Frammenti: ${fragments}/7 | Livello finale: ${player.level}`,
     ].forEach((l, i) => ctx.fillText(l, W / 2, 180 + i * 30));
     ctx.fillStyle = "#00f5ff";
-    ctx.fillText("INVIO — menu principale", W / 2, H - 50);
+    ctx.fillText("Tocca — menu principale", W / 2, H - 50);
   }
 
   function drawPlaying() {
