@@ -335,6 +335,11 @@
   const aimJoy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
   const JOY_MAX_R = 50;
   const JOY_DEAD_ZONE = 10;
+  const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  const touchJoyAnchors = {
+    move: { x: W * 0.16, y: H * 0.82 },
+    aim: { x: W * 0.84, y: H * 0.82 },
+  };
 
   function canvasCoords(touch) {
     const rect = canvas.getBoundingClientRect();
@@ -366,13 +371,13 @@
     return x > W * 0.58 && y > H * 0.45;
   }
 
-  function activateJoy(joy, touch, coords) {
+  function activateJoy(joy, touch, anchor) {
     joy.active = true;
     joy.id = touch.identifier;
-    joy.ox = coords.x;
-    joy.oy = coords.y;
-    joy.x = coords.x;
-    joy.y = coords.y;
+    joy.ox = anchor.x;
+    joy.oy = anchor.y;
+    joy.x = anchor.x;
+    joy.y = anchor.y;
   }
 
   function releaseJoy(joy, touchId) {
@@ -393,9 +398,9 @@
       }
 
       if (isMoveJoyZone(c.x, c.y) && !moveJoy.active) {
-        activateJoy(moveJoy, t, c);
+        activateJoy(moveJoy, t, touchJoyAnchors.move);
       } else if (isAimJoyZone(c.x, c.y) && !aimJoy.active) {
-        activateJoy(aimJoy, t, c);
+        activateJoy(aimJoy, t, touchJoyAnchors.aim);
       } else if (!moveJoy.active && !aimJoy.active) {
         mouse.screenX = c.x;
         mouse.screenY = c.y;
@@ -1415,11 +1420,28 @@
     ctx.fill();
   }
 
+  function drawJoyGhost(anchor, knobColor) {
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(anchor.x, anchor.y, 55, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = knobColor;
+    ctx.beginPath();
+    ctx.arc(anchor.x, anchor.y, 22, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   function drawCrosshair() {
+    if (isTouchDevice && state === STATE.PLAYING) {
+      if (!moveJoy.active) drawJoyGhost(touchJoyAnchors.move, "rgba(0,245,255,0.22)");
+      if (!aimJoy.active) drawJoyGhost(touchJoyAnchors.aim, "rgba(255,120,80,0.22)");
+    }
+
     drawJoy(moveJoy, "rgba(0,245,255,0.5)");
     drawJoy(aimJoy, "rgba(255,120,80,0.55)");
 
-    if (aimJoy.active) return;
+    if (aimJoy.active || isTouchDevice) return;
 
     const x = mouse.screenX;
     const y = mouse.screenY;
