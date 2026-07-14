@@ -25,8 +25,8 @@ Il gioco è **online e giocabile subito**:
 - **Landing:** https://alieni-ninja-game.surge.sh/
 
 Apri il link dal browser del cellulare. Controlli touch:
-- **Sinistra (joystick):** movimento
-- **Dito sullo schermo:** mira
+- **Joystick sinistro:** movimento
+- **Joystick destro:** mira
 
 > Ogni aggiornamento su `main` ridistribuisce automaticamente il gioco online.
 

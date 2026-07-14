@@ -331,7 +331,10 @@
     mouse.screenY = (e.clientY - rect.top) * sy;
   });
 
-  const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
+  const moveJoy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
+  const aimJoy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
+  const JOY_MAX_R = 50;
+  const JOY_DEAD_ZONE = 10;
 
   function canvasCoords(touch) {
     const rect = canvas.getBoundingClientRect();
@@ -345,9 +348,9 @@
 
   function setTouchKeys() {
     keys.KeyW = keys.KeyA = keys.KeyS = keys.KeyD = false;
-    if (!joy.active) return;
-    const dx = joy.x - joy.ox;
-    const dy = joy.y - joy.oy;
+    if (!moveJoy.active) return;
+    const dx = moveJoy.x - moveJoy.ox;
+    const dy = moveJoy.y - moveJoy.oy;
     const t = 14;
     if (dy < -t) keys.KeyW = true;
     if (dy > t) keys.KeyS = true;
@@ -355,25 +358,47 @@
     if (dx > t) keys.KeyD = true;
   }
 
+  function isMoveJoyZone(x, y) {
+    return x < W * 0.42 && y > H * 0.45;
+  }
+
+  function isAimJoyZone(x, y) {
+    return x > W * 0.58 && y > H * 0.45;
+  }
+
+  function activateJoy(joy, touch, coords) {
+    joy.active = true;
+    joy.id = touch.identifier;
+    joy.ox = coords.x;
+    joy.oy = coords.y;
+    joy.x = coords.x;
+    joy.y = coords.y;
+  }
+
+  function releaseJoy(joy, touchId) {
+    if (joy.active && joy.id === touchId) {
+      joy.active = false;
+      joy.id = null;
+    }
+  }
+
   canvas.addEventListener("touchstart", (e) => {
     e.preventDefault();
     for (const t of e.changedTouches) {
       const c = canvasCoords(t);
-      mouse.screenX = c.x;
-      mouse.screenY = c.y;
 
       if (isMenuState()) {
         handleMenuTap(c.x, c.y);
         continue;
       }
 
-      if (c.x < W * 0.42 && c.y > H * 0.45 && !joy.active) {
-        joy.active = true;
-        joy.id = t.identifier;
-        joy.ox = c.x;
-        joy.oy = c.y;
-        joy.x = c.x;
-        joy.y = c.y;
+      if (isMoveJoyZone(c.x, c.y) && !moveJoy.active) {
+        activateJoy(moveJoy, t, c);
+      } else if (isAimJoyZone(c.x, c.y) && !aimJoy.active) {
+        activateJoy(aimJoy, t, c);
+      } else if (!moveJoy.active && !aimJoy.active) {
+        mouse.screenX = c.x;
+        mouse.screenY = c.y;
       }
     }
   }, { passive: false });
@@ -390,10 +415,13 @@
     e.preventDefault();
     for (const t of e.changedTouches) {
       const c = canvasCoords(t);
-      if (joy.active && t.identifier === joy.id) {
-        joy.x = c.x;
-        joy.y = c.y;
-      } else {
+      if (moveJoy.active && t.identifier === moveJoy.id) {
+        moveJoy.x = c.x;
+        moveJoy.y = c.y;
+      } else if (aimJoy.active && t.identifier === aimJoy.id) {
+        aimJoy.x = c.x;
+        aimJoy.y = c.y;
+      } else if (!aimJoy.active) {
         mouse.screenX = c.x;
         mouse.screenY = c.y;
       }
@@ -402,19 +430,15 @@
 
   canvas.addEventListener("touchend", (e) => {
     for (const t of e.changedTouches) {
-      if (joy.active && t.identifier === joy.id) {
-        joy.active = false;
-        joy.id = null;
-      }
+      releaseJoy(moveJoy, t.identifier);
+      releaseJoy(aimJoy, t.identifier);
     }
   });
 
   canvas.addEventListener("touchcancel", (e) => {
     for (const t of e.changedTouches) {
-      if (joy.active && t.identifier === joy.id) {
-        joy.active = false;
-        joy.id = null;
-      }
+      releaseJoy(moveJoy, t.identifier);
+      releaseJoy(aimJoy, t.identifier);
     }
   });
 
@@ -424,6 +448,14 @@
   }
 
   function getAimAngle() {
+    if (aimJoy.active) {
+      const dx = aimJoy.x - aimJoy.ox;
+      const dy = aimJoy.y - aimJoy.oy;
+      if (Math.hypot(dx, dy) > JOY_DEAD_ZONE) {
+        return Math.atan2(dy, dx);
+      }
+      return player.aimAngle;
+    }
     return Math.atan2(mouse.worldY - player.y, mouse.worldX - player.x);
   }
 
@@ -1369,20 +1401,26 @@
     });
   }
 
+  function drawJoy(joy, knobColor) {
+    if (!joy.active) return;
+    const dx = Math.max(-JOY_MAX_R, Math.min(JOY_MAX_R, joy.x - joy.ox));
+    const dy = Math.max(-JOY_MAX_R, Math.min(JOY_MAX_R, joy.y - joy.oy));
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    ctx.beginPath();
+    ctx.arc(joy.ox, joy.oy, 55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = knobColor;
+    ctx.beginPath();
+    ctx.arc(joy.ox + dx, joy.oy + dy, 22, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   function drawCrosshair() {
-    if (joy.active) {
-      const maxR = 50;
-      const dx = Math.max(-maxR, Math.min(maxR, joy.x - joy.ox));
-      const dy = Math.max(-maxR, Math.min(maxR, joy.y - joy.oy));
-      ctx.fillStyle = "rgba(255,255,255,0.15)";
-      ctx.beginPath();
-      ctx.arc(joy.ox, joy.oy, 55, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "rgba(0,245,255,0.5)";
-      ctx.beginPath();
-      ctx.arc(joy.ox + dx, joy.oy + dy, 22, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    drawJoy(moveJoy, "rgba(0,245,255,0.5)");
+    drawJoy(aimJoy, "rgba(255,120,80,0.55)");
+
+    if (aimJoy.active) return;
+
     const x = mouse.screenX;
     const y = mouse.screenY;
     ctx.strokeStyle = "rgba(0,245,255,0.7)";
@@ -1504,7 +1542,10 @@
     ctx.fillStyle = "#666";
     ctx.textAlign = "center";
     ctx.font = "11px sans-serif";
-    ctx.fillText("WASD muovi | Mouse mira | Armi automatiche verso il cursore", W / 2, H - 8);
+    const hint = (moveJoy.active || aimJoy.active)
+      ? "Stick sinistro muovi | Stick destro mira"
+      : "WASD muovi | Mouse mira | Touch: stick sinistro + destro";
+    ctx.fillText(hint, W / 2, H - 8);
   }
 
   function drawLevelUp() {
