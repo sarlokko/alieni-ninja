@@ -28,5 +28,6 @@ jobs:
       - name: Verify online deploy
         run: |
           sleep 20
-          curl -fsSL "https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/js/game.js" | grep -q "aimJoy"
-          echo "Online: https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/game.html"
+          curl -fsSL "https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/js/game.js" | grep -q "aimJoy"
+          curl -fsI "https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/game.html" | grep -qi "content-type: text/html"
+          echo "Online: https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/game.html"

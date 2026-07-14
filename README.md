@@ -21,14 +21,15 @@ package.json
 
 Il gioco è **online e giocabile subito**, senza account esterni:
 
-- **Gioco:** https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/game.html
-- **Landing:** https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/
+- **Gioco:** https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/game.html
+- **Landing:** https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/
 
 Apri il link dal browser del cellulare. Controlli touch:
 - **Joystick sinistro:** movimento
 - **Joystick destro:** mira
 
-> Ogni push su `main` pubblica automaticamente la versione aggiornata (branch `gh-pages` → CDN jsDelivr).
+> Ogni push su `main` pubblica automaticamente la versione aggiornata (branch `gh-pages`).
+> Per un URL più corto puoi attivare GitHub Pages: Settings → Pages → branch `gh-pages` → `https://sarlokko.github.io/alieni-ninja/game.html`
 
 ## Avvio locale
 
