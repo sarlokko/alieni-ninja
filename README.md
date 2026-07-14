@@ -21,8 +21,11 @@ package.json
 
 Il gioco è **online e giocabile subito**:
 
-- **Gioco:** https://alieni-ninja-game.surge.sh/game.html
+- **Gioco (aggiornato):** https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/game.html
+- **Gioco (surge):** https://alieni-ninja-game.surge.sh/game.html
 - **Landing:** https://alieni-ninja-game.surge.sh/
+
+> Il link jsDelivr si aggiorna automaticamente da `main`. Per surge.sh servono i secret `SURGE_LOGIN` e `SURGE_TOKEN` nel repository.
 
 Apri il link dal browser del cellulare. Controlli touch:
 - **Joystick sinistro:** movimento
