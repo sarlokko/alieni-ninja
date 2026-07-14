@@ -19,19 +19,16 @@ package.json
 
 ## Gioca online (cellulare e remoto)
 
-Il gioco è **online e giocabile subito**:
+Il gioco è **online e giocabile subito**, senza account esterni:
 
-- **Gioco (aggiornato):** https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/game.html
-- **Gioco (surge):** https://alieni-ninja-game.surge.sh/game.html
-- **Landing:** https://alieni-ninja-game.surge.sh/
-
-> Il link jsDelivr si aggiorna automaticamente da `main`. Per surge.sh servono i secret `SURGE_LOGIN` e `SURGE_TOKEN` nel repository.
+- **Gioco:** https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/game.html
+- **Landing:** https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/
 
 Apri il link dal browser del cellulare. Controlli touch:
 - **Joystick sinistro:** movimento
 - **Joystick destro:** mira
 
-> Ogni aggiornamento su `main` ridistribuisce automaticamente il gioco online.
+> Ogni push su `main` pubblica automaticamente la versione aggiornata (branch `gh-pages` → CDN jsDelivr).
 
 ## Avvio locale
 

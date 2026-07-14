@@ -1,7 +1,5 @@
 #!/bin/bash
-# Ridistribuisce il gioco su surge.sh
-# Richiede: npm install -g surge && surge login (una volta)
-set -e
-cd "$(dirname "$0")/../public"
-surge . https://alieni-ninja-game.surge.sh
-echo "Online: https://alieni-ninja-game.surge.sh/game.html"
+# Il deploy online avviene automaticamente su push a main (workflow Deploy online).
+# URL pubblico (nessun account esterno richiesto):
+echo "Gioco:   https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/game.html"
+echo "Landing: https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/"
