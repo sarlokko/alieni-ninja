@@ -8,13 +8,15 @@
   const WORLD_W = 9600;
   const WORLD_H = 7200;
   const { SPRITES, drawSpriteCentered, PX } = window.PixelSprites;
+  const PLAYER_SCALE = 5;
+  const ENEMY_SPRITE_SCALE = PX + 1;
 
   const ENEMY_TYPES = {
-    kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.55, speedMult: 0.5,  damage: 2, size: 12, xp: 2, weight: 40 },
-    tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.9,  speedMult: 0.65, damage: 3, size: 14, xp: 3, weight: 35 },
-    hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore",      hpMult: 0.75, speedMult: 0.85, damage: 4, size: 15, xp: 4, weight: 22 },
-    werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro",   hpMult: 1.6,  speedMult: 0.55, damage: 6, size: 18, xp: 7, weight: 18 },
-    shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Felina",    hpMult: 0.5,  speedMult: 1.0,  damage: 5, size: 13, xp: 5, weight: 12 },
+    kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.55, speedMult: 0.5,  damage: 2, size: 14, xp: 2, weight: 40 },
+    tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.9,  speedMult: 0.65, damage: 3, size: 16, xp: 3, weight: 35 },
+    hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore",      hpMult: 0.75, speedMult: 0.85, damage: 4, size: 17, xp: 4, weight: 22 },
+    werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro",   hpMult: 1.6,  speedMult: 0.55, damage: 6, size: 20, xp: 7, weight: 18 },
+    shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Felina",    hpMult: 0.5,  speedMult: 1.0,  damage: 5, size: 15, xp: 5, weight: 12 },
   };
 
   const STATE = {
@@ -113,14 +115,15 @@
   ];
 
   const POWERUP_POOL = [
-    { id: "potenza", name: "Potenza", desc: "Danno +12%", max: 5, icon: "💥" },
-    { id: "celerita", name: "Celerità", desc: "Attacco +10% veloce", max: 5, icon: "⚡" },
-    { id: "quantita", name: "Quantità", desc: "+1 proiettile/colpo", max: 4, icon: "🔢" },
-    { id: "area", name: "Area", desc: "Raggio attacco +15%", max: 4, icon: "🌀" },
-    { id: "velocita", name: "Agilità", desc: "Movimento +8%", max: 4, icon: "💨" },
-    { id: "cuore", name: "Cuore Alieno", desc: "HP massimi +25", max: 5, icon: "💚" },
-    { id: "magnete", name: "Magnete XP", desc: "Raggio raccolta +35%", max: 3, icon: "🧲" },
-    { id: "rigenerazione", name: "Rigenerazione", desc: "+0.4 HP/frame", max: 3, icon: "♻️" },
+    { id: "potenza", name: "Potenza", desc: "Danno +15%", max: 5, icon: "💥", category: "offense" },
+    { id: "celerita", name: "Celerità", desc: "Attacco +12% veloce", max: 5, icon: "⚡", category: "offense" },
+    { id: "quantita", name: "Quantità", desc: "+1 proiettile/colpo", max: 4, icon: "🔢", category: "offense" },
+    { id: "area", name: "Area", desc: "Raggio attacco +18%", max: 4, icon: "🌀", category: "offense" },
+    { id: "velocita", name: "Agilità", desc: "Movimento +10%", max: 4, icon: "💨", category: "utility" },
+    { id: "cuore", name: "Cuore Alieno", desc: "HP massimi +30", max: 5, icon: "💚", category: "defense" },
+    { id: "magnete", name: "Magnete XP", desc: "Raggio raccolta +40%", max: 3, icon: "🧲", category: "utility" },
+    { id: "rigenerazione", name: "Rigenerazione", desc: "+0.5 HP/frame", max: 3, icon: "♻️", category: "defense" },
+    { id: "scudo", name: "Scudo Ninja", desc: "Riduce danni subiti del 8%", max: 3, icon: "🛡️", category: "defense" },
   ];
 
   const WEAPON_UPGRADES = {
@@ -135,11 +138,11 @@
     {
       name: "Addestramento",
       theme: "training",
-      story: "Campo olografico di addestramento. Sopravvivi 45 secondi ai gatti mannari simulati.",
+      story: "Campo olografico di addestramento. Elimina 12 gatti mannari simulati.",
       bg: ["#0d1b2a", "#1b263b"],
       floor: "#152238",
       accent: "#00f5ff",
-      duration: 45 * 60,
+      killQuota: 12,
       spawnRate: 150,
       enemyHp: 25,
       enemySpeed: 0.55,
@@ -149,11 +152,11 @@
     {
       name: "Città Alienigena",
       theme: "alien_city",
-      story: "Grattacieli neon sotto assedio. Resisti 50 secondi nell'area urbana.",
+      story: "Grattacieli neon sotto assedio. Uccidi 18 gatti mannari nelle strade.",
       bg: ["#1a0a2e", "#2d1b4e"],
       floor: "#1e1040",
       accent: "#b026ff",
-      duration: 50 * 60,
+      killQuota: 18,
       spawnRate: 135,
       enemyHp: 35,
       enemySpeed: 0.65,
@@ -163,11 +166,11 @@
     {
       name: "Bosco Infestato",
       theme: "forest",
-      story: "Un bosco bioluminescente infestato. Sopravvivi 55 secondi tra gli alberi.",
+      story: "Un bosco bioluminescente infestato. Abbatti 22 predatori felini.",
       bg: ["#0a1f0a", "#1a3a1a"],
       floor: "#0f2a12",
       accent: "#39ff14",
-      duration: 55 * 60,
+      killQuota: 22,
       spawnRate: 125,
       enemyHp: 40,
       enemySpeed: 0.72,
@@ -177,11 +180,11 @@
     {
       name: "Tempio Antico",
       theme: "temple",
-      story: "Pilastri millenari e torce aliene. Sconfiggi il Custode delle Stelle.",
+      story: "Pilastri millenari e torce aliene. Uccidi 25 gatti, poi il Custode delle Stelle.",
       bg: ["#2a1a0a", "#4a3020"],
       floor: "#3a2818",
       accent: "#ffd700",
-      duration: 60 * 60,
+      killQuota: 25,
       spawnRate: 115,
       enemyHp: 45,
       enemySpeed: 0.78,
@@ -191,11 +194,11 @@
     {
       name: "Sottomondo Felino",
       theme: "underworld",
-      story: "Gallerie laviche e cristalli rossi. Affronta la Matrona degli Arcani.",
+      story: "Gallerie laviche e cristalli rossi. Elimina 28 nemici e affronta la Matrona.",
       bg: ["#1a0a0a", "#3a1515"],
       floor: "#2a1010",
       accent: "#ff4466",
-      duration: 60 * 60,
+      killQuota: 28,
       spawnRate: 110,
       enemyHp: 50,
       enemySpeed: 0.82,
@@ -205,11 +208,11 @@
     {
       name: "Tempio delle Stelle",
       theme: "star_temple",
-      story: "Portali dimensionali e rune stellari. Batti il Guardiano Dimensionale.",
+      story: "Portali dimensionali e rune stellari. Uccidi 30 gatti mannari, poi il Guardiano.",
       bg: ["#0a0a2a", "#1a1a5a"],
       floor: "#12124a",
       accent: "#7b68ee",
-      duration: 65 * 60,
+      killQuota: 30,
       spawnRate: 105,
       enemyHp: 55,
       enemySpeed: 0.86,
@@ -219,11 +222,11 @@
     {
       name: "Battaglia sulla Luna",
       theme: "moon",
-      story: "Crateri e cielo stellato. Il Drago Stellare attacca dalla superficie lunare.",
+      story: "Crateri e cielo stellato. Elimina 32 predatori prima del Drago Stellare.",
       bg: ["#1a1a2a", "#2a2a4a"],
       floor: "#3a3a4a",
       accent: "#ff6347",
-      duration: 65 * 60,
+      killQuota: 32,
       spawnRate: 100,
       enemyHp: 60,
       enemySpeed: 0.88,
@@ -233,11 +236,11 @@
     {
       name: "Città Maledetta",
       theme: "cursed_city",
-      story: "Rovine corrotte e nebbia viola. Il Signore del Caos domina le strade.",
+      story: "Rovine corrotte e nebbia viola. Uccidi 35 gatti mannari e il Signore del Caos.",
       bg: ["#1a0a1a", "#3a1a3a"],
       floor: "#2a1530",
       accent: "#9400d3",
-      duration: 70 * 60,
+      killQuota: 35,
       spawnRate: 95,
       enemyHp: 65,
       enemySpeed: 0.92,
@@ -247,11 +250,11 @@
     {
       name: "Rifugio delle Stelle",
       theme: "star_refuge",
-      story: "Cristalli di luce e energia cosmica. La Matriarca del Mondo Felino attende.",
+      story: "Cristalli di luce cosmica. Elimina 38 nemici e la Matriarca del Mondo Felino.",
       bg: ["#0a1a2a", "#1a3a5a"],
       floor: "#102840",
       accent: "#ff8c00",
-      duration: 70 * 60,
+      killQuota: 38,
       spawnRate: 90,
       enemyHp: 70,
       enemySpeed: 0.95,
@@ -261,11 +264,11 @@
     {
       name: "Confronto Finale",
       theme: "final",
-      story: "La Luna. Il Re dei Gatti Mannari e il Guardiano dell'Universo proteggono la Lancia.",
+      story: "La Luna. Uccidi 40 gatti mannari, poi il Re e il Guardiano dell'Universo.",
       bg: ["#0a0a1a", "#1a0a2a"],
       floor: "#2a2a35",
       accent: "#ff2200",
-      duration: 75 * 60,
+      killQuota: 40,
       spawnRate: 85,
       enemyHp: 75,
       enemySpeed: 0.98,
@@ -295,13 +298,14 @@
   let waves = [];
   let orbiters = [];
   let decor = [];
-  let levelTimer = 0;
+  let ambience = [];
   let spawnTimer = 0;
   let pickupTimer = 0;
   let bossSpawned = false;
   let finalBossSpawned = false;
   let bossPhase = false;
   let kills = 0;
+  let levelKills = 0;
   let camera = { x: 0, y: 0 };
   let lastMenuTap = 0;
 
@@ -555,7 +559,23 @@
       magnet: 90,
       regen: 0,
       weaponLevel: 1,
+      damageReduction: 0,
     };
+  }
+
+  function getKillProgress() {
+    const level = LEVELS[currentLevel];
+    return Math.min(1, levelKills / level.killQuota);
+  }
+
+  function weightedPick(items) {
+    const total = items.reduce((s, item) => s + (item.weight || 1), 0);
+    let roll = Math.random() * total;
+    for (const item of items) {
+      roll -= item.weight || 1;
+      if (roll <= 0) return item;
+    }
+    return items[items.length - 1];
   }
 
   function selectHero(idx) {
@@ -624,13 +644,14 @@
     waves = [];
     orbiters = initOrbiters();
     decor = generateDecor(level.theme);
-    levelTimer = level.duration;
+    ambience = generateAmbience(level.theme);
     spawnTimer = 30;
     pickupTimer = 600;
     bossSpawned = false;
     finalBossSpawned = false;
     bossPhase = false;
     kills = 0;
+    levelKills = 0;
   }
 
   function initOrbiters() {
@@ -645,47 +666,111 @@
   function generateDecor(theme) {
     const items = [];
     const rnd = (n) => Math.random() * n;
-    const count = { training: 80, alien_city: 70, forest: 110, temple: 60, underworld: 90,
-      star_temple: 80, moon: 100, cursed_city: 90, star_refuge: 95, final: 70 };
-    const n = count[theme] || 30;
+    const count = { training: 120, alien_city: 110, forest: 150, temple: 95, underworld: 130,
+      star_temple: 115, moon: 140, cursed_city: 125, star_refuge: 130, final: 110 };
+    const n = count[theme] || 50;
 
     switch (theme) {
       case "training":
-        for (let i = 0; i < n; i++) items.push({ type: "holo_ring", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 15 + rnd(25) });
+        for (let i = 0; i < n; i++) {
+          items.push({ type: "holo_ring", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 15 + rnd(25) });
+          if (i % 4 === 0) items.push({ type: "target_marker", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 10 + rnd(12) });
+        }
         break;
       case "alien_city":
         for (let i = 0; i < n; i++) {
           const windows = [];
-          for (let wy = 0; wy < 5; wy++) for (let wx = 0; wx < 3; wx++) windows.push(Math.random() > 0.4);
-          items.push({ type: "building", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 50 + rnd(50), h: 70 + rnd(90), windows });
+          for (let wy = 0; wy < 6; wy++) for (let wx = 0; wx < 4; wx++) windows.push(Math.random() > 0.35);
+          items.push({ type: "building", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 50 + rnd(70), h: 80 + rnd(120), windows });
+          if (i % 5 === 0) items.push({ type: "neon_sign", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 30 + rnd(40) });
         }
         break;
       case "forest":
-        for (let i = 0; i < n; i++) items.push({ type: "tree", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 18 + rnd(28) });
+        for (let i = 0; i < n; i++) {
+          items.push({ type: "tree", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 18 + rnd(32), variant: Math.floor(rnd(3)) });
+          if (i % 3 === 0) items.push({ type: "mushroom", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 6 + rnd(10) });
+          if (i % 6 === 0) items.push({ type: "vine", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 20 + rnd(40) });
+        }
         break;
       case "temple":
-        for (let i = 0; i < n; i++) items.push({ type: "pillar", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 80 + rnd(100) });
+        for (let i = 0; i < n; i++) {
+          items.push({ type: "pillar", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 80 + rnd(120) });
+          if (i % 4 === 0) items.push({ type: "torch", x: rnd(WORLD_W), y: rnd(WORLD_H) });
+          if (i % 5 === 0) items.push({ type: "rune", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 10 + rnd(18) });
+        }
         break;
       case "underworld":
-        for (let i = 0; i < n; i++) items.push({ type: "stalactite", x: rnd(WORLD_W), y: rnd(WORLD_H * 0.4), h: 25 + rnd(55) });
+        for (let i = 0; i < n; i++) {
+          items.push({ type: "stalactite", x: rnd(WORLD_W), y: rnd(WORLD_H * 0.4), h: 25 + rnd(55) });
+          if (i % 3 === 0) items.push({ type: "lava_pool", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(24) });
+        }
         break;
       case "star_temple":
-        for (let i = 0; i < n; i++) items.push({ type: "rune", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 10 + rnd(18) });
+        for (let i = 0; i < n; i++) {
+          items.push({ type: "rune", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 10 + rnd(18) });
+          if (i % 4 === 0) items.push({ type: "portal", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 16 + rnd(20) });
+        }
         break;
       case "moon":
-        for (let i = 0; i < n; i++) items.push({ type: "crater", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(35) });
+        for (let i = 0; i < n; i++) {
+          items.push({ type: "crater", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(40) });
+          if (i % 5 === 0) items.push({ type: "moon_flag", x: rnd(WORLD_W), y: rnd(WORLD_H) });
+        }
         break;
       case "cursed_city":
-        for (let i = 0; i < n; i++) items.push({ type: "ruin", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 25 + rnd(55), h: 18 + rnd(45) });
+        for (let i = 0; i < n; i++) {
+          items.push({ type: "ruin", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 25 + rnd(65), h: 18 + rnd(55) });
+          if (i % 4 === 0) items.push({ type: "fog_patch", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 20 + rnd(35) });
+        }
         break;
       case "star_refuge":
-        for (let i = 0; i < n; i++) items.push({ type: "crystal", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 18 + rnd(45) });
+        for (let i = 0; i < n; i++) {
+          items.push({ type: "crystal", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 18 + rnd(50) });
+          if (i % 3 === 0) items.push({ type: "star_altar", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 14 + rnd(18) });
+        }
         break;
       case "final":
-        for (let i = 0; i < n; i++) items.push({ type: "moon_rock", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(30) });
+        for (let i = 0; i < n; i++) {
+          items.push({ type: "moon_rock", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(35) });
+          if (i % 4 === 0) items.push({ type: "lunar_spire", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 40 + rnd(70) });
+        }
         break;
     }
     return items;
+  }
+
+  function generateAmbience(theme) {
+    const items = [];
+    const colors = {
+      training: "#00f5ff", alien_city: "#b026ff", forest: "#39ff14", temple: "#ffd700",
+      underworld: "#ff4466", star_temple: "#7b68ee", moon: "#c0c0ff", cursed_city: "#9400d3",
+      star_refuge: "#ff8c00", final: "#ff2200",
+    };
+    const color = colors[theme] || "#ffffff";
+    for (let i = 0; i < 55; i++) {
+      items.push({
+        x: Math.random() * WORLD_W,
+        y: Math.random() * WORLD_H,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r: 1 + Math.random() * 2.5,
+        phase: Math.random() * Math.PI * 2,
+        color,
+      });
+    }
+    return items;
+  }
+
+  function updateAmbience() {
+    ambience.forEach((a) => {
+      a.x += a.vx;
+      a.y += a.vy;
+      a.phase += 0.04;
+      if (a.x < 0) a.x = WORLD_W;
+      if (a.x > WORLD_W) a.x = 0;
+      if (a.y < 0) a.y = WORLD_H;
+      if (a.y > WORLD_H) a.y = 0;
+    });
   }
 
   function updateCamera() {
@@ -745,8 +830,7 @@
   }
 
   function pickEnemyType() {
-    const level = LEVELS[currentLevel];
-    const progress = 1 - levelTimer / level.duration;
+    const progress = getKillProgress();
     const pool = [];
 
     const add = (id, w) => {
@@ -911,7 +995,7 @@
     y = Math.max(50, Math.min(WORLD_H - 50, y));
 
     const etype = pickEnemyType();
-    const scale = 1 + (level.duration - levelTimer) / level.duration * 0.4;
+    const scale = 1 + getKillProgress() * 0.45;
     enemies.push({
       x, y,
       hp: Math.floor(level.enemyHp * etype.hpMult * scale),
@@ -951,14 +1035,15 @@
     up[choice.id] = (up[choice.id] || 0) + 1;
 
     switch (choice.id) {
-      case "potenza": player.stats.damage *= 1.12; break;
-      case "celerita": player.stats.cooldownMult *= 0.9; break;
+      case "potenza": player.stats.damage *= 1.15; break;
+      case "celerita": player.stats.cooldownMult *= 0.88; break;
       case "quantita": player.stats.amount += 1; orbiters = initOrbiters(); break;
-      case "area": player.stats.area *= 1.15; orbiters = initOrbiters(); break;
-      case "velocita": player.stats.speed *= 1.08; break;
-      case "cuore": player.maxHp += 25; player.hp = Math.min(player.hp + 25, player.maxHp); break;
-      case "magnete": player.stats.magnet *= 1.35; break;
-      case "rigenerazione": player.stats.regen += 0.4; break;
+      case "area": player.stats.area *= 1.18; orbiters = initOrbiters(); break;
+      case "velocita": player.stats.speed *= 1.1; break;
+      case "cuore": player.maxHp += 30; player.hp = Math.min(player.hp + 30, player.maxHp); break;
+      case "magnete": player.stats.magnet *= 1.4; break;
+      case "rigenerazione": player.stats.regen += 0.5; break;
+      case "scudo": player.stats.damageReduction = Math.min(0.45, player.stats.damageReduction + 0.08); break;
       case "weapon_up": player.stats.weaponLevel++; break;
     }
 
@@ -972,18 +1057,45 @@
     const pool = [];
 
     POWERUP_POOL.forEach((p) => {
-      if ((owned[p.id] || 0) < p.max) pool.push({ ...p, kind: "passive" });
+      const rank = owned[p.id] || 0;
+      if (rank < p.max) {
+        pool.push({
+          ...p,
+          kind: "passive",
+          rank,
+          weight: (p.max - rank) * 2 + 1,
+        });
+      }
     });
 
     const wUp = WEAPON_UPGRADES[player.hero.weapon];
     if (player.stats.weaponLevel < 5) {
-      pool.push({ id: "weapon_up", name: wUp.name, desc: wUp.desc, icon: "🗡️", kind: "weapon" });
+      pool.push({
+        id: "weapon_up",
+        name: wUp.name,
+        desc: wUp.desc,
+        icon: "🗡️",
+        kind: "weapon",
+        category: "offense",
+        rank: player.stats.weaponLevel - 1,
+        max: 5,
+        weight: player.level % 3 === 0 ? 6 : 3,
+      });
     }
 
     levelUpChoices = [];
-    const shuffled = pool.sort(() => Math.random() - 0.5);
-    for (let i = 0; i < Math.min(3, shuffled.length); i++) {
-      levelUpChoices.push(shuffled[i]);
+    const categories = ["offense", "defense", "utility"];
+    categories.forEach((cat) => {
+      const inCat = pool.filter((p) => p.category === cat && !levelUpChoices.includes(p));
+      if (inCat.length && levelUpChoices.length < 3) {
+        levelUpChoices.push(weightedPick(inCat));
+      }
+    });
+
+    while (levelUpChoices.length < 3) {
+      const rest = pool.filter((p) => !levelUpChoices.includes(p));
+      if (!rest.length) break;
+      levelUpChoices.push(weightedPick(rest));
     }
 
     levelUpSelected = 0;
@@ -1051,21 +1163,23 @@
     }
 
     updateOrbiters();
+    updateAmbience();
 
-    if (!bossPhase) {
-      levelTimer--;
+    const quotaReached = levelKills >= level.killQuota;
+
+    if (!bossPhase && !quotaReached) {
       if (spawnTimer > 0) spawnTimer--;
       else {
         spawnEnemy();
-        const rate = Math.max(60, level.spawnRate - Math.floor((level.duration - levelTimer) / 90));
+        const rate = Math.max(55, level.spawnRate - Math.floor(getKillProgress() * 45));
         spawnTimer = rate;
       }
     }
 
-    if (!bossSpawned && levelTimer <= 0 && level.boss) {
+    if (!bossSpawned && quotaReached && level.boss) {
       spawnEnemy(true, level.boss);
       bossSpawned = true;
-    } else if (!bossSpawned && levelTimer <= 0 && !level.boss) {
+    } else if (!bossSpawned && quotaReached && !level.boss) {
       state = STATE.LEVEL_CLEAR;
       return;
     }
@@ -1130,7 +1244,8 @@
       e.x += Math.cos(angle) * e.speed;
       e.y += Math.sin(angle) * e.speed;
       if (Math.hypot(player.x - e.x, player.y - e.y) < e.size + 14 && player.invulnerable <= 0) {
-        const dmg = e.isBoss ? 8 : (e.damage || 3);
+        const baseDmg = e.isBoss ? 8 : (e.damage || 3);
+        const dmg = Math.max(1, Math.floor(baseDmg * (1 - player.stats.damageReduction)));
         player.hp -= dmg;
         player.invulnerable = 25;
         addParticles(player.x, player.y, "#ff0000", 6);
@@ -1141,6 +1256,7 @@
     dead.forEach((e) => {
       addParticles(e.x, e.y, e.color, e.isBoss ? 35 : 8);
       kills++;
+      if (!e.isBoss) levelKills++;
       if (!e.isBoss) {
         dropXp(e.x, e.y, e.xp || (3 + Math.floor(currentLevel / 2)));
       } else {
@@ -1212,19 +1328,124 @@
     ctx.fillStyle = level.bg[0];
     ctx.fillRect(0, 0, WORLD_W, WORLD_H);
 
+    const grad = ctx.createRadialGradient(WORLD_W / 2, WORLD_H / 2, 0, WORLD_W / 2, WORLD_H / 2, WORLD_W * 0.55);
+    grad.addColorStop(0, level.bg[1] + "88");
+    grad.addColorStop(1, level.bg[0]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
     ctx.fillStyle = level.floor;
-    ctx.globalAlpha = 0.4;
-    for (let x = 0; x < WORLD_W; x += 64) {
-      for (let y = 0; y < WORLD_H; y += 64) {
-        if ((x / 64 + y / 64) % 2 === 0) ctx.fillRect(x, y, 64, 64);
+    ctx.globalAlpha = 0.55;
+    const tile = 48;
+    for (let x = 0; x < WORLD_W; x += tile) {
+      for (let y = 0; y < WORLD_H; y += tile) {
+        if ((x / tile + y / tile) % 2 === 0) ctx.fillRect(x, y, tile, tile);
       }
     }
     ctx.globalAlpha = 1;
 
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    switch (level.theme) {
+      case "training":
+        for (let i = 0; i < 12; i++) {
+          ctx.strokeStyle = level.accent;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(120 + i * 760, 120 + (i % 3) * 180, 520, 360);
+        }
+        break;
+      case "alien_city":
+        ctx.strokeStyle = level.accent;
+        ctx.lineWidth = 3;
+        for (let x = 0; x < WORLD_W; x += 220) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x + 80, WORLD_H);
+          ctx.stroke();
+        }
+        break;
+      case "forest":
+        ctx.fillStyle = "#0a2a0a";
+        for (let i = 0; i < 40; i++) {
+          const fx = (i * 241) % WORLD_W;
+          const fy = (i * 173) % WORLD_H;
+          ctx.beginPath();
+          ctx.ellipse(fx, fy, 120, 80, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        break;
+      case "temple":
+        ctx.fillStyle = "#3a2818";
+        for (let x = 80; x < WORLD_W; x += 320) ctx.fillRect(x, 80, 24, WORLD_H - 160);
+        break;
+      case "underworld":
+        ctx.fillStyle = "#4a1010";
+        for (let i = 0; i < 25; i++) {
+          ctx.beginPath();
+          ctx.ellipse((i * 389) % WORLD_W, (i * 271) % WORLD_H, 90, 50, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        break;
+      case "star_temple":
+        ctx.strokeStyle = level.accent;
+        for (let i = 0; i < 18; i++) {
+          const sx = (i * 521) % WORLD_W;
+          const sy = (i * 317) % WORLD_H;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 60 + (i % 4) * 20, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        break;
+      case "moon":
+        ctx.fillStyle = "#ffffff08";
+        for (let i = 0; i < 80; i++) {
+          ctx.fillRect((i * 127) % WORLD_W, (i * 89) % WORLD_H, 2, 2);
+        }
+        break;
+      case "cursed_city":
+        ctx.fillStyle = "#2a1035";
+        for (let i = 0; i < 20; i++) {
+          ctx.fillRect((i * 463) % WORLD_W, (i * 211) % WORLD_H, 180, 40);
+        }
+        break;
+      case "star_refuge":
+        ctx.strokeStyle = level.accent;
+        for (let i = 0; i < 10; i++) {
+          const cx = (i * 601) % WORLD_W;
+          const cy = (i * 401) % WORLD_H;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy - 50);
+          ctx.lineTo(cx + 40, cy);
+          ctx.lineTo(cx, cy + 50);
+          ctx.lineTo(cx - 40, cy);
+          ctx.closePath();
+          ctx.stroke();
+        }
+        break;
+      case "final":
+        ctx.fillStyle = "#ff220011";
+        ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+        break;
+    }
+    ctx.restore();
+
     ctx.strokeStyle = level.accent;
-    ctx.lineWidth = 6;
-    ctx.globalAlpha = 0.25;
+    ctx.lineWidth = 8;
+    ctx.globalAlpha = 0.35;
     ctx.strokeRect(30, 30, WORLD_W - 60, WORLD_H - 60);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawAmbience(level) {
+    ambience.forEach((a) => {
+      if (!isOnScreen(a.x, a.y, 40)) return;
+      const pulse = 0.35 + Math.sin(a.phase) * 0.25;
+      ctx.globalAlpha = pulse;
+      ctx.fillStyle = a.color;
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
     ctx.globalAlpha = 1;
   }
 
@@ -1233,9 +1454,9 @@
   }
 
   function drawDecor(d, level) {
-    if (!isOnScreen(d.x, d.y, 120)) return;
+    if (!isOnScreen(d.x, d.y, 140)) return;
     ctx.save();
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = 0.62;
     switch (d.type) {
       case "holo_ring":
         ctx.strokeStyle = level.accent;
@@ -1243,42 +1464,99 @@
         ctx.beginPath();
         ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = level.accent;
+        ctx.fill();
+        break;
+      case "target_marker":
+        ctx.strokeStyle = level.accent;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.moveTo(d.x - d.r, d.y);
+        ctx.lineTo(d.x + d.r, d.y);
+        ctx.moveTo(d.x, d.y - d.r);
+        ctx.lineTo(d.x, d.y + d.r);
+        ctx.stroke();
         break;
       case "building":
         ctx.fillStyle = "#0a0520";
         ctx.fillRect(d.x, d.y, d.w, d.h);
+        ctx.fillStyle = level.accent;
+        ctx.globalAlpha = 0.35;
+        ctx.fillRect(d.x, d.y, d.w, 8);
         if (d.windows) {
           let idx = 0;
           for (let wy = d.y + 10; wy < d.y + d.h - 10; wy += 18) {
             for (let wx = d.x + 8; wx < d.x + d.w - 8; wx += 14) {
               ctx.fillStyle = d.windows[idx++] ? level.accent : "#1a1040";
-              ctx.globalAlpha = 0.6;
+              ctx.globalAlpha = d.windows[idx - 1] ? 0.85 : 0.35;
               ctx.fillRect(wx, wy, 8, 10);
             }
           }
         }
         break;
+      case "neon_sign":
+        ctx.fillStyle = level.accent;
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(d.x, d.y, d.w, 8);
+        ctx.globalAlpha = 0.25;
+        ctx.fillRect(d.x - 4, d.y - 4, d.w + 8, 16);
+        break;
       case "tree":
-        ctx.fillStyle = "#0a3a0a";
+        ctx.fillStyle = d.variant === 1 ? "#0d4a0d" : d.variant === 2 ? "#124012" : "#0a3a0a";
         ctx.beginPath();
         ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = "#2a1a0a";
-        ctx.fillRect(d.x - 4, d.y, 8, d.r);
+        ctx.fillRect(d.x - 5, d.y, 10, d.r);
+        break;
+      case "mushroom":
+        ctx.fillStyle = "#8a2244";
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, Math.PI, 0);
+        ctx.fill();
+        ctx.fillStyle = "#d8c8a0";
+        ctx.fillRect(d.x - 3, d.y, 6, d.r);
+        break;
+      case "vine":
+        ctx.strokeStyle = "#1a5a1a";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.quadraticCurveTo(d.x + 12, d.y + d.h * 0.5, d.x, d.y + d.h);
+        ctx.stroke();
         break;
       case "pillar":
         ctx.fillStyle = "#5a4a30";
-        ctx.fillRect(d.x, d.y, 20, d.h);
+        ctx.fillRect(d.x, d.y, 24, d.h);
         ctx.fillStyle = level.accent;
-        ctx.globalAlpha = 0.5;
-        ctx.fillRect(d.x - 2, d.y, 24, 8);
+        ctx.globalAlpha = 0.65;
+        ctx.fillRect(d.x - 3, d.y, 30, 10);
+        ctx.fillRect(d.x - 3, d.y + d.h - 10, 30, 10);
+        break;
+      case "torch":
+        ctx.fillStyle = "#5a3a20";
+        ctx.fillRect(d.x, d.y, 6, 24);
+        ctx.fillStyle = "#ff9933";
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.arc(d.x + 3, d.y - 4, 8, 0, Math.PI * 2);
+        ctx.fill();
         break;
       case "stalactite":
         ctx.fillStyle = "#4a2020";
         ctx.beginPath();
         ctx.moveTo(d.x, 0);
-        ctx.lineTo(d.x - 8, d.h);
-        ctx.lineTo(d.x + 8, d.h);
+        ctx.lineTo(d.x - 10, d.h);
+        ctx.lineTo(d.x + 10, d.h);
+        ctx.fill();
+        break;
+      case "lava_pool":
+        ctx.fillStyle = "#ff4422";
+        ctx.globalAlpha = 0.45;
+        ctx.beginPath();
+        ctx.ellipse(d.x, d.y, d.r, d.r * 0.6, 0, 0, Math.PI * 2);
         ctx.fill();
         break;
       case "rune":
@@ -1291,30 +1569,75 @@
         ctx.font = "14px serif";
         ctx.fillText("✦", d.x - 5, d.y + 5);
         break;
+      case "portal":
+        ctx.strokeStyle = level.accent;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(d.x, d.y, d.r, d.r * 0.7, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = level.accent;
+        ctx.fill();
+        break;
       case "crater":
         ctx.fillStyle = "#2a2a35";
         ctx.beginPath();
         ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "#4a4a55";
+        ctx.strokeStyle = "#5a5a65";
         ctx.stroke();
+        break;
+      case "moon_flag":
+        ctx.fillStyle = "#888";
+        ctx.fillRect(d.x, d.y, 3, 28);
+        ctx.fillStyle = "#ddd";
+        ctx.fillRect(d.x + 3, d.y, 16, 10);
         break;
       case "ruin":
         ctx.fillStyle = "#3a2540";
         ctx.fillRect(d.x, d.y, d.w, d.h);
+        ctx.strokeStyle = "#5a3560";
+        ctx.strokeRect(d.x, d.y, d.w, d.h);
+        break;
+      case "fog_patch":
+        ctx.fillStyle = "#6a3088";
+        ctx.globalAlpha = 0.18;
+        ctx.beginPath();
+        ctx.ellipse(d.x, d.y, d.r, d.r * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
         break;
       case "crystal":
         ctx.fillStyle = level.accent;
         ctx.beginPath();
         ctx.moveTo(d.x, d.y - d.h);
-        ctx.lineTo(d.x - 8, d.y);
-        ctx.lineTo(d.x + 8, d.y);
+        ctx.lineTo(d.x - 10, d.y);
+        ctx.lineTo(d.x + 10, d.y);
         ctx.fill();
+        ctx.globalAlpha = 0.25;
+        ctx.fillRect(d.x - 14, d.y - d.h - 8, 28, d.h + 12);
+        break;
+      case "star_altar":
+        ctx.strokeStyle = level.accent;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = level.accent;
+        ctx.font = "16px serif";
+        ctx.fillText("★", d.x - 7, d.y + 6);
         break;
       case "moon_rock":
         ctx.fillStyle = "#4a4a55";
         ctx.beginPath();
         ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      case "lunar_spire":
+        ctx.fillStyle = "#5a5a70";
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y - d.h);
+        ctx.lineTo(d.x + 14, d.y);
+        ctx.lineTo(d.x - 14, d.y);
         ctx.fill();
         break;
     }
@@ -1339,25 +1662,62 @@
       });
     }
 
-    drawSpriteCentered(ctx, SPRITES[p.hero.id], p.x, p.y, PX, facingLeft);
+    drawSpriteCentered(ctx, SPRITES[p.hero.id], p.x, p.y, PLAYER_SCALE, facingLeft);
 
     if (p.invulnerable > 0 && p.invulnerable % 6 < 3) {
       ctx.strokeStyle = "#fff";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, 38, 0, Math.PI * 2);
       ctx.stroke();
     }
   }
 
+  function drawEnemyWerewolfFx(e, facingLeft) {
+    if (e.isBoss) return;
+    const glow = e.typeId === "werewolf" || e.typeId === "shadow" || e.typeId === "hunter";
+    if (!glow) return;
+    ctx.globalAlpha = 0.35 + Math.sin(Date.now() / 180 + e.x) * 0.15;
+    ctx.fillStyle = e.typeId === "shadow" ? "#cc44ff" : "#ff4422";
+    ctx.beginPath();
+    const eyeX = facingLeft ? e.x + 5 : e.x - 5;
+    ctx.arc(eyeX, e.y - 4, 2.5, 0, Math.PI * 2);
+    ctx.arc(e.x + (facingLeft ? -5 : 5), e.y - 4, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
   function drawEnemies() {
     enemies.forEach((e) => {
-      if (!isOnScreen(e.x, e.y, 80)) return;
+      if (!isOnScreen(e.x, e.y, 90)) return;
       const spriteKey = e.sprite || (e.isBoss ? "cat_boss" : "cat_tabby");
       const sprite = SPRITES[spriteKey] || SPRITES.cat_tabby;
-      const scale = e.isBoss ? PX + 2 : PX;
+      let scale = ENEMY_SPRITE_SCALE;
+      if (e.typeId === "werewolf") scale = PX + 2;
+      if (e.typeId === "hunter") scale = PX + 1;
+      if (e.isBoss) scale = PX + 4;
       const facingLeft = e.x > player.x;
+
+      if (e.isBoss) {
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.size + 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
       drawSpriteCentered(ctx, sprite, e.x, e.y, scale, facingLeft);
+      drawEnemyWerewolfFx(e, facingLeft);
+
+      if (!e.isBoss && e.typeName) {
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        ctx.fillRect(e.x - 34, e.y - e.size - 18, 68, 12);
+        ctx.fillStyle = e.typeId === "werewolf" ? "#ff8866" : "#ffccaa";
+        ctx.font = "9px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(e.typeName, e.x, e.y - e.size - 9);
+      }
 
       if (e.isBoss) {
         const barW = 140;
@@ -1521,13 +1881,24 @@
     ctx.fillText(`${level.name}`, 14, 20);
     ctx.fillStyle = "#aaa";
     ctx.font = "12px sans-serif";
-    ctx.fillText(`${player.hero.name} | Lv.${player.level} | Uccisi: ${kills}`, 14, 38);
+    ctx.fillText(`${player.hero.name} | Lv.${player.level} | Nemici: ${levelKills}/${level.killQuota}`, 14, 38);
 
-    const secs = Math.max(0, Math.ceil(levelTimer / 60));
     ctx.textAlign = "center";
     ctx.fillStyle = bossPhase ? "#ff4444" : "#fff";
     ctx.font = "bold 14px sans-serif";
-    ctx.fillText(bossPhase ? "⚔️ FASE BOSS" : `⏱ ${secs}s`, W / 2, 22);
+    const quotaDone = levelKills >= level.killQuota;
+    ctx.fillText(
+      bossPhase ? "⚔️ FASE BOSS" : quotaDone ? "🎯 Obiettivo raggiunto!" : `🎯 ${levelKills}/${level.killQuota} gatti`,
+      W / 2, 22
+    );
+
+    if (!bossPhase && !quotaDone) {
+      const barW = 180;
+      ctx.fillStyle = "#222";
+      ctx.fillRect(W / 2 - barW / 2, 30, barW, 8);
+      ctx.fillStyle = level.accent;
+      ctx.fillRect(W / 2 - barW / 2, 30, barW * getKillProgress(), 8);
+    }
 
     ctx.textAlign = "right";
     ctx.fillStyle = "#ffd700";
@@ -1577,6 +1948,7 @@
     ctx.save();
     ctx.translate(-Math.floor(camera.x), -Math.floor(camera.y));
     drawWorldBackground(LEVELS[currentLevel]);
+    drawAmbience(LEVELS[currentLevel]);
     decor.forEach((d) => drawDecor(d, LEVELS[currentLevel]));
     drawEnemies();
     drawPlayer();
@@ -1588,26 +1960,37 @@
     ctx.fillStyle = "#ffd700";
     ctx.font = "bold 32px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(`LEVEL UP! — Livello ${player.level}`, W / 2, 80);
+    ctx.fillText(`LEVEL UP! — Ninja Lv.${player.level}`, W / 2, 60);
+    ctx.fillStyle = "#aaa";
+    ctx.font = "13px sans-serif";
+    ctx.fillText(`Danno ${Math.round(player.stats.damage)} | HP ${Math.floor(player.hp)}/${player.maxHp} | Arma Lv.${player.stats.weaponLevel}`, W / 2, 88);
 
+    const catColors = { offense: "#ff6644", defense: "#44cc88", utility: "#44aaff", weapon: "#ffd700" };
     levelUpChoices.forEach((c, i) => {
-      const y = 180 + i * 110;
+      const y = 190 + i * 115;
       const selected = i === levelUpSelected;
+      const cat = c.category || (c.kind === "weapon" ? "weapon" : "utility");
       ctx.fillStyle = selected ? "rgba(176,38,255,0.4)" : "rgba(20,20,50,0.8)";
-      ctx.strokeStyle = selected ? "#b026ff" : "#444";
+      ctx.strokeStyle = selected ? catColors[cat] : "#444";
       ctx.lineWidth = selected ? 3 : 1;
-      ctx.fillRect(W / 2 - 280, y - 40, 560, 90);
-      ctx.strokeRect(W / 2 - 280, y - 40, 560, 90);
+      ctx.fillRect(W / 2 - 290, y - 42, 580, 96);
+      ctx.strokeRect(W / 2 - 290, y - 42, 580, 96);
 
       ctx.font = "28px serif";
-      ctx.fillText(c.icon || "✨", W / 2 - 240, y + 5);
+      ctx.fillText(c.icon || "✨", W / 2 - 250, y + 5);
       ctx.fillStyle = selected ? "#fff" : "#ccc";
       ctx.font = "bold 18px sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(`${i + 1}. ${c.name}`, W / 2 - 190, y - 8);
+      const rank = c.kind === "weapon"
+        ? ` [${player.stats.weaponLevel}/5]`
+        : c.max ? ` [${(c.rank || 0) + 1}/${c.max}]` : "";
+      ctx.fillText(`${i + 1}. ${c.name}${rank}`, W / 2 - 200, y - 10);
+      ctx.fillStyle = catColors[cat];
+      ctx.font = "11px sans-serif";
+      ctx.fillText(cat.toUpperCase(), W / 2 - 200, y + 10);
       ctx.fillStyle = "#888";
       ctx.font = "14px sans-serif";
-      ctx.fillText(c.desc, W / 2 - 190, y + 18);
+      ctx.fillText(c.desc, W / 2 - 200, y + 30);
     });
 
     ctx.fillStyle = "#aaa";
@@ -1640,7 +2023,7 @@
 
   function drawTitle() {
     drawTextScreen("Ninja Alieni vs Gatti Mannari", [
-      "Sopravvivi alle orde di Gatti Mannari!",
+      "Elimina le orde di Gatti Mannari!",
       "Muoviti, le armi attaccano da sole.",
       "Raccogli XP, potenzia il tuo ninja.",
       "", "Recupera la Lancia delle Stelle!",
@@ -1678,7 +2061,7 @@
       ctx.fillRect(cx - cw / 2, cy - ch / 2, cw, ch);
       ctx.strokeRect(cx - cw / 2, cy - ch / 2, cw, ch);
 
-      drawSpriteCentered(ctx, SPRITES[h.id], cx - cw / 2 + 50, cy - 10, PX + 1, false);
+      drawSpriteCentered(ctx, SPRITES[h.id], cx - cw / 2 + 50, cy - 10, PLAYER_SCALE - 1, false);
 
       ctx.fillStyle = h.color;
       ctx.font = "bold 18px sans-serif";
@@ -1700,7 +2083,7 @@
       level.story,
       "",
       `Arma: ${selectedHero.weaponName}`,
-      level.boss ? `Boss: ${level.boss.name}` : `Sopravvivi ${Math.ceil(level.duration / 60)} secondi`,
+      level.boss ? `Uccidi ${level.killQuota} gatti, poi: ${level.boss.name}` : `Obiettivo: uccidi ${level.killQuota} gatti mannari`,
     ], introTimer > 0 ? "..." : "Tocca per iniziare il livello");
     if (introTimer > 0) introTimer--;
   }
@@ -1757,6 +2140,7 @@
     ctx.translate(-Math.floor(camera.x), -Math.floor(camera.y));
 
     drawWorldBackground(level);
+    drawAmbience(level);
     decor.forEach((d) => drawDecor(d, level));
     drawWaves();
     drawXpGems();
