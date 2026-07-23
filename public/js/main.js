@@ -19,11 +19,18 @@ function getRandomMessage() {
   return missionMessages[index];
 }
 
-launchBtn.addEventListener("click", () => {
-  missionMessage.classList.remove("visible");
+if (launchBtn) {
+  launchBtn.addEventListener("click", () => {
+    missionMessage.classList.remove("visible");
+    setTimeout(() => {
+      missionMessage.textContent = getRandomMessage();
+      missionMessage.classList.add("visible");
+    }, 200);
+  });
+}
 
-  setTimeout(() => {
-    missionMessage.textContent = getRandomMessage();
-    missionMessage.classList.add("visible");
-  }, 200);
-});
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}

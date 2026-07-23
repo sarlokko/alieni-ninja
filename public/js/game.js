@@ -11,6 +11,11 @@
   const PLAYER_SCALE = 5;
   const ENEMY_SPRITE_SCALE = PX + 1;
 
+  const gameLogo = new Image();
+  gameLogo.src = "img/logo.png";
+  let logoReady = false;
+  gameLogo.onload = () => { logoReady = true; };
+
   const ENEMY_TYPES = {
     kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.55, speedMult: 0.5,  damage: 2, size: 14, xp: 2, weight: 40 },
     tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.9,  speedMult: 0.65, damage: 3, size: 16, xp: 3, weight: 35 },
@@ -138,12 +143,12 @@
     {
       name: "Addestramento",
       theme: "training",
-      story: "Campo olografico di addestramento. Elimina 12 gatti mannari simulati.",
+      story: "Campo olografico. Elimina 30 gatti mannari simulati.",
       bg: ["#0d1b2a", "#1b263b"],
       floor: "#152238",
       accent: "#00f5ff",
-      killQuota: 12,
-      spawnRate: 150,
+      killQuota: 30,
+      spawnRate: 145,
       enemyHp: 25,
       enemySpeed: 0.55,
       boss: null,
@@ -152,12 +157,12 @@
     {
       name: "Città Alienigena",
       theme: "alien_city",
-      story: "Grattacieli neon sotto assedio. Uccidi 18 gatti mannari nelle strade.",
+      story: "Neon e grattacieli. Uccidi 45 predatori nelle strade.",
       bg: ["#1a0a2e", "#2d1b4e"],
       floor: "#1e1040",
       accent: "#b026ff",
-      killQuota: 18,
-      spawnRate: 135,
+      killQuota: 45,
+      spawnRate: 130,
       enemyHp: 35,
       enemySpeed: 0.65,
       boss: null,
@@ -166,12 +171,12 @@
     {
       name: "Bosco Infestato",
       theme: "forest",
-      story: "Un bosco bioluminescente infestato. Abbatti 22 predatori felini.",
+      story: "Bosco bioluminescente. Abbatti 60 predatori felini.",
       bg: ["#0a1f0a", "#1a3a1a"],
       floor: "#0f2a12",
       accent: "#39ff14",
-      killQuota: 22,
-      spawnRate: 125,
+      killQuota: 60,
+      spawnRate: 120,
       enemyHp: 40,
       enemySpeed: 0.72,
       boss: null,
@@ -180,12 +185,12 @@
     {
       name: "Tempio Antico",
       theme: "temple",
-      story: "Pilastri millenari e torce aliene. Uccidi 25 gatti, poi il Custode delle Stelle.",
+      story: "Pilastri e torce. Uccidi 75 gatti, poi il Custode.",
       bg: ["#2a1a0a", "#4a3020"],
       floor: "#3a2818",
       accent: "#ffd700",
-      killQuota: 25,
-      spawnRate: 115,
+      killQuota: 75,
+      spawnRate: 110,
       enemyHp: 45,
       enemySpeed: 0.78,
       boss: { name: "Custode delle Stelle", hp: 350, speed: 0.7, size: 38, color: "#ffd700", sprite: "cat_boss" },
@@ -194,12 +199,12 @@
     {
       name: "Sottomondo Felino",
       theme: "underworld",
-      story: "Gallerie laviche e cristalli rossi. Elimina 28 nemici e affronta la Matrona.",
+      story: "Gallerie laviche. Elimina 90 nemici e la Matrona.",
       bg: ["#1a0a0a", "#3a1515"],
       floor: "#2a1010",
       accent: "#ff4466",
-      killQuota: 28,
-      spawnRate: 110,
+      killQuota: 90,
+      spawnRate: 105,
       enemyHp: 50,
       enemySpeed: 0.82,
       boss: { name: "Matrona degli Arcani", hp: 400, speed: 0.75, size: 36, color: "#ff4466", sprite: "cat_boss" },
@@ -208,12 +213,12 @@
     {
       name: "Tempio delle Stelle",
       theme: "star_temple",
-      story: "Portali dimensionali e rune stellari. Uccidi 30 gatti mannari, poi il Guardiano.",
+      story: "Portali dimensionali. Uccidi 110 gatti, poi il Guardiano.",
       bg: ["#0a0a2a", "#1a1a5a"],
       floor: "#12124a",
       accent: "#7b68ee",
-      killQuota: 30,
-      spawnRate: 105,
+      killQuota: 110,
+      spawnRate: 100,
       enemyHp: 55,
       enemySpeed: 0.86,
       boss: { name: "Guardiano Dimensionale", hp: 450, speed: 0.8, size: 40, color: "#7b68ee", sprite: "cat_boss" },
@@ -222,12 +227,12 @@
     {
       name: "Battaglia sulla Luna",
       theme: "moon",
-      story: "Crateri e cielo stellato. Elimina 32 predatori prima del Drago Stellare.",
+      story: "Crateri e stelle. Elimina 130 predatori, poi il Drago.",
       bg: ["#1a1a2a", "#2a2a4a"],
       floor: "#3a3a4a",
       accent: "#ff6347",
-      killQuota: 32,
-      spawnRate: 100,
+      killQuota: 130,
+      spawnRate: 95,
       enemyHp: 60,
       enemySpeed: 0.88,
       boss: { name: "Drago Stellare", hp: 500, speed: 0.65, size: 44, color: "#ff6347", sprite: "cat_boss" },
@@ -236,12 +241,12 @@
     {
       name: "Città Maledetta",
       theme: "cursed_city",
-      story: "Rovine corrotte e nebbia viola. Uccidi 35 gatti mannari e il Signore del Caos.",
+      story: "Rovine e nebbia. Uccidi 150 gatti e il Signore del Caos.",
       bg: ["#1a0a1a", "#3a1a3a"],
       floor: "#2a1530",
       accent: "#9400d3",
-      killQuota: 35,
-      spawnRate: 95,
+      killQuota: 150,
+      spawnRate: 90,
       enemyHp: 65,
       enemySpeed: 0.92,
       boss: { name: "Signore del Caos", hp: 520, speed: 0.85, size: 42, color: "#9400d3", sprite: "cat_boss" },
@@ -250,12 +255,12 @@
     {
       name: "Rifugio delle Stelle",
       theme: "star_refuge",
-      story: "Cristalli di luce cosmica. Elimina 38 nemici e la Matriarca del Mondo Felino.",
+      story: "Cristalli cosmici. Elimina 170 nemici e la Matriarca.",
       bg: ["#0a1a2a", "#1a3a5a"],
       floor: "#102840",
       accent: "#ff8c00",
-      killQuota: 38,
-      spawnRate: 90,
+      killQuota: 170,
+      spawnRate: 85,
       enemyHp: 70,
       enemySpeed: 0.95,
       boss: { name: "Matriarca del Mondo Felino", hp: 550, speed: 0.88, size: 40, color: "#ff8c00", sprite: "cat_boss" },
@@ -264,12 +269,12 @@
     {
       name: "Confronto Finale",
       theme: "final",
-      story: "La Luna. Uccidi 40 gatti mannari, poi il Re e il Guardiano dell'Universo.",
+      story: "La Luna. Uccidi 200 gatti, poi il Re e il Guardiano.",
       bg: ["#0a0a1a", "#1a0a2a"],
       floor: "#2a2a35",
       accent: "#ff2200",
-      killQuota: 40,
-      spawnRate: 85,
+      killQuota: 200,
+      spawnRate: 80,
       enemyHp: 75,
       enemySpeed: 0.98,
       boss: { name: "Re dei Gatti Mannari", hp: 600, speed: 0.72, size: 46, color: "#ff2200", sprite: "cat_boss" },
@@ -312,6 +317,8 @@
   let shake = { x: 0, y: 0 };
   let floatTexts = [];
   let shockwaves = [];
+  let levelBanner = null;
+  let worldShift = 0;
 
   function addScreenShake(power) {
     shake.x += (Math.random() - 0.5) * power;
@@ -639,13 +646,46 @@
     return items[items.length - 1];
   }
 
+  function showLevelBanner(level) {
+    levelBanner = {
+      title: level.name,
+      subtitle: `Settore ${currentLevel + 1} / ${LEVELS.length}`,
+      life: 160,
+      maxLife: 160,
+      accent: level.accent,
+    };
+  }
+
+  function advanceWorldContinuous() {
+    if (currentLevel >= LEVELS.length - 1) {
+      state = STATE.VICTORY;
+      return;
+    }
+
+    currentLevel++;
+    const level = LEVELS[currentLevel];
+    levelKills = 0;
+    bossSpawned = false;
+    finalBossSpawned = false;
+    bossPhase = false;
+    decor = generateDecor(level.theme);
+    ambience = generateAmbience(level.theme);
+    worldShift = 1;
+    player.invulnerable = Math.max(player.invulnerable, 40);
+    spawnTimer = 20;
+    showLevelBanner(level);
+    addShockwave(player.x, player.y, level.accent, 110);
+    addBurst(player.x, player.y, level.accent, 18, "spark");
+    addScreenShake(8);
+  }
+
   function selectHero(idx) {
     selectedHero = HEROES[idx];
     currentLevel = 0;
     fragments = 0;
-    state = STATE.LEVEL_INTRO;
-    introTimer = 150;
     initLevel(true);
+    state = STATE.PLAYING;
+    showLevelBanner(LEVELS[0]);
   }
 
   function resetGame() {
@@ -692,25 +732,20 @@
         tempBuff: 0,
         tempSpeed: 0,
       };
-    } else {
-      player.x = WORLD_W / 2;
-      player.y = WORLD_H / 2;
-      player.invulnerable = 60;
-      player.animPhase = player.animPhase || 0;
+      camera.x = player.x - W / 2;
+      camera.y = player.y - H / 2;
+      enemies = [];
+      projectiles = [];
+      particles = [];
+      floatTexts = [];
+      shockwaves = [];
+      shake = { x: 0, y: 0 };
+      xpGems = [];
+      pickups = [];
+      waves = [];
+      kills = 0;
     }
 
-    camera.x = player.x - W / 2;
-    camera.y = player.y - H / 2;
-
-    enemies = [];
-    projectiles = [];
-    particles = [];
-    floatTexts = [];
-    shockwaves = [];
-    shake = { x: 0, y: 0 };
-    xpGems = [];
-    pickups = [];
-    waves = [];
     orbiters = initOrbiters();
     decor = generateDecor(level.theme);
     ambience = generateAmbience(level.theme);
@@ -719,8 +754,16 @@
     bossSpawned = false;
     finalBossSpawned = false;
     bossPhase = false;
-    kills = 0;
     levelKills = 0;
+  }
+
+  function startLevel() {
+    state = STATE.PLAYING;
+    showLevelBanner(LEVELS[currentLevel]);
+  }
+
+  function nextLevel() {
+    advanceWorldContinuous();
   }
 
   function initOrbiters() {
@@ -735,8 +778,8 @@
   function generateDecor(theme) {
     const items = [];
     const rnd = (n) => Math.random() * n;
-    const count = { training: 120, alien_city: 110, forest: 150, temple: 95, underworld: 130,
-      star_temple: 115, moon: 140, cursed_city: 125, star_refuge: 130, final: 110 };
+    const count = { training: 160, alien_city: 150, forest: 200, temple: 140, underworld: 170,
+      star_temple: 155, moon: 180, cursed_city: 165, star_refuge: 170, final: 150 };
     const n = count[theme] || 50;
 
     switch (theme) {
@@ -855,21 +898,6 @@
   function isOnScreen(wx, wy, margin = 80) {
     return wx > camera.x - margin && wx < camera.x + W + margin &&
            wy > camera.y - margin && wy < camera.y + H + margin;
-  }
-
-  function startLevel() {
-    state = STATE.PLAYING;
-  }
-
-  function nextLevel() {
-    if (currentLevel >= LEVELS.length - 1) {
-      state = STATE.VICTORY;
-      return;
-    }
-    currentLevel++;
-    state = STATE.LEVEL_INTRO;
-    introTimer = 150;
-    initLevel(false);
   }
 
   function getCooldown() {
@@ -1266,11 +1294,11 @@
 
     const quotaReached = levelKills >= level.killQuota;
 
-    if (!bossPhase && !quotaReached) {
+    if (!bossPhase) {
       if (spawnTimer > 0) spawnTimer--;
       else {
         spawnEnemy();
-        const rate = Math.max(55, level.spawnRate - Math.floor(getKillProgress() * 45));
+        const rate = Math.max(50, level.spawnRate - Math.floor(getKillProgress() * 40));
         spawnTimer = rate;
       }
     }
@@ -1279,9 +1307,16 @@
       spawnEnemy(true, level.boss);
       bossSpawned = true;
     } else if (!bossSpawned && quotaReached && !level.boss) {
-      state = STATE.LEVEL_CLEAR;
+      advanceWorldContinuous();
       return;
     }
+
+    if (levelBanner) {
+      levelBanner.life--;
+      if (levelBanner.life <= 0) levelBanner = null;
+    }
+    if (worldShift > 0) worldShift *= 0.92;
+    if (worldShift < 0.01) worldShift = 0;
 
     if (pickupTimer > 0) pickupTimer--;
     else { spawnPickup(); pickupTimer = 480 + Math.random() * 240; }
@@ -1391,7 +1426,11 @@
             }
           }, 2000);
         } else if (!level.finalBoss || finalBossSpawned) {
-          state = STATE.LEVEL_CLEAR;
+          if (currentLevel >= LEVELS.length - 1) {
+            state = STATE.VICTORY;
+          } else {
+            advanceWorldContinuous();
+          }
         }
       }
     });
@@ -1467,123 +1506,245 @@
   }
 
   function drawWorldBackground(level) {
-    ctx.fillStyle = level.bg[0];
-    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    const viewX = camera.x + shake.x;
+    const viewY = camera.y + shake.y;
+    const pad = 80;
+    const left = viewX - pad;
+    const top = viewY - pad;
+    const right = viewX + W + pad;
+    const bottom = viewY + H + pad;
 
-    const grad = ctx.createRadialGradient(WORLD_W / 2, WORLD_H / 2, 0, WORLD_W / 2, WORLD_H / 2, WORLD_W * 0.55);
-    grad.addColorStop(0, level.bg[1] + "88");
+    ctx.fillStyle = level.bg[0];
+    ctx.fillRect(left, top, right - left, bottom - top);
+
+    const gx = player.x;
+    const gy = player.y;
+    const grad = ctx.createRadialGradient(gx, gy, 40, gx, gy, Math.max(W, H) * 0.85);
+    grad.addColorStop(0, level.bg[1] + "aa");
+    grad.addColorStop(0.55, level.bg[0] + "cc");
     grad.addColorStop(1, level.bg[0]);
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    ctx.fillRect(left, top, right - left, bottom - top);
 
-    ctx.fillStyle = level.floor;
-    ctx.globalAlpha = 0.55;
-    const tile = 48;
-    for (let x = 0; x < WORLD_W; x += tile) {
-      for (let y = 0; y < WORLD_H; y += tile) {
-        if ((x / tile + y / tile) % 2 === 0) ctx.fillRect(x, y, tile, tile);
+    const tile = 64;
+    const startTX = Math.floor(left / tile) * tile;
+    const startTY = Math.floor(top / tile) * tile;
+    for (let x = startTX; x < right; x += tile) {
+      for (let y = startTY; y < bottom; y += tile) {
+        const parity = ((x / tile) + (y / tile)) % 2 === 0;
+        ctx.fillStyle = parity ? level.floor : level.bg[0];
+        ctx.globalAlpha = parity ? 0.42 : 0.18;
+        ctx.fillRect(x, y, tile, tile);
+
+        ctx.globalAlpha = 0.08;
+        ctx.strokeStyle = level.accent;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 4, y + 4, tile - 8, tile - 8);
       }
     }
     ctx.globalAlpha = 1;
 
-    ctx.fillStyle = level.floor;
-    ctx.globalAlpha = 0.12;
-    for (let i = 0; i < 600; i++) {
-      const gx = (i * 97) % WORLD_W;
-      const gy = (i * 53) % WORLD_H;
-      ctx.fillRect(gx, gy, 2, 2);
+    // Soft ground noise
+    ctx.fillStyle = level.accent;
+    for (let i = 0; i < 90; i++) {
+      const nx = left + ((i * 97 + Math.floor(viewX)) % Math.max(1, right - left));
+      const ny = top + ((i * 53 + Math.floor(viewY * 0.7)) % Math.max(1, bottom - top));
+      ctx.globalAlpha = 0.07 + (i % 5) * 0.015;
+      ctx.fillRect(nx, ny, 2 + (i % 3), 2);
     }
     ctx.globalAlpha = 1;
 
+    // Theme overlays (viewport only)
     ctx.save();
-    ctx.globalAlpha = 0.18;
-    switch (level.theme) {
-      case "training":
-        for (let i = 0; i < 12; i++) {
-          ctx.strokeStyle = level.accent;
-          ctx.lineWidth = 2;
-          ctx.strokeRect(120 + i * 760, 120 + (i % 3) * 180, 520, 360);
-        }
-        break;
-      case "alien_city":
-        ctx.strokeStyle = level.accent;
-        ctx.lineWidth = 3;
-        for (let x = 0; x < WORLD_W; x += 220) {
-          ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x + 80, WORLD_H);
-          ctx.stroke();
-        }
-        break;
-      case "forest":
-        ctx.fillStyle = "#0a2a0a";
-        for (let i = 0; i < 40; i++) {
-          const fx = (i * 241) % WORLD_W;
-          const fy = (i * 173) % WORLD_H;
-          ctx.beginPath();
-          ctx.ellipse(fx, fy, 120, 80, 0, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        break;
-      case "temple":
-        ctx.fillStyle = "#3a2818";
-        for (let x = 80; x < WORLD_W; x += 320) ctx.fillRect(x, 80, 24, WORLD_H - 160);
-        break;
-      case "underworld":
-        ctx.fillStyle = "#4a1010";
-        for (let i = 0; i < 25; i++) {
-          ctx.beginPath();
-          ctx.ellipse((i * 389) % WORLD_W, (i * 271) % WORLD_H, 90, 50, 0, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        break;
-      case "star_temple":
-        ctx.strokeStyle = level.accent;
-        for (let i = 0; i < 18; i++) {
-          const sx = (i * 521) % WORLD_W;
-          const sy = (i * 317) % WORLD_H;
-          ctx.beginPath();
-          ctx.arc(sx, sy, 60 + (i % 4) * 20, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-        break;
-      case "moon":
-        ctx.fillStyle = "#ffffff08";
-        for (let i = 0; i < 80; i++) {
-          ctx.fillRect((i * 127) % WORLD_W, (i * 89) % WORLD_H, 2, 2);
-        }
-        break;
-      case "cursed_city":
-        ctx.fillStyle = "#2a1035";
-        for (let i = 0; i < 20; i++) {
-          ctx.fillRect((i * 463) % WORLD_W, (i * 211) % WORLD_H, 180, 40);
-        }
-        break;
-      case "star_refuge":
-        ctx.strokeStyle = level.accent;
-        for (let i = 0; i < 10; i++) {
-          const cx = (i * 601) % WORLD_W;
-          const cy = (i * 401) % WORLD_H;
-          ctx.beginPath();
-          ctx.moveTo(cx, cy - 50);
-          ctx.lineTo(cx + 40, cy);
-          ctx.lineTo(cx, cy + 50);
-          ctx.lineTo(cx - 40, cy);
-          ctx.closePath();
-          ctx.stroke();
-        }
-        break;
-      case "final":
-        ctx.fillStyle = "#ff220011";
-        ctx.fillRect(0, 0, WORLD_W, WORLD_H);
-        break;
-    }
+    drawThemeOverlay(level, left, top, right, bottom, viewX, viewY);
     ctx.restore();
+
+    if (worldShift > 0) {
+      ctx.fillStyle = level.accent;
+      ctx.globalAlpha = worldShift * 0.18;
+      ctx.fillRect(left, top, right - left, bottom - top);
+      ctx.globalAlpha = 1;
+    }
 
     ctx.strokeStyle = level.accent;
     ctx.lineWidth = 8;
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = 0.28;
     ctx.strokeRect(30, 30, WORLD_W - 60, WORLD_H - 60);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawThemeOverlay(level, left, top, right, bottom, viewX, viewY) {
+    switch (level.theme) {
+      case "training": {
+        ctx.strokeStyle = level.accent;
+        ctx.lineWidth = 2;
+        for (let x = Math.floor(left / 280) * 280; x < right; x += 280) {
+          for (let y = Math.floor(top / 220) * 220; y < bottom; y += 220) {
+            ctx.globalAlpha = 0.16;
+            ctx.strokeRect(x + 20, y + 20, 180, 140);
+            ctx.globalAlpha = 0.1;
+            ctx.beginPath();
+            ctx.arc(x + 110, y + 90, 28, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+        break;
+      }
+      case "alien_city": {
+        for (let x = Math.floor(left / 160) * 160; x < right + 160; x += 160) {
+          const h = 90 + ((x * 13) % 180);
+          const y = bottom - h;
+          ctx.globalAlpha = 0.22;
+          ctx.fillStyle = "#12082a";
+          ctx.fillRect(x, y, 70 + (x % 40), h);
+          ctx.globalAlpha = 0.35;
+          ctx.fillStyle = level.accent;
+          for (let wy = y + 12; wy < bottom - 10; wy += 22) {
+            for (let wx = x + 8; wx < x + 50; wx += 16) {
+              if (((wx + wy) / 8) % 3 !== 0) ctx.fillRect(wx, wy, 6, 8);
+            }
+          }
+        }
+        ctx.globalAlpha = 0.12;
+        ctx.strokeStyle = level.accent;
+        ctx.lineWidth = 2;
+        for (let x = Math.floor(left / 90) * 90; x < right; x += 90) {
+          ctx.beginPath();
+          ctx.moveTo(x, top);
+          ctx.lineTo(x + 40, bottom);
+          ctx.stroke();
+        }
+        break;
+      }
+      case "forest": {
+        for (let i = 0; i < 28; i++) {
+          const fx = left + ((i * 73 + Math.floor(viewX * 0.3)) % (right - left + 1));
+          const fy = top + ((i * 91 + Math.floor(viewY * 0.2)) % (bottom - top + 1));
+          ctx.globalAlpha = 0.16;
+          ctx.fillStyle = i % 2 ? "#0c3a12" : "#083018";
+          ctx.beginPath();
+          ctx.ellipse(fx, fy, 70, 40, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 0.2;
+          ctx.fillStyle = level.accent;
+          ctx.beginPath();
+          ctx.arc(fx + 20, fy - 10, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        break;
+      }
+      case "temple": {
+        ctx.fillStyle = "#4a3420";
+        for (let x = Math.floor(left / 220) * 220; x < right; x += 220) {
+          ctx.globalAlpha = 0.28;
+          ctx.fillRect(x + 40, top, 22, bottom - top);
+          ctx.globalAlpha = 0.35;
+          ctx.fillStyle = level.accent;
+          ctx.fillRect(x + 36, top + 30, 30, 8);
+          ctx.fillStyle = "#4a3420";
+        }
+        break;
+      }
+      case "underworld": {
+        for (let i = 0; i < 16; i++) {
+          const lx = left + ((i * 111) % (right - left + 1));
+          const ly = top + ((i * 67) % (bottom - top + 1));
+          ctx.globalAlpha = 0.2;
+          ctx.fillStyle = "#5a1510";
+          ctx.beginPath();
+          ctx.ellipse(lx, ly, 55, 28, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 0.25;
+          ctx.fillStyle = "#ff5522";
+          ctx.beginPath();
+          ctx.ellipse(lx, ly, 28, 12, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        break;
+      }
+      case "star_temple": {
+        ctx.strokeStyle = level.accent;
+        for (let i = 0; i < 12; i++) {
+          const sx = left + ((i * 97 + Math.floor(viewX * 0.15)) % (right - left + 1));
+          const sy = top + ((i * 61) % (bottom - top + 1));
+          ctx.globalAlpha = 0.22;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 35 + (i % 4) * 10, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        break;
+      }
+      case "moon": {
+        ctx.fillStyle = "#ffffff";
+        for (let i = 0; i < 50; i++) {
+          const sx = left + ((i * 47 + Math.floor(viewX * 0.05)) % (right - left + 1));
+          const sy = top + ((i * 89) % (bottom - top + 1));
+          ctx.globalAlpha = 0.12 + (i % 4) * 0.04;
+          ctx.fillRect(sx, sy, 2, 2);
+        }
+        for (let i = 0; i < 8; i++) {
+          const cx = left + ((i * 131) % (right - left + 1));
+          const cy = top + ((i * 101) % (bottom - top + 1));
+          ctx.globalAlpha = 0.14;
+          ctx.fillStyle = "#2a2a38";
+          ctx.beginPath();
+          ctx.arc(cx, cy, 18 + (i % 3) * 10, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        break;
+      }
+      case "cursed_city": {
+        ctx.fillStyle = "#2a1038";
+        for (let x = Math.floor(left / 180) * 180; x < right; x += 180) {
+          ctx.globalAlpha = 0.24;
+          ctx.fillRect(x, bottom - 70 - (x % 50), 100, 70 + (x % 50));
+        }
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = "#6a3088";
+        for (let i = 0; i < 10; i++) {
+          const fx = left + ((i * 83) % (right - left + 1));
+          const fy = top + ((i * 57) % (bottom - top + 1));
+          ctx.beginPath();
+          ctx.ellipse(fx, fy, 60, 24, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        break;
+      }
+      case "star_refuge": {
+        ctx.strokeStyle = level.accent;
+        ctx.fillStyle = level.accent;
+        for (let i = 0; i < 10; i++) {
+          const cx = left + ((i * 109) % (right - left + 1));
+          const cy = top + ((i * 79) % (bottom - top + 1));
+          ctx.globalAlpha = 0.2;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy - 28);
+          ctx.lineTo(cx + 18, cy);
+          ctx.lineTo(cx, cy + 28);
+          ctx.lineTo(cx - 18, cy);
+          ctx.closePath();
+          ctx.stroke();
+          ctx.globalAlpha = 0.12;
+          ctx.fill();
+        }
+        break;
+      }
+      case "final": {
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = "#ff2200";
+        ctx.fillRect(left, top, right - left, bottom - top);
+        ctx.strokeStyle = "#ff6644";
+        for (let i = 0; i < 8; i++) {
+          const cx = left + ((i * 117) % (right - left + 1));
+          const cy = top + ((i * 71) % (bottom - top + 1));
+          ctx.globalAlpha = 0.2;
+          ctx.beginPath();
+          ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        break;
+      }
+    }
     ctx.globalAlpha = 1;
   }
 
@@ -1666,7 +1827,7 @@
   function drawDecor(d, level) {
     if (!isOnScreen(d.x, d.y, 140)) return;
     ctx.save();
-    ctx.globalAlpha = 0.62;
+    ctx.globalAlpha = 0.78;
     switch (d.type) {
       case "holo_ring":
         ctx.strokeStyle = level.accent;
@@ -2156,13 +2317,12 @@
     ctx.textAlign = "center";
     ctx.fillStyle = bossPhase ? "#ff4444" : "#fff";
     ctx.font = "bold 14px sans-serif";
-    const quotaDone = levelKills >= level.killQuota;
     ctx.fillText(
-      bossPhase ? "⚔️ FASE BOSS" : quotaDone ? "🎯 Obiettivo raggiunto!" : `🎯 ${levelKills}/${level.killQuota} gatti`,
+      bossPhase ? "⚔️ FASE BOSS" : `🎯 ${levelKills}/${level.killQuota}`,
       W / 2, 22
     );
 
-    if (!bossPhase && !quotaDone) {
+    if (!bossPhase) {
       const barW = 180;
       ctx.fillStyle = "#222";
       ctx.fillRect(W / 2 - barW / 2, 30, barW, 8);
@@ -2291,13 +2451,41 @@
     }
   }
 
+  function drawGameLogo(cx, cy, size = 160) {
+    if (!logoReady) return;
+    const s = size + Math.sin(titlePulse) * 4;
+    ctx.save();
+    ctx.shadowColor = "rgba(0,245,255,0.45)";
+    ctx.shadowBlur = 24;
+    ctx.drawImage(gameLogo, cx - s / 2, cy - s / 2, s, s);
+    ctx.restore();
+  }
+
   function drawTitle() {
-    drawTextScreen("Ninja Alieni vs Gatti Mannari", [
+    drawLevelBackground(LEVELS[0]);
+    titlePulse += 0.05;
+    drawGameLogo(W / 2, 150, 170);
+
+    ctx.fillStyle = `rgba(0,245,255,${0.55 + Math.sin(titlePulse) * 0.3})`;
+    ctx.font = "bold 38px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Alieni Ninja", W / 2, 280);
+
+    ctx.fillStyle = "#e8e8ff";
+    ctx.font = "16px sans-serif";
+    [
       "Elimina le orde di Gatti Mannari!",
       "Muoviti, le armi attaccano da sole.",
       "Raccogli XP, potenzia il tuo ninja.",
       "", "Recupera la Lancia delle Stelle!",
-    ], "Tocca lo schermo per iniziare");
+    ].forEach((line, i) => {
+      if (!line) return;
+      ctx.fillText(line, W / 2, 330 + i * 28);
+    });
+
+    ctx.fillStyle = "#b026ff";
+    ctx.font = "17px sans-serif";
+    ctx.fillText("Tocca lo schermo per iniziare", W / 2, H - 50);
   }
 
   function drawStory() {
@@ -2307,10 +2495,12 @@
       "Attraversa 10 location fino alla Luna.",
       "Ogni arma è unica. Ogni livello ha il suo boss.",
     ], "Tocca per scegliere l'eroe");
+    drawGameLogo(W / 2, 70, 72);
   }
 
   function drawSelect() {
     drawMenuBackground(LEVELS[0]);
+    drawGameLogo(70, 48, 56);
     ctx.fillStyle = "#00f5ff";
     ctx.font = "bold 26px sans-serif";
     ctx.textAlign = "center";
@@ -2400,6 +2590,31 @@
     ctx.fillText("Tocca — menu principale", W / 2, H - 50);
   }
 
+  function drawLevelBanner() {
+    if (!levelBanner) return;
+    const t = levelBanner.life / levelBanner.maxLife;
+    const alpha = t > 0.75 ? (1 - t) / 0.25 : t < 0.2 ? t / 0.2 : 1;
+    const y = 120 + (1 - alpha) * 12;
+
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.55;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(W / 2 - 260, y - 52, 520, 96);
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = levelBanner.accent || "#00f5ff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(W / 2 - 260, y - 52, 520, 96);
+
+    ctx.fillStyle = levelBanner.accent || "#00f5ff";
+    ctx.font = "bold 13px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(levelBanner.subtitle, W / 2, y - 18);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 32px sans-serif";
+    ctx.fillText(levelBanner.title, W / 2, y + 20);
+    ctx.restore();
+  }
+
   function drawPlaying() {
     const level = LEVELS[currentLevel];
 
@@ -2426,6 +2641,7 @@
     drawScreenFX(level);
     drawCrosshair();
     drawHUD();
+    drawLevelBanner();
   }
 
   function update() {

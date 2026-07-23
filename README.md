@@ -21,10 +21,14 @@ package.json
 
 Il gioco è **online e giocabile subito**, senza account esterni:
 
-- **Gioco:** https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/game.html
-- **Landing:** https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/
+- **Landing (consigliata per installare):** https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/index.html
+- **Gioco:** https://cdn.jsdelivr.net/gh/sarlokko/alieni-ninja@gh-pages/game.html
+- **Alternativa githack:** https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/game.html
 
-Sul telefono puoi **Aggiungi alla schermata Home**: usa l’icona ufficiale del gioco (manifest PWA + apple-touch-icon).
+Sul telefono: apri la **landing** → menu del browser → **Aggiungi alla schermata Home / Installa app**.
+L’icona ufficiale viene dal manifest PWA + apple-touch-icon.
+
+> Nota: su alcuni CDN l’HTML può apparire come testo; in quel caso usa githack per giocare e jsDelivr solo per le risorse se necessario. Preferisci sempre un host che serva `text/html` e il `site.webmanifest`.
 
 Apri il link dal browser del cellulare. Controlli touch:
 - **Joystick sinistro:** movimento

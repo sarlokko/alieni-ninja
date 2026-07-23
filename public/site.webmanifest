@@ -2,28 +2,29 @@
   "name": "Alieni Ninja vs Gatti Mannari",
   "short_name": "Alieni Ninja",
   "description": "Sopravvivi alle orde di Gatti Mannari. Scegli un ninja alieno e recupera la Lancia delle Stelle.",
-  "start_url": "/game.html",
-  "scope": "/",
+  "start_url": "./game.html",
+  "scope": "./",
+  "id": "./game.html",
   "display": "standalone",
-  "orientation": "landscape",
+  "orientation": "any",
   "background_color": "#050510",
   "theme_color": "#00f5ff",
   "lang": "it",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-maskable-512.png",
+      "src": "./icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
