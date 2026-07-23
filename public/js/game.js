@@ -20,6 +20,7 @@
     kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.55, speedMult: 0.5,  damage: 2, size: 14, xp: 2, weight: 40 },
     tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.9,  speedMult: 0.65, damage: 3, size: 16, xp: 3, weight: 35 },
     hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore",      hpMult: 0.75, speedMult: 0.85, damage: 4, size: 17, xp: 4, weight: 22 },
+    archer:   { id: "archer",   sprite: "cat_archer",   name: "Gatto Arcere",    hpMult: 0.7,  speedMult: 0.45, damage: 3, size: 16, xp: 5, weight: 18, ranged: true, preferDist: 220, shootCd: 90, arrowDamage: 5, arrowSpeed: 4.2 },
     werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro",   hpMult: 1.6,  speedMult: 0.55, damage: 6, size: 20, xp: 7, weight: 18 },
     shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Felina",    hpMult: 0.5,  speedMult: 1.0,  damage: 5, size: 15, xp: 5, weight: 12 },
   };
@@ -297,6 +298,7 @@
   let player = null;
   let enemies = [];
   let projectiles = [];
+  let enemyShots = [];
   let particles = [];
   let xpGems = [];
   let pickups = [];
@@ -696,6 +698,7 @@
     player = null;
     enemies = [];
     projectiles = [];
+    enemyShots = [];
     particles = [];
     xpGems = [];
     pickups = [];
@@ -736,6 +739,7 @@
       camera.y = player.y - H / 2;
       enemies = [];
       projectiles = [];
+      enemyShots = [];
       particles = [];
       floatTexts = [];
       shockwaves = [];
@@ -937,14 +941,16 @@
       if (t) pool.push({ type: t, weight: w });
     };
 
-    if (progress < 0.25) {
+    if (progress < 0.2) {
       add("kitten", 55); add("tabby", 45);
-    } else if (progress < 0.5) {
-      add("kitten", 30); add("tabby", 40); add("hunter", 20); add("werewolf", 10);
-    } else if (progress < 0.75) {
-      add("tabby", 25); add("hunter", 30); add("werewolf", 25); add("shadow", 20);
+    } else if (progress < 0.4) {
+      add("kitten", 25); add("tabby", 35); add("hunter", 20); add("archer", 20);
+    } else if (progress < 0.65) {
+      add("tabby", 20); add("hunter", 22); add("archer", 28); add("werewolf", 18); add("shadow", 12);
+    } else if (progress < 0.85) {
+      add("hunter", 18); add("archer", 30); add("werewolf", 28); add("shadow", 24);
     } else {
-      add("hunter", 20); add("werewolf", 35); add("shadow", 30); add("tabby", 15);
+      add("archer", 28); add("werewolf", 30); add("shadow", 27); add("hunter", 15);
     }
 
     const total = pool.reduce((s, p) => s + p.weight, 0);
@@ -1120,13 +1126,19 @@
       maxHp: Math.floor(level.enemyHp * etype.hpMult * scale),
       speed: level.enemySpeed * etype.speedMult * (0.92 + Math.random() * 0.16),
       size: etype.size,
-      color: "#cc8844",
+      color: etype.id === "archer" ? "#c8a060" : "#cc8844",
       isBoss: false,
       typeId: etype.id,
       typeName: etype.name,
       sprite: etype.sprite,
       damage: etype.damage,
       xp: etype.xp,
+      ranged: !!etype.ranged,
+      preferDist: etype.preferDist || 0,
+      shootCd: etype.shootCd || 0,
+      shootTimer: etype.ranged ? 40 + Math.random() * 40 : 0,
+      arrowDamage: etype.arrowDamage || 0,
+      arrowSpeed: etype.arrowSpeed || 0,
       wobblePhase: Math.random() * Math.PI * 2,
       hitFlash: 0,
       knockVx: 0,
@@ -1390,11 +1402,46 @@
       e.knockVx = (e.knockVx || 0) * 0.72;
       e.knockVy = (e.knockVy || 0) * 0.72;
 
-      const wobble = Math.sin(gameTime * 0.14 + (e.wobblePhase || 0)) * 1.2;
+      const dist = Math.hypot(player.x - e.x, player.y - e.y);
       const angle = Math.atan2(player.y - e.y, player.x - e.x);
-      e.x += Math.cos(angle) * e.speed + wobble * 0.15;
-      e.y += Math.sin(angle) * e.speed;
-      if (Math.hypot(player.x - e.x, player.y - e.y) < e.size + 14 && player.invulnerable <= 0) {
+      const wobble = Math.sin(gameTime * 0.14 + (e.wobblePhase || 0)) * 1.2;
+
+      if (e.ranged && !e.isBoss) {
+        // Mantieni distanza e spara frecce
+        const prefer = e.preferDist || 220;
+        if (dist < prefer - 40) {
+          e.x -= Math.cos(angle) * e.speed * 1.1;
+          e.y -= Math.sin(angle) * e.speed * 1.1;
+        } else if (dist > prefer + 50) {
+          e.x += Math.cos(angle) * e.speed * 0.85 + wobble * 0.1;
+          e.y += Math.sin(angle) * e.speed * 0.85;
+        } else {
+          // Strafing laterale
+          e.x += Math.cos(angle + Math.PI / 2) * e.speed * 0.55;
+          e.y += Math.sin(angle + Math.PI / 2) * e.speed * 0.55;
+        }
+
+        if (e.shootTimer > 0) e.shootTimer--;
+        else if (dist < 420) {
+          const spd = e.arrowSpeed || 4.2;
+          enemyShots.push({
+            x: e.x,
+            y: e.y,
+            vx: Math.cos(angle) * spd,
+            vy: Math.sin(angle) * spd,
+            angle,
+            damage: e.arrowDamage || 5,
+            life: 110,
+            size: 5,
+          });
+          e.shootTimer = e.shootCd || 90;
+        }
+      } else {
+        e.x += Math.cos(angle) * e.speed + wobble * 0.15;
+        e.y += Math.sin(angle) * e.speed;
+      }
+
+      if (dist < e.size + 14 && player.invulnerable <= 0) {
         const baseDmg = e.isBoss ? 8 : (e.damage || 3);
         const dmg = Math.max(1, Math.floor(baseDmg * (1 - player.stats.damageReduction)));
         player.hp -= dmg;
@@ -1403,6 +1450,22 @@
         addScreenShake(e.isBoss ? 12 : 6);
       }
     });
+
+    enemyShots.forEach((a) => {
+      a.x += a.vx;
+      a.y += a.vy;
+      a.life--;
+      if (player.invulnerable <= 0 && Math.hypot(a.x - player.x, a.y - player.y) < 16 + (a.size || 5)) {
+        const dmg = Math.max(1, Math.floor((a.damage || 5) * (1 - player.stats.damageReduction)));
+        player.hp -= dmg;
+        player.invulnerable = 22;
+        a.life = 0;
+        addBurst(player.x, player.y, "#ffaa44", 6, "spark");
+        addScreenShake(5);
+        addFloatText(player.x, player.y - 24, String(dmg), "#ff8866", 12);
+      }
+    });
+    enemyShots = enemyShots.filter((a) => a.life > 0 && a.x > -80 && a.x < WORLD_W + 80 && a.y > -80 && a.y < WORLD_H + 80);
 
     const dead = enemies.filter((e) => e.hp <= 0);
     dead.forEach((e) => {
@@ -2077,7 +2140,7 @@
       const sprite = SPRITES[spriteKey] || SPRITES.cat_tabby;
       let scale = ENEMY_SPRITE_SCALE;
       if (e.typeId === "werewolf") scale = PX + 2;
-      if (e.typeId === "hunter") scale = PX + 1;
+      if (e.typeId === "hunter" || e.typeId === "archer") scale = PX + 1;
       if (e.isBoss) scale = PX + 4;
       const facingLeft = e.x > player.x;
 
@@ -2098,13 +2161,24 @@
       });
       drawEnemyWerewolfFx(e, facingLeft);
 
-      if (!e.isBoss && e.typeName && (e.typeId === "werewolf" || e.typeId === "hunter" || e.typeId === "shadow")) {
+      if (!e.isBoss && e.typeName && (e.typeId === "werewolf" || e.typeId === "hunter" || e.typeId === "shadow" || e.typeId === "archer")) {
         ctx.fillStyle = "rgba(0,0,0,0.45)";
         ctx.fillRect(e.x - 34, e.y - e.size - 18, 68, 12);
-        ctx.fillStyle = e.typeId === "werewolf" ? "#ff8866" : "#ffccaa";
+        ctx.fillStyle = e.typeId === "archer" ? "#ffd080" : e.typeId === "werewolf" ? "#ff8866" : "#ffccaa";
         ctx.font = "9px sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(e.typeName, e.x, e.y - e.size - 9);
+      }
+
+      // Piccolo arco visuale sugli arceri
+      if (e.typeId === "archer") {
+        const facingLeft = e.x > player.x;
+        const bowX = e.x + (facingLeft ? -14 : 14);
+        ctx.strokeStyle = "#8b5a2b";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(bowX, e.y, 10, facingLeft ? Math.PI * 0.65 : -Math.PI * 0.35, facingLeft ? Math.PI * 1.35 : Math.PI * 0.35);
+        ctx.stroke();
       }
 
       if (e.isBoss) {
@@ -2174,6 +2248,34 @@
       ctx.shadowBlur = 0;
     });
     ctx.globalAlpha = 1;
+  }
+
+  function drawEnemyShots() {
+    enemyShots.forEach((a) => {
+      if (!isOnScreen(a.x, a.y, 40)) return;
+      ctx.save();
+      ctx.translate(a.x, a.y);
+      ctx.rotate(a.angle || Math.atan2(a.vy, a.vx));
+      ctx.fillStyle = "#e8c090";
+      ctx.strokeStyle = "#8b5a2b";
+      ctx.lineWidth = 1.5;
+      // freccia
+      ctx.beginPath();
+      ctx.moveTo(10, 0);
+      ctx.lineTo(-8, -3);
+      ctx.lineTo(-8, 3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#ff6644";
+      ctx.beginPath();
+      ctx.moveTo(10, 0);
+      ctx.lineTo(4, -3.5);
+      ctx.lineTo(4, 3.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    });
   }
 
   function drawJoy(joy, knobColor) {
@@ -2656,6 +2758,7 @@
     drawPickups();
     drawParticles();
     drawProjectiles();
+    drawEnemyShots();
     drawEnemies();
     drawPlayer();
     drawFloatTexts();

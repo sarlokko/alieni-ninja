@@ -191,6 +191,20 @@
       "............",
     ], { ".": null, e: "#331144", p: "#442266", w: "#cc88ff", b: "#ff44ff" }),
 
+    // Gatto arcere — pelo sabbia, arco e faretra
+    cat_archer: parseSprite([
+      "..e......e..",
+      ".oooooooooo.",
+      ".oowwggwwoo.",
+      ".oooooooooo.",
+      ".ooovvvvooo.",
+      ".oooooooooo.",
+      "..oo.bb.oo..",
+      "..cc.bb.cc..",
+      "...ff..ff...",
+      "............",
+    ], { ".": null, e: "#a07840", o: "#c8a060", w: "#fff0d0", g: "#66cc44", v: "#ffffff", c: "#d0a870", b: "#8b5a2b", f: "#ffffff" }),
+
     // Boss — re gatto mannaro con criniera, zanne enormi, corona
     cat_boss: parseSprite([
       ".ee........ee.",
