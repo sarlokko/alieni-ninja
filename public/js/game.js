@@ -86,15 +86,15 @@
       color: "#c0c0c0",
       accent: "#ff69b4",
       emoji: "🎯",
-      desc: "Dardi verso il cursore con auto-mira",
+      desc: "Dardi semi-automatici: mira soft verso i nemici vicini",
       weapon: "homing_dart",
       weaponName: "Dardi Cercatori",
       speed: 2.3,
       hp: 85,
-      baseDamage: 8,
-      baseCooldown: 42,
+      baseDamage: 6,
+      baseCooldown: 58,
       baseArea: 1,
-      baseAmount: 2,
+      baseAmount: 1,
     },
     {
       id: "ryn",
@@ -107,9 +107,9 @@
       weaponName: "Onda Arcana",
       speed: 1.7,
       hp: 90,
-      baseDamage: 12,
-      baseCooldown: 78,
-      baseArea: 1.15,
+      baseDamage: 11,
+      baseCooldown: 85,
+      baseArea: 1.1,
       baseAmount: 1,
     },
   ];
@@ -127,11 +127,11 @@
   ];
 
   const WEAPON_UPGRADES = {
-    orbit_shuriken: { name: "Shuriken Affilati", desc: "Orbitanti +1, danno +15%" },
+    orbit_shuriken: { name: "Shuriken Affilati", desc: "Orbitanti +1, danno +12%" },
     laser_arc: { name: "Spada Estesa", desc: "Arco più ampio, danno +15%" },
     plasma_burst: { name: "Plasma Concentrato", desc: "Esplosione più grande, danno +20%" },
-    homing_dart: { name: "Dardi Veloci", desc: "+1 dardo, cadenza +10%" },
-    arcane_wave: { name: "Onda Potenziata", desc: "Onde +1, raggio +20%" },
+    homing_dart: { name: "Dardi Migliorati", desc: "+1 dardo, raggio acquisizione +15%" },
+    arcane_wave: { name: "Onda Potenziata", desc: "Onde +1, raggio +15%" },
   };
 
   const LEVELS = [
@@ -881,19 +881,20 @@
     return player.stats.damage * mult * buff * (1 + (player.stats.weaponLevel - 1) * 0.12);
   }
 
-  function nearestEnemy() {
+  function nearestEnemy(maxDist = Infinity) {
     let best = null;
     let bestDist = Infinity;
     enemies.forEach((e) => {
       const d = Math.hypot(e.x - player.x, e.y - player.y);
-      if (d < bestDist) { bestDist = d; best = e; }
+      if (d < bestDist && d <= maxDist) { bestDist = d; best = e; }
     });
     return best;
   }
 
-  function nearestEnemies(count) {
+  function nearestEnemies(count, maxDist = Infinity) {
     return [...enemies]
       .map((e) => ({ e, d: Math.hypot(e.x - player.x, e.y - player.y) }))
+      .filter((x) => x.d <= maxDist)
       .sort((a, b) => a.d - b.d)
       .slice(0, count)
       .map((x) => x.e);
@@ -985,19 +986,25 @@
         break;
       }
       case "homing_dart": {
+        const acquireRange = 280 * area;
+        const targets = nearestEnemies(amount, acquireRange);
         for (let i = 0; i < amount; i++) {
-          const spread = (i - (amount - 1) / 2) * 0.1;
+          const spread = (i - (amount - 1) / 2) * 0.14;
           const angle = aim + spread;
-          const target = nearestEnemy();
+          const target = targets[i] || targets[0] || null;
           projectiles.push({
             x: player.x, y: player.y,
-            vx: Math.cos(angle) * (projSpeed + 1),
-            vy: Math.sin(angle) * (projSpeed + 1),
-            damage: getDamage(),
+            vx: Math.cos(angle) * (projSpeed - 0.5),
+            vy: Math.sin(angle) * (projSpeed - 0.5),
+            damage: getDamage(0.78),
             type: "dart",
-            life: 75,
+            life: 55,
+            size: 4,
+            piercing: false,
             homing: !!target,
-            target: target || null,
+            target,
+            turnRate: 0.09,
+            homingSpeed: 4.2,
           });
         }
         break;
@@ -1008,13 +1015,13 @@
           const angle = aim + spread;
           projectiles.push({
             x: player.x, y: player.y,
-            vx: Math.cos(angle) * 3,
-            vy: Math.sin(angle) * 3,
-            damage: getDamage(),
+            vx: Math.cos(angle) * 2.8,
+            vy: Math.sin(angle) * 2.8,
+            damage: getDamage(0.85),
             type: "arcane_orb",
-            life: 90,
-            expand: 2.5 * area,
-            maxR: 50 * area,
+            life: 70,
+            expand: 2.0 * area,
+            maxR: 42 * area,
             r: 8,
             hit: new Set(),
           });
@@ -1030,9 +1037,17 @@
       o.angle += 0.035;
       const ox = player.x + Math.cos(o.angle) * o.dist;
       const oy = player.y + Math.sin(o.angle) * o.dist;
+      if (!o.hitCd) o.hitCd = new Map();
       enemies.forEach((e) => {
+        const key = e;
+        const cd = o.hitCd.get(key) || 0;
+        if (cd > 0) {
+          o.hitCd.set(key, cd - 1);
+          return;
+        }
         if (Math.hypot(e.x - ox, e.y - oy) < e.size + 8) {
-          hurtEnemy(e, getDamage(0.3), player.hero.accent);
+          hurtEnemy(e, getDamage(0.16), player.hero.accent);
+          o.hitCd.set(key, 18);
         }
       });
     });
@@ -1282,15 +1297,24 @@
           const d = Math.hypot(e.x - p.x, e.y - p.y);
           if (d < p.r && !p.hit.has(e)) {
             p.hit.add(e);
-            hurtEnemy(e, p.damage * 0.35, "#00f5ff");
+            hurtEnemy(e, p.damage * 0.28, "#00f5ff");
           }
         });
         return;
       }
       if (p.homing && p.target && enemies.includes(p.target)) {
-        const angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
-        p.vx = Math.cos(angle) * 6.5;
-        p.vy = Math.sin(angle) * 6.5;
+        const desired = Math.atan2(p.target.y - p.y, p.target.x - p.x);
+        const current = Math.atan2(p.vy, p.vx);
+        let diff = desired - current;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        const turn = Math.max(-p.turnRate, Math.min(p.turnRate, diff));
+        const next = current + turn;
+        const spd = p.homingSpeed || 4.2;
+        p.vx = Math.cos(next) * spd;
+        p.vy = Math.sin(next) * spd;
+      } else if (p.homing && (!p.target || !enemies.includes(p.target))) {
+        p.homing = false;
       }
       p.x += p.vx;
       p.y += p.vy;
