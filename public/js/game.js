@@ -48,8 +48,8 @@
       weaponName: "Shuriken Orbitale",
       speed: 2.1,
       hp: 100,
-      baseDamage: 10,
-      baseCooldown: 72,
+      baseDamage: 16,
+      baseCooldown: 68,
       baseArea: 1,
       baseAmount: 2,
     },
@@ -64,8 +64,8 @@
       weaponName: "Spada Laser",
       speed: 1.8,
       hp: 110,
-      baseDamage: 14,
-      baseCooldown: 65,
+      baseDamage: 20,
+      baseCooldown: 60,
       baseArea: 1.1,
       baseAmount: 1,
     },
@@ -80,8 +80,8 @@
       weaponName: "Burst di Plasma",
       speed: 1.5,
       hp: 160,
-      baseDamage: 18,
-      baseCooldown: 95,
+      baseDamage: 24,
+      baseCooldown: 88,
       baseArea: 1.2,
       baseAmount: 1,
     },
@@ -96,8 +96,8 @@
       weaponName: "Dardi Cercatori",
       speed: 2.3,
       hp: 85,
-      baseDamage: 6,
-      baseCooldown: 58,
+      baseDamage: 12,
+      baseCooldown: 52,
       baseArea: 1,
       baseAmount: 1,
     },
@@ -112,8 +112,8 @@
       weaponName: "Onda Arcana",
       speed: 1.7,
       hp: 90,
-      baseDamage: 11,
-      baseCooldown: 85,
+      baseDamage: 15,
+      baseCooldown: 78,
       baseArea: 1.1,
       baseAmount: 1,
     },
@@ -143,111 +143,111 @@
     {
       name: "Addestramento",
       theme: "training",
-      story: "Campo olografico. Elimina 30 gatti mannari simulati.",
+      story: "Campo olografico. Elimina 25 simulacri, poi il Simulacro Alfa.",
       bg: ["#0d1b2a", "#1b263b"],
       floor: "#152238",
       accent: "#00f5ff",
-      killQuota: 30,
-      spawnRate: 145,
-      enemyHp: 25,
+      killQuota: 25,
+      spawnRate: 140,
+      enemyHp: 16,
       enemySpeed: 0.55,
-      boss: null,
+      boss: { name: "Simulacro Alfa", hp: 160, speed: 0.75, size: 34, color: "#00f5ff", sprite: "cat_boss" },
       fragment: false,
     },
     {
       name: "Città Alienigena",
       theme: "alien_city",
-      story: "Neon e grattacieli. Uccidi 45 predatori nelle strade.",
+      story: "Neon e grattacieli. Uccidi 35 predatori, poi il Capo Distretto.",
       bg: ["#1a0a2e", "#2d1b4e"],
       floor: "#1e1040",
       accent: "#b026ff",
-      killQuota: 45,
-      spawnRate: 130,
-      enemyHp: 35,
+      killQuota: 35,
+      spawnRate: 125,
+      enemyHp: 20,
       enemySpeed: 0.65,
-      boss: null,
+      boss: { name: "Capo Distretto Neon", hp: 210, speed: 0.78, size: 36, color: "#b026ff", sprite: "cat_boss" },
       fragment: false,
     },
     {
       name: "Bosco Infestato",
       theme: "forest",
-      story: "Bosco bioluminescente. Abbatti 60 predatori felini.",
+      story: "Bosco bioluminescente. Abbatti 45 predatori, poi il Signore del Bosco.",
       bg: ["#0a1f0a", "#1a3a1a"],
       floor: "#0f2a12",
       accent: "#39ff14",
-      killQuota: 60,
-      spawnRate: 120,
-      enemyHp: 40,
+      killQuota: 45,
+      spawnRate: 115,
+      enemyHp: 24,
       enemySpeed: 0.72,
-      boss: null,
+      boss: { name: "Signore del Bosco", hp: 260, speed: 0.72, size: 36, color: "#39ff14", sprite: "cat_boss" },
       fragment: false,
     },
     {
       name: "Tempio Antico",
       theme: "temple",
-      story: "Pilastri e torce. Uccidi 75 gatti, poi il Custode.",
+      story: "Pilastri e torce. Uccidi 55 gatti, poi il Custode.",
       bg: ["#2a1a0a", "#4a3020"],
       floor: "#3a2818",
       accent: "#ffd700",
-      killQuota: 75,
-      spawnRate: 110,
-      enemyHp: 45,
+      killQuota: 55,
+      spawnRate: 108,
+      enemyHp: 28,
       enemySpeed: 0.78,
-      boss: { name: "Custode delle Stelle", hp: 350, speed: 0.7, size: 38, color: "#ffd700", sprite: "cat_boss" },
+      boss: { name: "Custode delle Stelle", hp: 320, speed: 0.7, size: 38, color: "#ffd700", sprite: "cat_boss" },
       fragment: true,
     },
     {
       name: "Sottomondo Felino",
       theme: "underworld",
-      story: "Gallerie laviche. Elimina 90 nemici e la Matrona.",
+      story: "Gallerie laviche. Elimina 65 nemici e la Matrona.",
       bg: ["#1a0a0a", "#3a1515"],
       floor: "#2a1010",
       accent: "#ff4466",
-      killQuota: 90,
-      spawnRate: 105,
-      enemyHp: 50,
+      killQuota: 65,
+      spawnRate: 102,
+      enemyHp: 32,
       enemySpeed: 0.82,
-      boss: { name: "Matrona degli Arcani", hp: 400, speed: 0.75, size: 36, color: "#ff4466", sprite: "cat_boss" },
+      boss: { name: "Matrona degli Arcani", hp: 380, speed: 0.75, size: 36, color: "#ff4466", sprite: "cat_boss" },
       fragment: true,
     },
     {
       name: "Tempio delle Stelle",
       theme: "star_temple",
-      story: "Portali dimensionali. Uccidi 110 gatti, poi il Guardiano.",
+      story: "Portali dimensionali. Uccidi 75 gatti, poi il Guardiano.",
       bg: ["#0a0a2a", "#1a1a5a"],
       floor: "#12124a",
       accent: "#7b68ee",
-      killQuota: 110,
-      spawnRate: 100,
-      enemyHp: 55,
+      killQuota: 75,
+      spawnRate: 96,
+      enemyHp: 36,
       enemySpeed: 0.86,
-      boss: { name: "Guardiano Dimensionale", hp: 450, speed: 0.8, size: 40, color: "#7b68ee", sprite: "cat_boss" },
+      boss: { name: "Guardiano Dimensionale", hp: 430, speed: 0.8, size: 40, color: "#7b68ee", sprite: "cat_boss" },
       fragment: true,
     },
     {
       name: "Battaglia sulla Luna",
       theme: "moon",
-      story: "Crateri e stelle. Elimina 130 predatori, poi il Drago.",
+      story: "Crateri e stelle. Elimina 85 predatori, poi il Drago.",
       bg: ["#1a1a2a", "#2a2a4a"],
       floor: "#3a3a4a",
       accent: "#ff6347",
-      killQuota: 130,
-      spawnRate: 95,
-      enemyHp: 60,
+      killQuota: 85,
+      spawnRate: 92,
+      enemyHp: 40,
       enemySpeed: 0.88,
-      boss: { name: "Drago Stellare", hp: 500, speed: 0.65, size: 44, color: "#ff6347", sprite: "cat_boss" },
+      boss: { name: "Drago Stellare", hp: 480, speed: 0.65, size: 44, color: "#ff6347", sprite: "cat_boss" },
       fragment: true,
     },
     {
       name: "Città Maledetta",
       theme: "cursed_city",
-      story: "Rovine e nebbia. Uccidi 150 gatti e il Signore del Caos.",
+      story: "Rovine e nebbia. Uccidi 95 gatti e il Signore del Caos.",
       bg: ["#1a0a1a", "#3a1a3a"],
       floor: "#2a1530",
       accent: "#9400d3",
-      killQuota: 150,
-      spawnRate: 90,
-      enemyHp: 65,
+      killQuota: 95,
+      spawnRate: 88,
+      enemyHp: 44,
       enemySpeed: 0.92,
       boss: { name: "Signore del Caos", hp: 520, speed: 0.85, size: 42, color: "#9400d3", sprite: "cat_boss" },
       fragment: true,
@@ -255,30 +255,30 @@
     {
       name: "Rifugio delle Stelle",
       theme: "star_refuge",
-      story: "Cristalli cosmici. Elimina 170 nemici e la Matriarca.",
+      story: "Cristalli cosmici. Elimina 110 nemici e la Matriarca.",
       bg: ["#0a1a2a", "#1a3a5a"],
       floor: "#102840",
       accent: "#ff8c00",
-      killQuota: 170,
-      spawnRate: 85,
-      enemyHp: 70,
+      killQuota: 110,
+      spawnRate: 84,
+      enemyHp: 48,
       enemySpeed: 0.95,
-      boss: { name: "Matriarca del Mondo Felino", hp: 550, speed: 0.88, size: 40, color: "#ff8c00", sprite: "cat_boss" },
+      boss: { name: "Matriarca del Mondo Felino", hp: 560, speed: 0.88, size: 40, color: "#ff8c00", sprite: "cat_boss" },
       fragment: true,
     },
     {
       name: "Confronto Finale",
       theme: "final",
-      story: "La Luna. Uccidi 200 gatti, poi il Re e il Guardiano.",
+      story: "La Luna. Uccidi 125 gatti, poi il Re e il Guardiano.",
       bg: ["#0a0a1a", "#1a0a2a"],
       floor: "#2a2a35",
       accent: "#ff2200",
-      killQuota: 200,
+      killQuota: 125,
       spawnRate: 80,
-      enemyHp: 75,
+      enemyHp: 52,
       enemySpeed: 0.98,
-      boss: { name: "Re dei Gatti Mannari", hp: 600, speed: 0.72, size: 46, color: "#ff2200", sprite: "cat_boss" },
-      finalBoss: { name: "Guardiano dell'Universo", hp: 400, speed: 0.9, size: 42, color: "#00f5ff", sprite: "cat_boss" },
+      boss: { name: "Re dei Gatti Mannari", hp: 650, speed: 0.72, size: 46, color: "#ff2200", sprite: "cat_boss" },
+      finalBoss: { name: "Guardiano dell'Universo", hp: 420, speed: 0.9, size: 42, color: "#00f5ff", sprite: "cat_boss" },
       fragment: true,
     },
   ];
@@ -1024,15 +1024,15 @@
             x: player.x, y: player.y,
             vx: Math.cos(angle) * (projSpeed - 0.5),
             vy: Math.sin(angle) * (projSpeed - 0.5),
-            damage: getDamage(0.78),
+            damage: getDamage(0.95),
             type: "dart",
-            life: 55,
+            life: 58,
             size: 4,
             piercing: false,
             homing: !!target,
             target,
-            turnRate: 0.09,
-            homingSpeed: 4.2,
+            turnRate: 0.11,
+            homingSpeed: 4.6,
           });
         }
         break;
@@ -1045,11 +1045,11 @@
             x: player.x, y: player.y,
             vx: Math.cos(angle) * 2.8,
             vy: Math.sin(angle) * 2.8,
-            damage: getDamage(0.85),
+            damage: getDamage(1.0),
             type: "arcane_orb",
-            life: 70,
-            expand: 2.0 * area,
-            maxR: 42 * area,
+            life: 75,
+            expand: 2.1 * area,
+            maxR: 46 * area,
             r: 8,
             hit: new Set(),
           });
@@ -1074,8 +1074,8 @@
           return;
         }
         if (Math.hypot(e.x - ox, e.y - oy) < e.size + 8) {
-          hurtEnemy(e, getDamage(0.16), player.hero.accent);
-          o.hitCd.set(key, 18);
+          hurtEnemy(e, getDamage(0.28), player.hero.accent);
+          o.hitCd.set(key, 14);
         }
       });
     });
@@ -1113,7 +1113,7 @@
     y = Math.max(50, Math.min(WORLD_H - 50, y));
 
     const etype = pickEnemyType();
-    const scale = 1 + getKillProgress() * 0.45;
+    const scale = 1 + getKillProgress() * 0.22;
     enemies.push({
       x, y,
       hp: Math.floor(level.enemyHp * etype.hpMult * scale),
@@ -1306,9 +1306,8 @@
     if (!bossSpawned && quotaReached && level.boss) {
       spawnEnemy(true, level.boss);
       bossSpawned = true;
-    } else if (!bossSpawned && quotaReached && !level.boss) {
-      advanceWorldContinuous();
-      return;
+      showLevelBanner({ name: level.boss.name, accent: level.accent });
+      if (levelBanner) levelBanner.subtitle = "BOSS";
     }
 
     if (levelBanner) {
@@ -1332,7 +1331,7 @@
           const d = Math.hypot(e.x - p.x, e.y - p.y);
           if (d < p.r && !p.hit.has(e)) {
             p.hit.add(e);
-            hurtEnemy(e, p.damage * 0.28, "#00f5ff");
+            hurtEnemy(e, p.damage * 0.4, "#00f5ff");
           }
         });
         return;
@@ -2489,13 +2488,37 @@
   }
 
   function drawStory() {
-    drawTextScreen("La Trama", [
+    drawMenuBackground(LEVELS[0]);
+    titlePulse += 0.05;
+
+    // Logo in alto a sinistra, fuori dal titolo
+    if (logoReady) {
+      ctx.save();
+      ctx.shadowColor = "rgba(0,245,255,0.35)";
+      ctx.shadowBlur = 16;
+      ctx.drawImage(gameLogo, 36, 28, 64, 64);
+      ctx.restore();
+    }
+
+    ctx.fillStyle = `rgba(0,245,255,${0.55 + Math.sin(titlePulse) * 0.25})`;
+    ctx.font = "bold 40px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("La Trama", W / 2, 120);
+
+    ctx.fillStyle = "#e8e8ff";
+    ctx.font = "16px sans-serif";
+    [
       "Zara, Kael, Vex, Nia e Ryn — l'élite ninja aliena.",
       "I Gatti Mannari invadono il pianeta.",
       "Attraversa 10 location fino alla Luna.",
-      "Ogni arma è unica. Ogni livello ha il suo boss.",
-    ], "Tocca per scegliere l'eroe");
-    drawGameLogo(W / 2, 70, 72);
+      "Ogni ambientazione ha il suo boss: sconfiggilo per avanzare.",
+    ].forEach((line, i) => {
+      ctx.fillText(line, W / 2, 190 + i * 32);
+    });
+
+    ctx.fillStyle = "#b026ff";
+    ctx.font = "17px sans-serif";
+    ctx.fillText("Tocca per scegliere l'eroe", W / 2, H - 50);
   }
 
   function drawSelect() {
@@ -2543,7 +2566,7 @@
       level.story,
       "",
       `Arma: ${selectedHero.weaponName}`,
-      level.boss ? `Uccidi ${level.killQuota} gatti, poi: ${level.boss.name}` : `Obiettivo: uccidi ${level.killQuota} gatti mannari`,
+      level.boss ? `Uccidi ${level.killQuota} gatti, poi sconfiggi: ${level.boss.name}` : `Obiettivo: uccidi ${level.killQuota} gatti mannari`,
     ], introTimer > 0 ? "..." : "Tocca per iniziare il livello");
     if (introTimer > 0) introTimer--;
   }
