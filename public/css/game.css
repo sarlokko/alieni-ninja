@@ -17,11 +17,15 @@ body {
 
 #game-container {
   position: relative;
-  border: 2px solid rgba(0, 245, 255, 0.3);
-  border-radius: 8px;
-  box-shadow: 0 0 40px rgba(0, 245, 255, 0.15), 0 0 80px rgba(176, 38, 255, 0.1);
+  border: 2px solid rgba(0, 245, 255, 0.45);
+  border-radius: 10px;
+  box-shadow:
+    0 0 30px rgba(0, 245, 255, 0.25),
+    0 0 90px rgba(176, 38, 255, 0.18),
+    inset 0 0 40px rgba(0, 0, 0, 0.35);
   max-width: 98vw;
   max-height: 96vh;
+  overflow: hidden;
 }
 
 #game-canvas {
