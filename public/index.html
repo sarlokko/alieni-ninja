@@ -3,102 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alieni Ninja — Missione Galattica</title>
+  <title>Alieni Ninja — vs Gatti Mannari</title>
+  <meta name="description" content="Gioca Alieni Ninja: scegli un guerriero alieno, elimina i Gatti Mannari e recupera la Lancia delle Stelle.">
+  <meta name="theme-color" content="#00f5ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Alieni Ninja">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="stars"></div>
-  <div class="stars stars-2"></div>
-  <div class="stars stars-3"></div>
+  <div class="sky" aria-hidden="true"></div>
+  <div class="nebula" aria-hidden="true"></div>
+  <div class="stars" aria-hidden="true"></div>
 
   <header class="header">
     <nav class="nav">
-      <span class="logo">👽🥷 Alieni Ninja</span>
+      <a class="brand" href="#top">
+        <img src="img/logo.png" alt="" width="36" height="36" class="brand-mark">
+        <span class="brand-name">Alieni Ninja</span>
+      </a>
       <ul class="nav-links">
         <li><a href="game.html">Gioca</a></li>
         <li><a href="#missione">Missione</a></li>
         <li><a href="#squadra">Squadra</a></li>
-        <li><a href="#contatto">Contatto</a></li>
       </ul>
     </nav>
   </header>
 
-  <main>
+  <main id="top">
     <section class="hero">
-      <div class="hero-content">
-        <p class="tagline">Nell'ombra delle stelle, i ninja incontrano l'ignoto</p>
-        <h1>Alieni Ninja</h1>
-        <p class="subtitle">
-          Un'élite intergalattica di guerrieri silenziosi che difende la Terra
-          da minacce extraterrestri. Tecnologia aliena. Disciplina ninja.
+      <div class="hero-plane" aria-hidden="true">
+        <img src="img/logo.png" alt="" class="hero-icon" width="520" height="520">
+        <div class="hero-glow"></div>
+        <div class="hero-ring"></div>
+      </div>
+
+      <div class="hero-copy">
+        <p class="brand-kicker">Alieni Ninja</p>
+        <h1>Difendi le stelle.<br>Caccia i Gatti Mannari.</h1>
+        <p class="lede">
+          Un survivor arcade: scegli un ninja alieno, elimina orde di predatori felini
+          e recupera la Lancia delle Stelle.
         </p>
-        <button id="launch-btn" class="btn-primary" type="button">
-          Lancia missione
-        </button>
-        <a href="game.html" class="btn-game">🎮 Gioca: Ninja vs Gatti Mannari</a>
+        <div class="cta-row">
+          <a href="game.html" class="btn-play">Gioca ora</a>
+          <button id="launch-btn" class="btn-ghost" type="button">Lancia missione</button>
+        </div>
         <p id="mission-message" class="mission-message" aria-live="polite"></p>
       </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="alien">👽</div>
-        <div class="ninja">🥷</div>
-        <div class="orbit"></div>
-      </div>
     </section>
 
-    <section id="missione" class="section">
+    <section id="missione" class="strip">
       <h2>La Missione</h2>
-      <div class="cards">
-        <article class="card">
-          <span class="card-icon">🛸</span>
-          <h3>Ricognizione</h3>
-          <p>Scansiona settori sconosciuti e intercetta segnali alieni prima che raggiungano l'atmosfera.</p>
-        </article>
-        <article class="card">
-          <span class="card-icon">⚔️</span>
-          <h3>Combattimento</h3>
-          <p>Arte marziale fusionata con armamenti plasmatici. Silenzio letale nello spazio profondo.</p>
-        </article>
-        <article class="card">
-          <span class="card-icon">🌌</span>
-          <h3>Protezione</h3>
-          <p>Salvaguarda l'umanità mantenendo l'equilibrio tra due mondi, due culture, un solo destino.</p>
-        </article>
+      <p class="strip-lead">Dieci mondi. Orde crescenti. Un obiettivo: i Gatti Mannari non devono vincere.</p>
+      <div class="mission-flow">
+        <div class="flow-step">
+          <span class="flow-num">01</span>
+          <h3>Scegli il ninja</h3>
+          <p>Cinque eroi, cinque armi. Ogni stile cambia la caccia.</p>
+        </div>
+        <div class="flow-step">
+          <span class="flow-num">02</span>
+          <h3>Uccidi la quota</h3>
+          <p>Ogni livello chiede vittime, non solo sopravvivenza a tempo.</p>
+        </div>
+        <div class="flow-step">
+          <span class="flow-num">03</span>
+          <h3>Potenziati</h3>
+          <p>Raccogli XP, scegli upgrade e affronta i boss stellari.</p>
+        </div>
       </div>
     </section>
 
-    <section id="squadra" class="section section-alt">
+    <section id="squadra" class="strip strip-alt">
       <h2>La Squadra</h2>
+      <p class="strip-lead">L’élite intergalattica pronta a entrare in campo.</p>
       <div class="squad">
-        <div class="member">
-          <div class="member-avatar">🥷</div>
+        <article class="member">
           <h3>Kael</h3>
-          <p>Ninja furtivo. Shuriken e mimetizzazione.</p>
-        </div>
-        <div class="member">
-          <div class="member-avatar">⚔️</div>
+          <p>Shuriken orbitali e movimento furtivo.</p>
+        </article>
+        <article class="member">
           <h3>Zara</h3>
-          <p>Leader coraggiosa. Spade laser.</p>
-        </div>
-        <div class="member">
-          <div class="member-avatar">🛡️</div>
+          <p>Spada laser ad arco, colpi precisi.</p>
+        </article>
+        <article class="member">
           <h3>Vex</h3>
-          <p>Guerriero corazzato. Armi futuristiche.</p>
-        </div>
-        <div class="member">
-          <div class="member-avatar">🎯</div>
+          <p>Corazza pesante e burst di plasma.</p>
+        </article>
+        <article class="member">
           <h3>Nia</h3>
-          <p>Agile specialista. Armi da lancio.</p>
-        </div>
-        <div class="member">
-          <div class="member-avatar">✨</div>
+          <p>Dardi cercatori, ritmo agile.</p>
+        </article>
+        <article class="member">
           <h3>Ryn</h3>
-          <p>Saggio arcano. Bastone telescopico.</p>
-        </div>
+          <p>Onde arcane e controllo di area.</p>
+        </article>
       </div>
     </section>
   </main>
 
   <footer id="contatto" class="footer">
+    <img src="icons/icon-192.png" alt="Alieni Ninja" width="48" height="48" class="footer-icon">
     <p>© 2026 Alieni Ninja — Progetto Galattico</p>
     <p class="footer-tag">「 宇宙忍者 」</p>
   </footer>

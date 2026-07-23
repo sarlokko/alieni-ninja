@@ -24,6 +24,8 @@ Il gioco è **online e giocabile subito**, senza account esterni:
 - **Gioco:** https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/game.html
 - **Landing:** https://raw.githack.com/sarlokko/alieni-ninja/gh-pages/
 
+Sul telefono puoi **Aggiungi alla schermata Home**: usa l’icona ufficiale del gioco (manifest PWA + apple-touch-icon).
+
 Apri il link dal browser del cellulare. Controlli touch:
 - **Joystick sinistro:** movimento
 - **Joystick destro:** mira
