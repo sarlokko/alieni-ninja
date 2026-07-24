@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Alieni Ninja vs Gatti Mannari</title>
+  <meta name="description" content="Survivor arcade: elimina i Gatti Mannari e recupera la Lancia delle Stelle.">
+  <meta name="theme-color" content="#00f5ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Alieni Ninja">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="css/game.css?v=26">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas" width="1600" height="900"></canvas>
+    <div id="ui-overlay"></div>
+  </div>
+  <script src="js/sprites.js?v=26"></script>
+  <script src="js/game.js?v=26"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
