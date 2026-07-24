@@ -3,8 +3,8 @@
 
   const canvas = document.getElementById("game-canvas");
   const ctx = canvas.getContext("2d");
-  const W = canvas.width;
-  const H = canvas.height;
+  let W = 1600;
+  let H = 900;
   const WORLD_W = 20000;
   const WORLD_H = 15000;
   const { SPRITES, drawSpriteCentered, drawSprite, drawPixelCircle, PX } = window.PixelSprites;
@@ -417,6 +417,32 @@
     move: { x: W * 0.16, y: H * 0.82 },
     aim: { x: W * 0.84, y: H * 0.82 },
   };
+
+  function resizeGame() {
+    // Viewport grande: quasi tutto lo schermo, così si vede più mondo
+    const vw = Math.max(960, window.innerWidth || 1600);
+    const vh = Math.max(540, window.innerHeight || 900);
+    W = Math.floor(vw);
+    H = Math.floor(vh);
+    canvas.width = W;
+    canvas.height = H;
+    touchJoyAnchors.move.x = W * 0.16;
+    touchJoyAnchors.move.y = H * 0.82;
+    touchJoyAnchors.aim.x = W * 0.84;
+    touchJoyAnchors.aim.y = H * 0.82;
+    if (mouse) {
+      mouse.screenX = Math.min(mouse.screenX, W);
+      mouse.screenY = Math.min(mouse.screenY, H);
+    }
+    if (player && state === STATE.PLAYING) {
+      camera.x = Math.max(0, Math.min(WORLD_W - W, player.x - W / 2));
+      camera.y = Math.max(0, Math.min(WORLD_H - H, player.y - H / 2));
+    }
+  }
+
+  window.addEventListener("resize", resizeGame);
+  window.addEventListener("orientationchange", () => setTimeout(resizeGame, 80));
+  resizeGame();
 
   function canvasCoords(touch) {
     const rect = canvas.getBoundingClientRect();
