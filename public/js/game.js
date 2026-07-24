@@ -152,7 +152,7 @@
       floor: "#152238",
       accent: "#00f5ff",
       killQuota: 20,
-      spawnRate: 125,
+      spawnRate: 69,
       enemyHp: 12,
       enemySpeed: 0.65,
       boss: { name: "Simulacro Alfa", hp: 520, speed: 0.88, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 7 },
@@ -166,7 +166,7 @@
       floor: "#1e1040",
       accent: "#b026ff",
       killQuota: 28,
-      spawnRate: 115,
+      spawnRate: 63,
       enemyHp: 15,
       enemySpeed: 0.74,
       boss: { name: "Capo Distretto Neon", hp: 720, speed: 0.92, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 8 },
@@ -180,7 +180,7 @@
       floor: "#0f2a12",
       accent: "#39ff14",
       killQuota: 36,
-      spawnRate: 108,
+      spawnRate: 59,
       enemyHp: 18,
       enemySpeed: 0.8,
       boss: { name: "Signore del Bosco", hp: 920, speed: 0.9, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 9 },
@@ -194,7 +194,7 @@
       floor: "#3a2818",
       accent: "#ffd700",
       killQuota: 44,
-      spawnRate: 100,
+      spawnRate: 55,
       enemyHp: 21,
       enemySpeed: 0.86,
       boss: { name: "Custode delle Stelle", hp: 1150, speed: 0.88, size: 38, color: "#ffd700", sprite: "cat_boss", damage: 10 },
@@ -208,7 +208,7 @@
       floor: "#2a1010",
       accent: "#ff4466",
       killQuota: 52,
-      spawnRate: 96,
+      spawnRate: 53,
       enemyHp: 24,
       enemySpeed: 0.92,
       boss: { name: "Matrona degli Arcani", hp: 1450, speed: 0.94, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 10 },
@@ -222,7 +222,7 @@
       floor: "#12124a",
       accent: "#7b68ee",
       killQuota: 60,
-      spawnRate: 90,
+      spawnRate: 50,
       enemyHp: 27,
       enemySpeed: 0.98,
       boss: { name: "Guardiano Dimensionale", hp: 1800, speed: 0.98, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 11 },
@@ -236,7 +236,7 @@
       floor: "#3a3a4a",
       accent: "#ff6347",
       killQuota: 70,
-      spawnRate: 86,
+      spawnRate: 47,
       enemyHp: 30,
       enemySpeed: 1.02,
       boss: { name: "Drago Stellare", hp: 2200, speed: 0.85, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 12 },
@@ -250,7 +250,7 @@
       floor: "#2a1530",
       accent: "#9400d3",
       killQuota: 80,
-      spawnRate: 82,
+      spawnRate: 45,
       enemyHp: 33,
       enemySpeed: 1.06,
       boss: { name: "Signore del Caos", hp: 2650, speed: 1.0, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 13 },
@@ -264,7 +264,7 @@
       floor: "#102840",
       accent: "#ff8c00",
       killQuota: 90,
-      spawnRate: 78,
+      spawnRate: 43,
       enemyHp: 36,
       enemySpeed: 1.1,
       boss: { name: "Matriarca del Mondo Felino", hp: 3100, speed: 1.05, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 14 },
@@ -278,7 +278,7 @@
       floor: "#2a2a35",
       accent: "#ff2200",
       killQuota: 100,
-      spawnRate: 74,
+      spawnRate: 41,
       enemyHp: 40,
       enemySpeed: 1.14,
       boss: { name: "Re dei Gatti Mannari", hp: 3800, speed: 1.0, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 15 },
@@ -704,6 +704,8 @@
     worldShift = 1;
     player.invulnerable = Math.max(player.invulnerable, 40);
     spawnTimer = 8;
+    showLevelBanner(level);
+    for (let i = 0; i < 8; i++) spawnEnemy();
     addShockwave(player.x, player.y, level.accent, 110);
     addBurst(player.x, player.y, level.accent, 18, "spark");
     addScreenShake(8);
