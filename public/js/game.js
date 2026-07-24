@@ -703,8 +703,7 @@
     ambience = generateAmbience(level.theme);
     worldShift = 1;
     player.invulnerable = Math.max(player.invulnerable, 40);
-    spawnTimer = 20;
-    showLevelBanner(level);
+    spawnTimer = 8;
     addShockwave(player.x, player.y, level.accent, 110);
     addBurst(player.x, player.y, level.accent, 18, "spark");
     addScreenShake(8);
@@ -782,17 +781,21 @@
     orbiters = initOrbiters();
     decor = generateDecor(level.theme);
     ambience = generateAmbience(level.theme);
-    spawnTimer = 30;
+    spawnTimer = 8;
     pickupTimer = 600;
     bossSpawned = false;
     finalBossSpawned = false;
     bossPhase = false;
     levelKills = 0;
+    for (let i = 0; i < 10; i++) spawnEnemy();
   }
 
   function startLevel() {
     state = STATE.PLAYING;
     showLevelBanner(LEVELS[currentLevel]);
+    if (enemies.length < 8) {
+      for (let i = 0; i < 10; i++) spawnEnemy();
+    }
   }
 
   function nextLevel() {
@@ -1184,7 +1187,7 @@
       addParticles(player.x, player.y - 220, bossData.color, 25);
       bossPhase = true;
       spawnTimer = 0;
-      for (let i = 0; i < 8; i++) spawnEnemy(false, null, { near: true });
+      for (let i = 0; i < 12; i++) spawnEnemy(false, null, { near: true });
       return;
     }
 
@@ -1385,21 +1388,21 @@
 
     const quotaReached = levelKills >= level.killQuota;
     const trashCount = enemies.reduce((n, e) => n + (e.isBoss ? 0 : 1), 0);
-    const enemyCap = bossPhase ? 28 : 42;
+    const enemyCap = bossPhase ? 40 : 70;
 
     if (spawnTimer > 0) spawnTimer--;
     else if (trashCount < enemyCap) {
       if (bossPhase) {
-        // Continua a far uscire gatti vicino al player durante il boss
-        const burst = trashCount < 10 ? 3 : trashCount < 18 ? 2 : 1;
+        const burst = trashCount < 14 ? 4 : trashCount < 26 ? 3 : 2;
         for (let i = 0; i < burst; i++) spawnEnemy(false, null, { near: true });
-        spawnTimer = 22;
+        spawnTimer = 14;
       } else {
-        spawnEnemy();
-        spawnTimer = Math.max(45, level.spawnRate - Math.floor(getKillProgress() * 35));
+        const burst = trashCount < 18 ? 3 : trashCount < 40 ? 2 : 1;
+        for (let i = 0; i < burst; i++) spawnEnemy();
+        spawnTimer = Math.max(18, level.spawnRate - Math.floor(getKillProgress() * 28));
       }
     } else {
-      spawnTimer = 12;
+      spawnTimer = 8;
     }
 
     if (!bossSpawned && quotaReached && level.boss) {
