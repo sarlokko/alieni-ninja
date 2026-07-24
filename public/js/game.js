@@ -5,14 +5,14 @@
   const ctx = canvas.getContext("2d");
   const W = canvas.width;
   const H = canvas.height;
-  const WORLD_W = 14400;
-  const WORLD_H = 10800;
+  const WORLD_W = 20000;
+  const WORLD_H = 15000;
   const { SPRITES, drawSpriteCentered, drawSprite, drawPixelCircle, PX } = window.PixelSprites;
-  const PLAYER_SCALE = 2.5;
-  const ENEMY_SPRITE_SCALE = 2;
-  const BOSS_SPRITE_SCALE = 2.75;
-  const TILE_SCALE = 3;
-  const DECOR_SCALE = 2.5;
+  const PLAYER_SCALE = 2.25;
+  const ENEMY_SPRITE_SCALE = 2.15;
+  const BOSS_SPRITE_SCALE = 2.5;
+  const TILE_SCALE = 3.5;
+  const DECOR_SCALE = 2.75;
 
   const gameLogo = new Image();
   gameLogo.src = "img/logo.png";
@@ -20,12 +20,12 @@
   gameLogo.onload = () => { logoReady = true; };
 
   const ENEMY_TYPES = {
-    kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.55, speedMult: 0.72, damage: 2, size: 14, xp: 2, weight: 40 },
-    tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.9,  speedMult: 0.88, damage: 3, size: 16, xp: 3, weight: 35 },
-    hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore",      hpMult: 0.75, speedMult: 1.15, damage: 4, size: 17, xp: 4, weight: 22 },
-    archer:   { id: "archer",   sprite: "cat_archer",   name: "Gatto Arcere",    hpMult: 0.7,  speedMult: 0.7,  damage: 3, size: 16, xp: 5, weight: 18, ranged: true, preferDist: 220, shootCd: 70, arrowDamage: 6, arrowSpeed: 5.4 },
-    werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro",   hpMult: 1.6,  speedMult: 0.78, damage: 6, size: 20, xp: 7, weight: 18 },
-    shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Felina",    hpMult: 0.5,  speedMult: 1.35, damage: 5, size: 15, xp: 5, weight: 12 },
+    kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.5,  speedMult: 0.62, damage: 2, size: 14, xp: 2, weight: 40 },
+    tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.85, speedMult: 0.75, damage: 3, size: 16, xp: 3, weight: 35 },
+    hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore",      hpMult: 0.7,  speedMult: 0.95, damage: 3, size: 17, xp: 4, weight: 22 },
+    archer:   { id: "archer",   sprite: "cat_archer",   name: "Gatto Arcere",    hpMult: 0.65, speedMult: 0.6,  damage: 2, size: 16, xp: 5, weight: 18, ranged: true, preferDist: 220, shootCd: 95, arrowDamage: 4, arrowSpeed: 4.6 },
+    werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro",   hpMult: 1.4,  speedMult: 0.68, damage: 5, size: 20, xp: 7, weight: 18 },
+    shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Felina",    hpMult: 0.45, speedMult: 1.1,  damage: 4, size: 15, xp: 5, weight: 12 },
   };
 
   const STATE = {
@@ -51,8 +51,8 @@
       weapon: "orbit_shuriken",
       weaponName: "Shuriken Orbitale",
       speed: 2.1,
-      hp: 100,
-      baseDamage: 16,
+      hp: 120,
+      baseDamage: 18,
       baseCooldown: 68,
       baseArea: 1,
       baseAmount: 2,
@@ -67,8 +67,8 @@
       weapon: "laser_arc",
       weaponName: "Spada Laser",
       speed: 1.8,
-      hp: 110,
-      baseDamage: 20,
+      hp: 130,
+      baseDamage: 22,
       baseCooldown: 60,
       baseArea: 1.1,
       baseAmount: 1,
@@ -83,8 +83,8 @@
       weapon: "plasma_burst",
       weaponName: "Burst di Plasma",
       speed: 1.5,
-      hp: 160,
-      baseDamage: 24,
+      hp: 190,
+      baseDamage: 26,
       baseCooldown: 88,
       baseArea: 1.2,
       baseAmount: 1,
@@ -99,8 +99,8 @@
       weapon: "homing_dart",
       weaponName: "Dardi Cercatori",
       speed: 2.3,
-      hp: 85,
-      baseDamage: 12,
+      hp: 100,
+      baseDamage: 14,
       baseCooldown: 52,
       baseArea: 1,
       baseAmount: 1,
@@ -115,8 +115,8 @@
       weapon: "arcane_wave",
       weaponName: "Onda Arcana",
       speed: 1.7,
-      hp: 90,
-      baseDamage: 15,
+      hp: 110,
+      baseDamage: 17,
       baseCooldown: 78,
       baseArea: 1.1,
       baseAmount: 1,
@@ -147,142 +147,142 @@
     {
       name: "Addestramento",
       theme: "training",
-      story: "Campo olografico. Elimina 25 simulacri, poi il Simulacro Alfa.",
+      story: "Campo olografico. Elimina 20 simulacri, poi il Simulacro Alfa.",
       bg: ["#0d1b2a", "#1b263b"],
       floor: "#152238",
       accent: "#00f5ff",
-      killQuota: 25,
-      spawnRate: 140,
-      enemyHp: 16,
-      enemySpeed: 0.78,
-      boss: { name: "Simulacro Alfa", hp: 900, speed: 1.05, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 10 },
+      killQuota: 20,
+      spawnRate: 125,
+      enemyHp: 12,
+      enemySpeed: 0.65,
+      boss: { name: "Simulacro Alfa", hp: 520, speed: 0.88, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 7 },
       fragment: false,
     },
     {
       name: "Città Alienigena",
       theme: "alien_city",
-      story: "Neon e grattacieli. Uccidi 35 predatori, poi il Capo Distretto.",
+      story: "Neon e grattacieli. Uccidi 28 predatori, poi il Capo Distretto.",
       bg: ["#1a0a2e", "#2d1b4e"],
       floor: "#1e1040",
       accent: "#b026ff",
-      killQuota: 35,
-      spawnRate: 125,
-      enemyHp: 20,
-      enemySpeed: 0.9,
-      boss: { name: "Capo Distretto Neon", hp: 1200, speed: 1.1, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 11 },
+      killQuota: 28,
+      spawnRate: 115,
+      enemyHp: 15,
+      enemySpeed: 0.74,
+      boss: { name: "Capo Distretto Neon", hp: 720, speed: 0.92, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 8 },
       fragment: false,
     },
     {
       name: "Bosco Infestato",
       theme: "forest",
-      story: "Bosco bioluminescente. Abbatti 45 predatori, poi il Signore del Bosco.",
+      story: "Bosco bioluminescente. Abbatti 36 predatori, poi il Signore del Bosco.",
       bg: ["#0a1f0a", "#1a3a1a"],
       floor: "#0f2a12",
       accent: "#39ff14",
-      killQuota: 45,
-      spawnRate: 115,
-      enemyHp: 24,
-      enemySpeed: 0.98,
-      boss: { name: "Signore del Bosco", hp: 1550, speed: 1.05, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 12 },
+      killQuota: 36,
+      spawnRate: 108,
+      enemyHp: 18,
+      enemySpeed: 0.8,
+      boss: { name: "Signore del Bosco", hp: 920, speed: 0.9, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 9 },
       fragment: false,
     },
     {
       name: "Tempio Antico",
       theme: "temple",
-      story: "Pilastri e torce. Uccidi 55 gatti, poi il Custode.",
+      story: "Pilastri e torce. Uccidi 44 gatti, poi il Custode.",
       bg: ["#2a1a0a", "#4a3020"],
       floor: "#3a2818",
       accent: "#ffd700",
-      killQuota: 55,
-      spawnRate: 108,
-      enemyHp: 28,
-      enemySpeed: 1.05,
-      boss: { name: "Custode delle Stelle", hp: 2000, speed: 1.0, size: 38, color: "#ffd700", sprite: "cat_boss", damage: 13 },
+      killQuota: 44,
+      spawnRate: 100,
+      enemyHp: 21,
+      enemySpeed: 0.86,
+      boss: { name: "Custode delle Stelle", hp: 1150, speed: 0.88, size: 38, color: "#ffd700", sprite: "cat_boss", damage: 10 },
       fragment: true,
     },
     {
       name: "Sottomondo Felino",
       theme: "underworld",
-      story: "Gallerie laviche. Elimina 65 nemici e la Matrona.",
+      story: "Gallerie laviche. Elimina 52 nemici e la Matrona.",
       bg: ["#1a0a0a", "#3a1515"],
       floor: "#2a1010",
       accent: "#ff4466",
-      killQuota: 65,
-      spawnRate: 102,
-      enemyHp: 32,
-      enemySpeed: 1.12,
-      boss: { name: "Matrona degli Arcani", hp: 2500, speed: 1.08, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 14 },
+      killQuota: 52,
+      spawnRate: 96,
+      enemyHp: 24,
+      enemySpeed: 0.92,
+      boss: { name: "Matrona degli Arcani", hp: 1450, speed: 0.94, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 10 },
       fragment: true,
     },
     {
       name: "Tempio delle Stelle",
       theme: "star_temple",
-      story: "Portali dimensionali. Uccidi 75 gatti, poi il Guardiano.",
+      story: "Portali dimensionali. Uccidi 60 gatti, poi il Guardiano.",
       bg: ["#0a0a2a", "#1a1a5a"],
       floor: "#12124a",
       accent: "#7b68ee",
-      killQuota: 75,
-      spawnRate: 96,
-      enemyHp: 36,
-      enemySpeed: 1.18,
-      boss: { name: "Guardiano Dimensionale", hp: 3100, speed: 1.15, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 15 },
+      killQuota: 60,
+      spawnRate: 90,
+      enemyHp: 27,
+      enemySpeed: 0.98,
+      boss: { name: "Guardiano Dimensionale", hp: 1800, speed: 0.98, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 11 },
       fragment: true,
     },
     {
       name: "Battaglia sulla Luna",
       theme: "moon",
-      story: "Crateri e stelle. Elimina 85 predatori, poi il Drago.",
+      story: "Crateri e stelle. Elimina 70 predatori, poi il Drago.",
       bg: ["#1a1a2a", "#2a2a4a"],
       floor: "#3a3a4a",
       accent: "#ff6347",
-      killQuota: 85,
-      spawnRate: 92,
-      enemyHp: 40,
-      enemySpeed: 1.22,
-      boss: { name: "Drago Stellare", hp: 3800, speed: 0.95, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 16 },
+      killQuota: 70,
+      spawnRate: 86,
+      enemyHp: 30,
+      enemySpeed: 1.02,
+      boss: { name: "Drago Stellare", hp: 2200, speed: 0.85, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 12 },
       fragment: true,
     },
     {
       name: "Città Maledetta",
       theme: "cursed_city",
-      story: "Rovine e nebbia. Uccidi 95 gatti e il Signore del Caos.",
+      story: "Rovine e nebbia. Uccidi 80 gatti e il Signore del Caos.",
       bg: ["#1a0a1a", "#3a1a3a"],
       floor: "#2a1530",
       accent: "#9400d3",
-      killQuota: 95,
-      spawnRate: 88,
-      enemyHp: 44,
-      enemySpeed: 1.28,
-      boss: { name: "Signore del Caos", hp: 4600, speed: 1.2, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 17 },
+      killQuota: 80,
+      spawnRate: 82,
+      enemyHp: 33,
+      enemySpeed: 1.06,
+      boss: { name: "Signore del Caos", hp: 2650, speed: 1.0, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 13 },
       fragment: true,
     },
     {
       name: "Rifugio delle Stelle",
       theme: "star_refuge",
-      story: "Cristalli cosmici. Elimina 110 nemici e la Matriarca.",
+      story: "Cristalli cosmici. Elimina 90 nemici e la Matriarca.",
       bg: ["#0a1a2a", "#1a3a5a"],
       floor: "#102840",
       accent: "#ff8c00",
-      killQuota: 110,
-      spawnRate: 84,
-      enemyHp: 48,
-      enemySpeed: 1.32,
-      boss: { name: "Matriarca del Mondo Felino", hp: 5400, speed: 1.25, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 18 },
+      killQuota: 90,
+      spawnRate: 78,
+      enemyHp: 36,
+      enemySpeed: 1.1,
+      boss: { name: "Matriarca del Mondo Felino", hp: 3100, speed: 1.05, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 14 },
       fragment: true,
     },
     {
       name: "Confronto Finale",
       theme: "final",
-      story: "La Luna. Uccidi 125 gatti, poi il Re e il Guardiano.",
+      story: "La Luna. Uccidi 100 gatti, poi il Re e il Guardiano.",
       bg: ["#0a0a1a", "#1a0a2a"],
       floor: "#2a2a35",
       accent: "#ff2200",
-      killQuota: 125,
-      spawnRate: 80,
-      enemyHp: 52,
-      enemySpeed: 1.38,
-      boss: { name: "Re dei Gatti Mannari", hp: 6500, speed: 1.15, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 20 },
-      finalBoss: { name: "Guardiano dell'Universo", hp: 4800, speed: 1.3, size: 42, color: "#00f5ff", sprite: "cat_boss", damage: 18 },
+      killQuota: 100,
+      spawnRate: 74,
+      enemyHp: 40,
+      enemySpeed: 1.14,
+      boss: { name: "Re dei Gatti Mannari", hp: 3800, speed: 1.0, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 15 },
+      finalBoss: { name: "Guardiano dell'Universo", hp: 2800, speed: 1.1, size: 42, color: "#00f5ff", sprite: "cat_boss", damage: 14 },
       fragment: true,
     },
   ];
@@ -785,76 +785,121 @@
   function generateDecor(theme) {
     const items = [];
     const rnd = (n) => Math.random() * n;
-    const count = { training: 220, alien_city: 200, forest: 260, temple: 190, underworld: 220,
-      star_temple: 200, moon: 230, cursed_city: 210, star_refuge: 220, final: 200 };
-    const n = count[theme] || 50;
+    const at = () => ({ x: rnd(WORLD_W), y: rnd(WORLD_H) });
+    const count = {
+      training: 380, alien_city: 360, forest: 480, temple: 340, underworld: 380,
+      star_temple: 360, moon: 400, cursed_city: 370, star_refuge: 390, final: 360,
+    };
+    const n = count[theme] || 80;
+
+    // micro-props di riempimento per ogni tema
+    const scatter = (type, every, extra = {}) => {
+      for (let i = 0; i < n; i++) {
+        if (i % every === 0) items.push({ type, ...at(), ...extra });
+      }
+    };
 
     switch (theme) {
       case "training":
         for (let i = 0; i < n; i++) {
-          items.push({ type: "holo_ring", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 15 + rnd(25) });
-          if (i % 4 === 0) items.push({ type: "target_marker", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 10 + rnd(12) });
+          items.push({ type: "holo_ring", ...at(), r: 12 + rnd(28) });
+          if (i % 3 === 0) items.push({ type: "target_marker", ...at(), r: 8 + rnd(14) });
+          if (i % 5 === 0) items.push({ type: "crate", ...at() });
+          if (i % 7 === 0) items.push({ type: "lamp", ...at() });
+          if (i % 4 === 0) items.push({ type: "debris", ...at() });
         }
         break;
       case "alien_city":
         for (let i = 0; i < n; i++) {
           const windows = [];
           for (let wy = 0; wy < 6; wy++) for (let wx = 0; wx < 4; wx++) windows.push(Math.random() > 0.35);
-          items.push({ type: "building", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 50 + rnd(70), h: 80 + rnd(120), windows });
-          if (i % 5 === 0) items.push({ type: "neon_sign", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 30 + rnd(40) });
+          items.push({ type: "building", ...at(), w: 50 + rnd(70), h: 80 + rnd(120), windows });
+          if (i % 4 === 0) items.push({ type: "neon_sign", ...at(), w: 30 + rnd(40) });
+          if (i % 5 === 0) items.push({ type: "lamp", ...at() });
+          if (i % 6 === 0) items.push({ type: "crate", ...at() });
+          if (i % 8 === 0) items.push({ type: "barrel", ...at() });
         }
         break;
       case "forest":
         for (let i = 0; i < n; i++) {
-          items.push({ type: "tree", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 18 + rnd(32), variant: Math.floor(rnd(3)) });
-          if (i % 3 === 0) items.push({ type: "mushroom", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 6 + rnd(10) });
-          if (i % 6 === 0) items.push({ type: "vine", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 20 + rnd(40) });
+          items.push({ type: "tree", ...at(), r: 18 + rnd(34), variant: Math.floor(rnd(3)) });
+          if (i % 2 === 0) items.push({ type: "grass", ...at() });
+          if (i % 3 === 0) items.push({ type: "bush", ...at() });
+          if (i % 4 === 0) items.push({ type: "mushroom", ...at(), r: 6 + rnd(10) });
+          if (i % 5 === 0) items.push({ type: "flower", ...at() });
+          if (i % 6 === 0) items.push({ type: "vine", ...at(), h: 20 + rnd(40) });
+          if (i % 8 === 0) items.push({ type: "fern", ...at() });
         }
         break;
       case "temple":
         for (let i = 0; i < n; i++) {
-          items.push({ type: "pillar", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 80 + rnd(120) });
-          if (i % 4 === 0) items.push({ type: "torch", x: rnd(WORLD_W), y: rnd(WORLD_H) });
-          if (i % 5 === 0) items.push({ type: "rune", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 10 + rnd(18) });
+          items.push({ type: "pillar", ...at(), h: 80 + rnd(120) });
+          if (i % 3 === 0) items.push({ type: "torch", ...at() });
+          if (i % 4 === 0) items.push({ type: "rune", ...at(), r: 10 + rnd(18) });
+          if (i % 5 === 0) items.push({ type: "statue", ...at() });
+          if (i % 6 === 0) items.push({ type: "debris", ...at() });
+          if (i % 7 === 0) items.push({ type: "crate", ...at() });
         }
         break;
       case "underworld":
         for (let i = 0; i < n; i++) {
           items.push({ type: "stalactite", x: rnd(WORLD_W), y: rnd(WORLD_H * 0.4), h: 25 + rnd(55) });
-          if (i % 3 === 0) items.push({ type: "lava_pool", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(24) });
+          if (i % 2 === 0) items.push({ type: "lava_pool", ...at(), r: 12 + rnd(24) });
+          if (i % 3 === 0) items.push({ type: "bones", ...at() });
+          if (i % 4 === 0) items.push({ type: "debris", ...at() });
+          if (i % 6 === 0) items.push({ type: "barrel", ...at() });
         }
         break;
       case "star_temple":
         for (let i = 0; i < n; i++) {
-          items.push({ type: "rune", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 10 + rnd(18) });
-          if (i % 4 === 0) items.push({ type: "portal", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 16 + rnd(20) });
+          items.push({ type: "rune", ...at(), r: 10 + rnd(18) });
+          if (i % 3 === 0) items.push({ type: "portal", ...at(), r: 16 + rnd(20) });
+          if (i % 4 === 0) items.push({ type: "statue", ...at() });
+          if (i % 5 === 0) items.push({ type: "crystal", ...at(), h: 14 + rnd(30) });
+          if (i % 6 === 0) items.push({ type: "lamp", ...at() });
         }
         break;
       case "moon":
         for (let i = 0; i < n; i++) {
-          items.push({ type: "crater", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(40) });
-          if (i % 5 === 0) items.push({ type: "moon_flag", x: rnd(WORLD_W), y: rnd(WORLD_H) });
+          items.push({ type: "crater", ...at(), r: 12 + rnd(40) });
+          if (i % 3 === 0) items.push({ type: "moon_rock", ...at(), r: 10 + rnd(28) });
+          if (i % 4 === 0) items.push({ type: "moon_flag", ...at() });
+          if (i % 5 === 0) items.push({ type: "debris", ...at() });
+          if (i % 7 === 0) items.push({ type: "crate", ...at() });
         }
         break;
       case "cursed_city":
         for (let i = 0; i < n; i++) {
-          items.push({ type: "ruin", x: rnd(WORLD_W), y: rnd(WORLD_H), w: 25 + rnd(65), h: 18 + rnd(55) });
-          if (i % 4 === 0) items.push({ type: "fog_patch", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 20 + rnd(35) });
+          items.push({ type: "ruin", ...at(), w: 25 + rnd(65), h: 18 + rnd(55) });
+          if (i % 3 === 0) items.push({ type: "fog_patch", ...at(), r: 20 + rnd(35) });
+          if (i % 4 === 0) items.push({ type: "bones", ...at() });
+          if (i % 5 === 0) items.push({ type: "barrel", ...at() });
+          if (i % 6 === 0) items.push({ type: "lamp", ...at() });
+          if (i % 7 === 0) items.push({ type: "debris", ...at() });
         }
         break;
       case "star_refuge":
         for (let i = 0; i < n; i++) {
-          items.push({ type: "crystal", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 18 + rnd(50) });
-          if (i % 3 === 0) items.push({ type: "star_altar", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 14 + rnd(18) });
+          items.push({ type: "crystal", ...at(), h: 18 + rnd(50) });
+          if (i % 2 === 0) items.push({ type: "flower", ...at() });
+          if (i % 3 === 0) items.push({ type: "star_altar", ...at(), r: 14 + rnd(18) });
+          if (i % 4 === 0) items.push({ type: "grass", ...at() });
+          if (i % 5 === 0) items.push({ type: "bush", ...at() });
+          if (i % 6 === 0) items.push({ type: "lamp", ...at() });
         }
         break;
       case "final":
         for (let i = 0; i < n; i++) {
-          items.push({ type: "moon_rock", x: rnd(WORLD_W), y: rnd(WORLD_H), r: 12 + rnd(35) });
-          if (i % 4 === 0) items.push({ type: "lunar_spire", x: rnd(WORLD_W), y: rnd(WORLD_H), h: 40 + rnd(70) });
+          items.push({ type: "moon_rock", ...at(), r: 12 + rnd(35) });
+          if (i % 3 === 0) items.push({ type: "lunar_spire", ...at(), h: 40 + rnd(70) });
+          if (i % 4 === 0) items.push({ type: "bones", ...at() });
+          if (i % 5 === 0) items.push({ type: "crater", ...at(), r: 14 + rnd(30) });
+          if (i % 6 === 0) items.push({ type: "debris", ...at() });
+          if (i % 7 === 0) items.push({ type: "statue", ...at() });
         }
         break;
     }
+    scatter("debris", 11);
     return items;
   }
 
@@ -866,7 +911,7 @@
       star_refuge: "#ff8c00", final: "#ff2200",
     };
     const color = colors[theme] || "#ffffff";
-    for (let i = 0; i < 55; i++) {
+    for (let i = 0; i < 90; i++) {
       items.push({
         x: Math.random() * WORLD_W,
         y: Math.random() * WORLD_H,
@@ -1091,7 +1136,7 @@
     });
   }
 
-  function spawnEnemy(isBoss = false, bossData = null) {
+  function spawnEnemy(isBoss = false, bossData = null, opts = {}) {
     const level = LEVELS[currentLevel];
 
     if (isBoss && bossData) {
@@ -1112,23 +1157,27 @@
       addScreenShake(14);
       addParticles(player.x, player.y - 220, bossData.color, 25);
       bossPhase = true;
+      spawnTimer = 0;
+      for (let i = 0; i < 8; i++) spawnEnemy(false, null, { near: true });
       return;
     }
 
     const angle = Math.random() * Math.PI * 2;
-    const dist = Math.max(W, H) * 0.52 + 50 + Math.random() * 100;
+    const dist = opts.near
+      ? 200 + Math.random() * 260
+      : Math.max(W, H) * 0.42 + 40 + Math.random() * 160;
     let x = player.x + Math.cos(angle) * dist;
     let y = player.y + Math.sin(angle) * dist;
     x = Math.max(50, Math.min(WORLD_W - 50, x));
     y = Math.max(50, Math.min(WORLD_H - 50, y));
 
     const etype = pickEnemyType();
-    const scale = 1 + getKillProgress() * 0.22;
+    const scale = bossPhase ? 1.05 : 1 + getKillProgress() * 0.18;
     enemies.push({
       x, y,
       hp: Math.floor(level.enemyHp * etype.hpMult * scale),
       maxHp: Math.floor(level.enemyHp * etype.hpMult * scale),
-      speed: level.enemySpeed * etype.speedMult * (0.98 + Math.random() * 0.18),
+      speed: level.enemySpeed * etype.speedMult * (0.95 + Math.random() * 0.16),
       size: etype.size,
       color: etype.id === "archer" ? "#c8a060" : "#cc8844",
       isBoss: false,
@@ -1309,17 +1358,22 @@
     updateAmbience();
 
     const quotaReached = levelKills >= level.killQuota;
-    const enemyCap = bossPhase ? 36 : 48;
+    const trashCount = enemies.reduce((n, e) => n + (e.isBoss ? 0 : 1), 0);
+    const enemyCap = bossPhase ? 28 : 42;
 
     if (spawnTimer > 0) spawnTimer--;
-    else if (enemies.length < enemyCap) {
-      spawnEnemy();
-      const progressRate = bossPhase
-        ? Math.max(42, level.spawnRate - 55)
-        : Math.max(50, level.spawnRate - Math.floor(getKillProgress() * 40));
-      spawnTimer = progressRate;
+    else if (trashCount < enemyCap) {
+      if (bossPhase) {
+        // Continua a far uscire gatti vicino al player durante il boss
+        const burst = trashCount < 10 ? 3 : trashCount < 18 ? 2 : 1;
+        for (let i = 0; i < burst; i++) spawnEnemy(false, null, { near: true });
+        spawnTimer = 22;
+      } else {
+        spawnEnemy();
+        spawnTimer = Math.max(45, level.spawnRate - Math.floor(getKillProgress() * 35));
+      }
     } else {
-      spawnTimer = 20;
+      spawnTimer = 12;
     }
 
     if (!bossSpawned && quotaReached && level.boss) {
@@ -1459,7 +1513,7 @@
         const baseDmg = e.isBoss ? (e.damage || 12) : (e.damage || 3);
         const dmg = Math.max(1, Math.floor(baseDmg * (1 - player.stats.damageReduction)));
         player.hp -= dmg;
-        player.invulnerable = 25;
+        player.invulnerable = 32;
         addBurst(player.x, player.y, "#ff3333", 8, "spark");
         addScreenShake(e.isBoss ? 12 : 6);
       }
@@ -1977,6 +2031,36 @@
         break;
       case "lunar_spire":
         drawSpriteCentered(ctx, SPRITES.decor_spire, d.x, d.y - d.h / 3, s * (d.h / 50), false);
+        break;
+      case "grass":
+        drawSpriteCentered(ctx, SPRITES.decor_grass || SPRITES.decor_vine, d.x, d.y, s * 0.9, false);
+        break;
+      case "bush":
+        drawSpriteCentered(ctx, SPRITES.decor_bush || SPRITES.decor_tree0, d.x, d.y, s * 0.7, false);
+        break;
+      case "flower":
+        drawSpriteCentered(ctx, SPRITES.decor_flower || SPRITES.decor_mushroom, d.x, d.y, s, false);
+        break;
+      case "fern":
+        drawSpriteCentered(ctx, SPRITES.decor_fern || SPRITES.decor_vine, d.x, d.y, s, false);
+        break;
+      case "crate":
+        drawSpriteCentered(ctx, SPRITES.decor_crate || SPRITES.decor_ruin, d.x, d.y, s, false);
+        break;
+      case "barrel":
+        drawSpriteCentered(ctx, SPRITES.decor_barrel || SPRITES.decor_rock, d.x, d.y, s, false);
+        break;
+      case "bones":
+        drawSpriteCentered(ctx, SPRITES.decor_bones || SPRITES.decor_rock, d.x, d.y, s, false);
+        break;
+      case "lamp":
+        drawSpriteCentered(ctx, SPRITES.decor_lamp || SPRITES.decor_torch, d.x, d.y, s, false);
+        break;
+      case "debris":
+        drawSpriteCentered(ctx, SPRITES.decor_debris || SPRITES.decor_rock, d.x, d.y, s * 0.85, false);
+        break;
+      case "statue":
+        drawSpriteCentered(ctx, SPRITES.decor_statue || SPRITES.decor_pillar, d.x, d.y, s * 0.9, false);
         break;
     }
     ctx.restore();

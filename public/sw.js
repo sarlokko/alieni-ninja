@@ -1,5 +1,5 @@
 /* Minimal service worker: enables install prompt and caches the app shell. */
-const CACHE = "alieni-ninja-v10";
+const CACHE = "alieni-ninja-v11";
 const ASSETS = [
   "./",
   "./index.html",
