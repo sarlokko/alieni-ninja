@@ -2166,16 +2166,28 @@
   }
 
   function drawEnemyWerewolfFx(e, facingLeft) {
-    if (e.isBoss) return;
-    const glow = e.typeId === "werewolf" || e.typeId === "shadow" || e.typeId === "hunter";
-    if (!glow) return;
-    ctx.globalAlpha = 0.35 + Math.sin(Date.now() / 180 + e.x) * 0.15;
-    ctx.fillStyle = e.typeId === "shadow" ? "#cc44ff" : "#ff4422";
-    ctx.beginPath();
-    const eyeX = facingLeft ? e.x + 5 : e.x - 5;
-    ctx.arc(eyeX, e.y - 4, 2.5, 0, Math.PI * 2);
-    ctx.arc(e.x + (facingLeft ? -5 : 5), e.y - 4, 2.5, 0, Math.PI * 2);
-    ctx.fill();
+    // Aura minacciosa + occhi brillanti
+    const hostile = e.typeId === "werewolf" || e.typeId === "shadow" || e.typeId === "hunter" || e.typeId === "kitten" || e.typeId === "tabby" || e.typeId === "archer";
+    if (!hostile && !e.isBoss) return;
+
+    const pulse = 0.2 + Math.sin(gameTime * 0.2 + (e.wobblePhase || 0)) * 0.12;
+    const aura = e.typeId === "shadow" ? "#aa22ff" : e.typeId === "archer" ? "#66aa22" : "#ff2200";
+
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = aura;
+    ctx.fillRect(Math.round(e.x - e.size * 0.7), Math.round(e.y + e.size * 0.35), Math.round(e.size * 1.4), 4);
+
+    // occhi luminosi sopra lo sprite
+    ctx.globalAlpha = 0.55 + Math.sin(gameTime * 0.25 + e.x) * 0.25;
+    ctx.fillStyle = e.typeId === "shadow" ? "#ff66ff" : "#ff3300";
+    const eyeY = Math.round(e.y - 8);
+    const leftEye = Math.round(e.x + (facingLeft ? 4 : -8));
+    const rightEye = Math.round(e.x + (facingLeft ? -8 : 4));
+    ctx.fillRect(leftEye, eyeY, 4, 3);
+    ctx.fillRect(rightEye, eyeY, 4, 3);
+    ctx.fillStyle = "#120000";
+    ctx.fillRect(leftEye + 1, eyeY, 1, 3);
+    ctx.fillRect(rightEye + 1, eyeY, 1, 3);
     ctx.globalAlpha = 1;
   }
 
@@ -2192,10 +2204,15 @@
       const facingLeft = e.x > player.x;
 
       if (e.isBoss) {
-        ctx.globalAlpha = 0.2 + Math.sin(gameTime * 0.1) * 0.08;
+        ctx.globalAlpha = 0.25 + Math.sin(gameTime * 0.12) * 0.1;
+        ctx.fillStyle = "#ff2200";
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.size + 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.15;
         ctx.fillStyle = e.color;
         ctx.beginPath();
-        ctx.arc(e.x, e.y, e.size + 14, 0, Math.PI * 2);
+        ctx.arc(e.x, e.y, e.size + 28, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
       }
@@ -2209,12 +2226,12 @@
       drawEnemyWerewolfFx(e, facingLeft);
 
       if (!e.isBoss && e.typeName && (e.typeId === "werewolf" || e.typeId === "hunter" || e.typeId === "shadow" || e.typeId === "archer")) {
-        ctx.fillStyle = "rgba(0,0,0,0.45)";
-        ctx.fillRect(e.x - 34, e.y - e.size - 22, 68, 12);
-        ctx.fillStyle = e.typeId === "archer" ? "#ffd080" : e.typeId === "werewolf" ? "#ff8866" : "#ffccaa";
-        ctx.font = "9px monospace";
+        ctx.fillStyle = "rgba(40,0,0,0.65)";
+        ctx.fillRect(e.x - 42, e.y - e.size - 24, 84, 13);
+        ctx.fillStyle = e.typeId === "shadow" ? "#dd66ff" : "#ff6644";
+        ctx.font = "bold 9px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(e.typeName, e.x, e.y - e.size - 13);
+        ctx.fillText(e.typeName, e.x, e.y - e.size - 14);
       }
 
       if (e.isBoss) {
@@ -2224,9 +2241,9 @@
         ctx.fillRect(e.x - barW / 2, barY, barW, 10);
         ctx.fillStyle = "#333";
         ctx.fillRect(e.x - barW / 2 + 1, barY + 1, barW - 2, 8);
-        ctx.fillStyle = e.color;
+        ctx.fillStyle = "#ff3300";
         ctx.fillRect(e.x - barW / 2 + 1, barY + 1, (barW - 2) * (e.hp / e.maxHp), 8);
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = "#ffccaa";
         ctx.font = "bold 11px monospace";
         ctx.textAlign = "center";
         ctx.fillText(e.name, e.x, barY - 8);
