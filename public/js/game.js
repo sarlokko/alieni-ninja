@@ -419,11 +419,15 @@
   };
 
   function resizeGame() {
-    // Viewport grande: quasi tutto lo schermo, così si vede più mondo
-    const vw = Math.max(960, window.innerWidth || 1600);
-    const vh = Math.max(540, window.innerHeight || 900);
-    W = Math.floor(vw);
-    H = Math.floor(vh);
+    // Riempie il riquadro azzurro (quasi tutto lo schermo)
+    const rect = canvas.getBoundingClientRect();
+    const vw = Math.max(640, Math.floor(rect.width || window.innerWidth || 1600));
+    const vh = Math.max(360, Math.floor(rect.height || window.innerHeight || 900));
+    // Se il layout non è ancora pronto, usa quasi tutto il viewport
+    const fallbackW = Math.floor((window.innerWidth || 1600) * 0.985);
+    const fallbackH = Math.floor((window.innerHeight || 900) * 0.985);
+    W = rect.width > 40 ? vw : fallbackW;
+    H = rect.height > 40 ? vh : fallbackH;
     canvas.width = W;
     canvas.height = H;
     touchJoyAnchors.move.x = W * 0.16;
@@ -442,7 +446,10 @@
 
   window.addEventListener("resize", resizeGame);
   window.addEventListener("orientationchange", () => setTimeout(resizeGame, 80));
+  // Doppio pass: dopo il layout CSS del riquadro
   resizeGame();
+  requestAnimationFrame(() => resizeGame());
+  setTimeout(resizeGame, 50);
 
   function canvasCoords(touch) {
     const rect = canvas.getBoundingClientRect();
@@ -2564,28 +2571,35 @@
   function drawTitle() {
     drawLevelBackground(LEVELS[0]);
     titlePulse += 0.05;
-    drawGameLogo(W / 2, 150, 170);
+
+    // Scala contenuti al riquadro grande
+    const logoSize = Math.min(260, Math.floor(H * 0.28));
+    const titleY = Math.floor(H * 0.42);
+    drawGameLogo(W / 2, Math.floor(H * 0.22), logoSize);
 
     ctx.fillStyle = `rgba(0,245,255,${0.55 + Math.sin(titlePulse) * 0.3})`;
-    ctx.font = "bold 38px sans-serif";
+    ctx.font = `bold ${Math.max(42, Math.floor(W * 0.035))}px sans-serif`;
     ctx.textAlign = "center";
-    ctx.fillText("Alieni Ninja", W / 2, 280);
+    ctx.fillText("Alieni Ninja", W / 2, titleY);
 
     ctx.fillStyle = "#e8e8ff";
-    ctx.font = "16px sans-serif";
-    [
+    ctx.font = `${Math.max(16, Math.floor(W * 0.014))}px sans-serif`;
+    const lines = [
       "Elimina le orde di Gatti Mannari!",
       "Muoviti, le armi attaccano da sole.",
       "Raccogli XP, potenzia il tuo ninja.",
       "", "Recupera la Lancia delle Stelle!",
-    ].forEach((line, i) => {
+    ];
+    const lineStart = titleY + Math.floor(H * 0.06);
+    const lineStep = Math.max(26, Math.floor(H * 0.035));
+    lines.forEach((line, i) => {
       if (!line) return;
-      ctx.fillText(line, W / 2, 330 + i * 28);
+      ctx.fillText(line, W / 2, lineStart + i * lineStep);
     });
 
     ctx.fillStyle = "#b026ff";
-    ctx.font = "17px sans-serif";
-    ctx.fillText("Tocca lo schermo per iniziare", W / 2, H - 50);
+    ctx.font = `${Math.max(17, Math.floor(W * 0.015))}px sans-serif`;
+    ctx.fillText("Tocca lo schermo per iniziare", W / 2, H - Math.max(40, H * 0.06));
   }
 
   function drawStory() {
