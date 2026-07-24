@@ -1306,14 +1306,17 @@
     updateAmbience();
 
     const quotaReached = levelKills >= level.killQuota;
+    const enemyCap = bossPhase ? 36 : 48;
 
-    if (!bossPhase) {
-      if (spawnTimer > 0) spawnTimer--;
-      else {
-        spawnEnemy();
-        const rate = Math.max(50, level.spawnRate - Math.floor(getKillProgress() * 40));
-        spawnTimer = rate;
-      }
+    if (spawnTimer > 0) spawnTimer--;
+    else if (enemies.length < enemyCap) {
+      spawnEnemy();
+      const progressRate = bossPhase
+        ? Math.max(42, level.spawnRate - 55)
+        : Math.max(50, level.spawnRate - Math.floor(getKillProgress() * 40));
+      spawnTimer = progressRate;
+    } else {
+      spawnTimer = 20;
     }
 
     if (!bossSpawned && quotaReached && level.boss) {
