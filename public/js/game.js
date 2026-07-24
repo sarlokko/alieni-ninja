@@ -5,8 +5,8 @@
   const ctx = canvas.getContext("2d");
   const W = canvas.width;
   const H = canvas.height;
-  const WORLD_W = 9600;
-  const WORLD_H = 7200;
+  const WORLD_W = 14400;
+  const WORLD_H = 10800;
   const { SPRITES, drawSpriteCentered, PX } = window.PixelSprites;
   const PLAYER_SCALE = 5;
   const ENEMY_SPRITE_SCALE = PX + 1;
@@ -128,7 +128,7 @@
     { id: "velocita", name: "Agilità", desc: "Movimento +10%", max: 4, icon: "💨", category: "utility" },
     { id: "cuore", name: "Cuore Alieno", desc: "HP massimi +30", max: 5, icon: "💚", category: "defense" },
     { id: "magnete", name: "Magnete XP", desc: "Raggio raccolta +40%", max: 3, icon: "🧲", category: "utility" },
-    { id: "rigenerazione", name: "Rigenerazione", desc: "+0.5 HP/frame", max: 3, icon: "♻️", category: "defense" },
+    { id: "rigenerazione", name: "Rigenerazione", desc: "+0.35 HP/sec", max: 3, icon: "♻️", category: "defense" },
     { id: "scudo", name: "Scudo Ninja", desc: "Riduce danni subiti del 8%", max: 3, icon: "🛡️", category: "defense" },
   ];
 
@@ -152,7 +152,7 @@
       spawnRate: 140,
       enemyHp: 16,
       enemySpeed: 0.78,
-      boss: { name: "Simulacro Alfa", hp: 280, speed: 1.05, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 10 },
+      boss: { name: "Simulacro Alfa", hp: 900, speed: 1.05, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 10 },
       fragment: false,
     },
     {
@@ -166,7 +166,7 @@
       spawnRate: 125,
       enemyHp: 20,
       enemySpeed: 0.9,
-      boss: { name: "Capo Distretto Neon", hp: 360, speed: 1.1, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 11 },
+      boss: { name: "Capo Distretto Neon", hp: 1200, speed: 1.1, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 11 },
       fragment: false,
     },
     {
@@ -180,7 +180,7 @@
       spawnRate: 115,
       enemyHp: 24,
       enemySpeed: 0.98,
-      boss: { name: "Signore del Bosco", hp: 450, speed: 1.05, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 12 },
+      boss: { name: "Signore del Bosco", hp: 1550, speed: 1.05, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 12 },
       fragment: false,
     },
     {
@@ -194,7 +194,7 @@
       spawnRate: 108,
       enemyHp: 28,
       enemySpeed: 1.05,
-      boss: { name: "Custode delle Stelle", hp: 560, speed: 1.0, size: 38, color: "#ffd700", sprite: "cat_boss", damage: 13 },
+      boss: { name: "Custode delle Stelle", hp: 2000, speed: 1.0, size: 38, color: "#ffd700", sprite: "cat_boss", damage: 13 },
       fragment: true,
     },
     {
@@ -208,7 +208,7 @@
       spawnRate: 102,
       enemyHp: 32,
       enemySpeed: 1.12,
-      boss: { name: "Matrona degli Arcani", hp: 680, speed: 1.08, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 14 },
+      boss: { name: "Matrona degli Arcani", hp: 2500, speed: 1.08, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 14 },
       fragment: true,
     },
     {
@@ -222,7 +222,7 @@
       spawnRate: 96,
       enemyHp: 36,
       enemySpeed: 1.18,
-      boss: { name: "Guardiano Dimensionale", hp: 780, speed: 1.15, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 15 },
+      boss: { name: "Guardiano Dimensionale", hp: 3100, speed: 1.15, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 15 },
       fragment: true,
     },
     {
@@ -236,7 +236,7 @@
       spawnRate: 92,
       enemyHp: 40,
       enemySpeed: 1.22,
-      boss: { name: "Drago Stellare", hp: 900, speed: 0.95, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 16 },
+      boss: { name: "Drago Stellare", hp: 3800, speed: 0.95, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 16 },
       fragment: true,
     },
     {
@@ -250,7 +250,7 @@
       spawnRate: 88,
       enemyHp: 44,
       enemySpeed: 1.28,
-      boss: { name: "Signore del Caos", hp: 1000, speed: 1.2, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 17 },
+      boss: { name: "Signore del Caos", hp: 4600, speed: 1.2, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 17 },
       fragment: true,
     },
     {
@@ -264,7 +264,7 @@
       spawnRate: 84,
       enemyHp: 48,
       enemySpeed: 1.32,
-      boss: { name: "Matriarca del Mondo Felino", hp: 1120, speed: 1.25, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 18 },
+      boss: { name: "Matriarca del Mondo Felino", hp: 5400, speed: 1.25, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 18 },
       fragment: true,
     },
     {
@@ -278,8 +278,8 @@
       spawnRate: 80,
       enemyHp: 52,
       enemySpeed: 1.38,
-      boss: { name: "Re dei Gatti Mannari", hp: 1300, speed: 1.15, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 20 },
-      finalBoss: { name: "Guardiano dell'Universo", hp: 900, speed: 1.3, size: 42, color: "#00f5ff", sprite: "cat_boss", damage: 18 },
+      boss: { name: "Re dei Gatti Mannari", hp: 6500, speed: 1.15, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 20 },
+      finalBoss: { name: "Guardiano dell'Universo", hp: 4800, speed: 1.3, size: 42, color: "#00f5ff", sprite: "cat_boss", damage: 18 },
       fragment: true,
     },
   ];
@@ -1014,6 +1014,7 @@
             life: 55,
             size: 8 + area * 2,
             piercing: true,
+            hit: new Set(),
           });
         }
         addParticles(player.x, player.y, "#ffd700", 8);
@@ -1182,7 +1183,7 @@
       case "velocita": player.stats.speed *= 1.1; break;
       case "cuore": player.maxHp += 30; player.hp = Math.min(player.hp + 30, player.maxHp); break;
       case "magnete": player.stats.magnet *= 1.4; break;
-      case "rigenerazione": player.stats.regen += 0.5; break;
+      case "rigenerazione": player.stats.regen += 0.35; break;
       case "scudo": player.stats.damageReduction = Math.min(0.45, player.stats.damageReduction + 0.08); break;
       case "weapon_up": player.stats.weaponLevel++; break;
     }
@@ -1292,7 +1293,7 @@
     if (player.tempBuff > 0) player.tempBuff--;
     if (player.tempSpeed > 0) player.tempSpeed--;
     if (player.stats.regen > 0 && player.hp < player.maxHp) {
-      player.hp = Math.min(player.maxHp, player.hp + player.stats.regen);
+      player.hp = Math.min(player.maxHp, player.hp + player.stats.regen / 60);
     }
 
     player.weaponTimer--;
@@ -1373,8 +1374,15 @@
       enemies.forEach((e) => {
         const hitR = (p.size || 5) + e.size * 0.5;
         if (p.life > 0 && Math.hypot(p.x - e.x, p.y - e.y) < hitR) {
-          hurtEnemy(e, p.damage, e.color);
-          if (!p.piercing) p.life = 0;
+          if (p.piercing) {
+            if (!p.hit) p.hit = new Set();
+            if (p.hit.has(e)) return;
+            p.hit.add(e);
+            hurtEnemy(e, p.damage, e.color);
+          } else {
+            hurtEnemy(e, p.damage, e.color);
+            p.life = 0;
+          }
         }
       });
     });
