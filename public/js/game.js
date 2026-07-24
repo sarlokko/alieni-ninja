@@ -13,7 +13,7 @@
   const BOSS_SPRITE_SCALE = 2.5;
   const TILE_SCALE = 4;
   const DECOR_SCALE = 2.5;
-  const MOVE_MULT = 1.4;
+  const MOVE_MULT = 1.1;
   const MAX_VIEW_W = 1920;
   const MAX_VIEW_H = 1080;
 
@@ -53,7 +53,7 @@
       desc: "Shuriken verso il cursore del mouse",
       weapon: "orbit_shuriken",
       weaponName: "Shuriken Orbitale",
-      speed: 2.9,
+      speed: 2.2,
       hp: 120,
       baseDamage: 18,
       baseCooldown: 68,
@@ -69,7 +69,7 @@
       desc: "Arco laser verso il cursore",
       weapon: "laser_arc",
       weaponName: "Spada Laser",
-      speed: 2.5,
+      speed: 1.9,
       hp: 130,
       baseDamage: 22,
       baseCooldown: 60,
@@ -85,7 +85,7 @@
       desc: "Sfere di plasma verso il cursore",
       weapon: "plasma_burst",
       weaponName: "Burst di Plasma",
-      speed: 2.1,
+      speed: 1.6,
       hp: 190,
       baseDamage: 26,
       baseCooldown: 88,
@@ -101,7 +101,7 @@
       desc: "Dardi semi-automatici: mira soft verso i nemici vicini",
       weapon: "homing_dart",
       weaponName: "Dardi Cercatori",
-      speed: 3.2,
+      speed: 2.4,
       hp: 100,
       baseDamage: 14,
       baseCooldown: 52,
@@ -117,7 +117,7 @@
       desc: "Onda arcana verso il cursore",
       weapon: "arcane_wave",
       weaponName: "Onda Arcana",
-      speed: 2.4,
+      speed: 1.8,
       hp: 110,
       baseDamage: 17,
       baseCooldown: 78,
@@ -157,8 +157,8 @@
       killQuota: 20,
       spawnRate: 69,
       enemyHp: 12,
-      enemySpeed: 0.65,
-      boss: { name: "Simulacro Alfa", hp: 520, speed: 0.88, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 7 },
+      enemySpeed: 0.715,
+      boss: { name: "Simulacro Alfa", hp: 520, speed: 0.97, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 7 },
       fragment: false,
     },
     {
@@ -171,8 +171,8 @@
       killQuota: 28,
       spawnRate: 63,
       enemyHp: 15,
-      enemySpeed: 0.74,
-      boss: { name: "Capo Distretto Neon", hp: 720, speed: 0.92, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 8 },
+      enemySpeed: 0.814,
+      boss: { name: "Capo Distretto Neon", hp: 720, speed: 1.01, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 8 },
       fragment: false,
     },
     {
@@ -185,8 +185,8 @@
       killQuota: 36,
       spawnRate: 59,
       enemyHp: 18,
-      enemySpeed: 0.8,
-      boss: { name: "Signore del Bosco", hp: 920, speed: 0.9, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 9 },
+      enemySpeed: 0.88,
+      boss: { name: "Signore del Bosco", hp: 920, speed: 0.99, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 9 },
       fragment: false,
     },
     {
@@ -199,8 +199,8 @@
       killQuota: 44,
       spawnRate: 55,
       enemyHp: 21,
-      enemySpeed: 0.86,
-      boss: { name: "Custode delle Stelle", hp: 1150, speed: 0.88, size: 38, color: "#ffd700", sprite: "cat_boss", damage: 10 },
+      enemySpeed: 0.946,
+      boss: { name: "Custode delle Stelle", hp: 1150, speed: 0.97, size: 38, color: "#ffd700", sprite: "cat_boss", damage: 10 },
       fragment: true,
     },
     {
@@ -213,8 +213,8 @@
       killQuota: 52,
       spawnRate: 53,
       enemyHp: 24,
-      enemySpeed: 0.92,
-      boss: { name: "Matrona degli Arcani", hp: 1450, speed: 0.94, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 10 },
+      enemySpeed: 1.012,
+      boss: { name: "Matrona degli Arcani", hp: 1450, speed: 1.03, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 10 },
       fragment: true,
     },
     {
@@ -227,8 +227,8 @@
       killQuota: 60,
       spawnRate: 50,
       enemyHp: 27,
-      enemySpeed: 0.98,
-      boss: { name: "Guardiano Dimensionale", hp: 1800, speed: 0.98, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 11 },
+      enemySpeed: 1.078,
+      boss: { name: "Guardiano Dimensionale", hp: 1800, speed: 1.08, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 11 },
       fragment: true,
     },
     {
@@ -241,8 +241,8 @@
       killQuota: 70,
       spawnRate: 47,
       enemyHp: 30,
-      enemySpeed: 1.02,
-      boss: { name: "Drago Stellare", hp: 2200, speed: 0.85, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 12 },
+      enemySpeed: 1.122,
+      boss: { name: "Drago Stellare", hp: 2200, speed: 0.935, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 12 },
       fragment: true,
     },
     {
@@ -255,8 +255,8 @@
       killQuota: 80,
       spawnRate: 45,
       enemyHp: 33,
-      enemySpeed: 1.06,
-      boss: { name: "Signore del Caos", hp: 2650, speed: 1.0, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 13 },
+      enemySpeed: 1.166,
+      boss: { name: "Signore del Caos", hp: 2650, speed: 1.1, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 13 },
       fragment: true,
     },
     {
@@ -269,8 +269,8 @@
       killQuota: 90,
       spawnRate: 43,
       enemyHp: 36,
-      enemySpeed: 1.1,
-      boss: { name: "Matriarca del Mondo Felino", hp: 3100, speed: 1.05, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 14 },
+      enemySpeed: 1.21,
+      boss: { name: "Matriarca del Mondo Felino", hp: 3100, speed: 1.155, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 14 },
       fragment: true,
     },
     {
@@ -283,9 +283,9 @@
       killQuota: 100,
       spawnRate: 41,
       enemyHp: 40,
-      enemySpeed: 1.14,
-      boss: { name: "Re dei Gatti Mannari", hp: 3800, speed: 1.0, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 15 },
-      finalBoss: { name: "Guardiano dell'Universo", hp: 2800, speed: 1.1, size: 42, color: "#00f5ff", sprite: "cat_boss", damage: 14 },
+      enemySpeed: 1.254,
+      boss: { name: "Re dei Gatti Mannari", hp: 3800, speed: 1.1, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 15 },
+      finalBoss: { name: "Guardiano dell'Universo", hp: 2800, speed: 1.21, size: 42, color: "#00f5ff", sprite: "cat_boss", damage: 14 },
       fragment: true,
     },
   ];
@@ -1391,8 +1391,8 @@
       player.vx = (dx / len) * spd;
       player.vy = (dy / len) * spd;
     } else {
-      player.vx *= 0.78;
-      player.vy *= 0.78;
+      player.vx *= 0.82;
+      player.vy *= 0.82;
     }
 
     player.x = Math.max(40, Math.min(WORLD_W - 40, player.x + player.vx));
