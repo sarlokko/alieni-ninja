@@ -7,9 +7,12 @@
   const H = canvas.height;
   const WORLD_W = 14400;
   const WORLD_H = 10800;
-  const { SPRITES, drawSpriteCentered, PX } = window.PixelSprites;
-  const PLAYER_SCALE = 5;
-  const ENEMY_SPRITE_SCALE = PX + 1;
+  const { SPRITES, drawSpriteCentered, drawSprite, drawPixelCircle, PX } = window.PixelSprites;
+  const PLAYER_SCALE = 2.5;
+  const ENEMY_SPRITE_SCALE = 2;
+  const BOSS_SPRITE_SCALE = 2.75;
+  const TILE_SCALE = 3;
+  const DECOR_SCALE = 2.5;
 
   const gameLogo = new Image();
   gameLogo.src = "img/logo.png";
@@ -782,8 +785,8 @@
   function generateDecor(theme) {
     const items = [];
     const rnd = (n) => Math.random() * n;
-    const count = { training: 160, alien_city: 150, forest: 200, temple: 140, underworld: 170,
-      star_temple: 155, moon: 180, cursed_city: 165, star_refuge: 170, final: 150 };
+    const count = { training: 220, alien_city: 200, forest: 260, temple: 190, underworld: 220,
+      star_temple: 200, moon: 230, cursed_city: 210, star_refuge: 220, final: 200 };
     const n = count[theme] || 50;
 
     switch (theme) {
@@ -1587,6 +1590,7 @@
     const right = viewX + W + pad;
     const bottom = viewY + H + pad;
 
+    ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = level.bg[0];
     ctx.fillRect(left, top, right - left, bottom - top);
 
@@ -1599,35 +1603,38 @@
     ctx.fillStyle = grad;
     ctx.fillRect(left, top, right - left, bottom - top);
 
-    const tile = 64;
+    // Pixel tile floor
+    const tileSprite = SPRITES["tile_" + level.theme] || SPRITES.tile_training;
+    const tile = (tileSprite.w || 16) * TILE_SCALE;
     const startTX = Math.floor(left / tile) * tile;
     const startTY = Math.floor(top / tile) * tile;
+    ctx.globalAlpha = 0.88;
     for (let x = startTX; x < right; x += tile) {
       for (let y = startTY; y < bottom; y += tile) {
         const parity = ((x / tile) + (y / tile)) % 2 === 0;
-        ctx.fillStyle = parity ? level.floor : level.bg[0];
-        ctx.globalAlpha = parity ? 0.42 : 0.18;
-        ctx.fillRect(x, y, tile, tile);
-
-        ctx.globalAlpha = 0.08;
-        ctx.strokeStyle = level.accent;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x + 4, y + 4, tile - 8, tile - 8);
+        ctx.globalAlpha = parity ? 0.95 : 0.72;
+        drawSprite(ctx, tileSprite, x, y, TILE_SCALE, false);
+        // micro-detail speckles
+        if (parity) {
+          ctx.globalAlpha = 0.18;
+          ctx.fillStyle = level.accent;
+          ctx.fillRect(x + 6, y + 6, 2, 2);
+          ctx.fillRect(x + tile - 10, y + tile - 10, 2, 2);
+        }
       }
     }
     ctx.globalAlpha = 1;
 
-    // Soft ground noise
+    // Soft ground noise (pixel blocks)
     ctx.fillStyle = level.accent;
-    for (let i = 0; i < 90; i++) {
-      const nx = left + ((i * 97 + Math.floor(viewX)) % Math.max(1, right - left));
-      const ny = top + ((i * 53 + Math.floor(viewY * 0.7)) % Math.max(1, bottom - top));
-      ctx.globalAlpha = 0.07 + (i % 5) * 0.015;
+    for (let i = 0; i < 120; i++) {
+      const nx = Math.floor(left + ((i * 97 + Math.floor(viewX)) % Math.max(1, right - left)));
+      const ny = Math.floor(top + ((i * 53 + Math.floor(viewY * 0.7)) % Math.max(1, bottom - top)));
+      ctx.globalAlpha = 0.08 + (i % 5) * 0.015;
       ctx.fillRect(nx, ny, 2 + (i % 3), 2);
     }
     ctx.globalAlpha = 1;
 
-    // Theme overlays (viewport only)
     ctx.save();
     drawThemeOverlay(level, left, top, right, bottom, viewX, viewY);
     ctx.restore();
@@ -1639,181 +1646,180 @@
       ctx.globalAlpha = 1;
     }
 
-    ctx.strokeStyle = level.accent;
-    ctx.lineWidth = 8;
-    ctx.globalAlpha = 0.28;
-    ctx.strokeRect(30, 30, WORLD_W - 60, WORLD_H - 60);
+    // Pixel world border
+    ctx.fillStyle = level.accent;
+    ctx.globalAlpha = 0.35;
+    for (let x = 30; x < WORLD_W - 30; x += 8) {
+      ctx.fillRect(x, 30, 4, 4);
+      ctx.fillRect(x, WORLD_H - 34, 4, 4);
+    }
+    for (let y = 30; y < WORLD_H - 30; y += 8) {
+      ctx.fillRect(30, y, 4, 4);
+      ctx.fillRect(WORLD_W - 34, y, 4, 4);
+    }
     ctx.globalAlpha = 1;
   }
 
   function drawThemeOverlay(level, left, top, right, bottom, viewX, viewY) {
+    ctx.imageSmoothingEnabled = false;
     switch (level.theme) {
       case "training": {
-        ctx.strokeStyle = level.accent;
-        ctx.lineWidth = 2;
-        for (let x = Math.floor(left / 280) * 280; x < right; x += 280) {
-          for (let y = Math.floor(top / 220) * 220; y < bottom; y += 220) {
-            ctx.globalAlpha = 0.16;
-            ctx.strokeRect(x + 20, y + 20, 180, 140);
-            ctx.globalAlpha = 0.1;
-            ctx.beginPath();
-            ctx.arc(x + 110, y + 90, 28, 0, Math.PI * 2);
-            ctx.stroke();
+        for (let x = Math.floor(left / 220) * 220; x < right; x += 220) {
+          for (let y = Math.floor(top / 180) * 180; y < bottom; y += 180) {
+            ctx.globalAlpha = 0.22;
+            ctx.fillStyle = level.accent;
+            // pixel frame
+            for (let i = 0; i < 140; i += 4) {
+              ctx.fillRect(x + 20 + i, y + 20, 2, 2);
+              ctx.fillRect(x + 20 + i, y + 140, 2, 2);
+              ctx.fillRect(x + 20, y + 20 + i * 0.85, 2, 2);
+              ctx.fillRect(x + 160, y + 20 + i * 0.85, 2, 2);
+            }
+            drawPixelCircle(ctx, x + 90, y + 80, 10, level.accent);
           }
         }
         break;
       }
       case "alien_city": {
-        for (let x = Math.floor(left / 160) * 160; x < right + 160; x += 160) {
-          const h = 90 + ((x * 13) % 180);
+        for (let x = Math.floor(left / 140) * 140; x < right + 140; x += 140) {
+          const h = 80 + ((x * 13) % 160);
           const y = bottom - h;
-          ctx.globalAlpha = 0.22;
-          ctx.fillStyle = "#12082a";
-          ctx.fillRect(x, y, 70 + (x % 40), h);
-          ctx.globalAlpha = 0.35;
-          ctx.fillStyle = level.accent;
-          for (let wy = y + 12; wy < bottom - 10; wy += 22) {
-            for (let wx = x + 8; wx < x + 50; wx += 16) {
-              if (((wx + wy) / 8) % 3 !== 0) ctx.fillRect(wx, wy, 6, 8);
+          ctx.globalAlpha = 0.28;
+          ctx.fillStyle = "#0c0620";
+          ctx.fillRect(Math.floor(x), Math.floor(y), 56 + (x % 28), h);
+          ctx.globalAlpha = 0.55;
+          for (let wy = y + 8; wy < bottom - 8; wy += 10) {
+            for (let wx = x + 6; wx < x + 48; wx += 10) {
+              if (((wx + wy) / 8) % 3 !== 0) {
+                ctx.fillStyle = level.accent;
+                ctx.fillRect(Math.floor(wx), Math.floor(wy), 4, 5);
+              }
             }
           }
-        }
-        ctx.globalAlpha = 0.12;
-        ctx.strokeStyle = level.accent;
-        ctx.lineWidth = 2;
-        for (let x = Math.floor(left / 90) * 90; x < right; x += 90) {
-          ctx.beginPath();
-          ctx.moveTo(x, top);
-          ctx.lineTo(x + 40, bottom);
-          ctx.stroke();
         }
         break;
       }
       case "forest": {
-        for (let i = 0; i < 28; i++) {
+        for (let i = 0; i < 36; i++) {
           const fx = left + ((i * 73 + Math.floor(viewX * 0.3)) % (right - left + 1));
           const fy = top + ((i * 91 + Math.floor(viewY * 0.2)) % (bottom - top + 1));
-          ctx.globalAlpha = 0.16;
-          ctx.fillStyle = i % 2 ? "#0c3a12" : "#083018";
-          ctx.beginPath();
-          ctx.ellipse(fx, fy, 70, 40, 0, 0, Math.PI * 2);
-          ctx.fill();
           ctx.globalAlpha = 0.2;
+          ctx.fillStyle = i % 2 ? "#0c3a12" : "#083018";
+          // blocky canopy
+          ctx.fillRect(fx - 40, fy - 18, 80, 24);
+          ctx.fillRect(fx - 28, fy - 30, 56, 16);
+          ctx.fillRect(fx - 16, fy - 40, 32, 12);
+          ctx.globalAlpha = 0.35;
           ctx.fillStyle = level.accent;
-          ctx.beginPath();
-          ctx.arc(fx + 20, fy - 10, 3, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.fillRect(fx + 10, fy - 8, 3, 3);
+          ctx.fillRect(fx - 12, fy - 16, 2, 2);
         }
         break;
       }
       case "temple": {
-        ctx.fillStyle = "#4a3420";
-        for (let x = Math.floor(left / 220) * 220; x < right; x += 220) {
-          ctx.globalAlpha = 0.28;
-          ctx.fillRect(x + 40, top, 22, bottom - top);
-          ctx.globalAlpha = 0.35;
-          ctx.fillStyle = level.accent;
-          ctx.fillRect(x + 36, top + 30, 30, 8);
+        for (let x = Math.floor(left / 200) * 200; x < right; x += 200) {
+          ctx.globalAlpha = 0.32;
           ctx.fillStyle = "#4a3420";
+          ctx.fillRect(x + 40, top, 18, bottom - top);
+          ctx.fillStyle = "#6a5040";
+          ctx.fillRect(x + 44, top, 4, bottom - top);
+          ctx.globalAlpha = 0.55;
+          ctx.fillStyle = level.accent;
+          for (let yy = top + 20; yy < bottom; yy += 48) {
+            ctx.fillRect(x + 34, yy, 30, 6);
+          }
         }
         break;
       }
       case "underworld": {
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 20; i++) {
           const lx = left + ((i * 111) % (right - left + 1));
           const ly = top + ((i * 67) % (bottom - top + 1));
-          ctx.globalAlpha = 0.2;
+          ctx.globalAlpha = 0.28;
           ctx.fillStyle = "#5a1510";
-          ctx.beginPath();
-          ctx.ellipse(lx, ly, 55, 28, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.globalAlpha = 0.25;
+          ctx.fillRect(lx - 40, ly - 12, 80, 24);
+          ctx.globalAlpha = 0.4;
           ctx.fillStyle = "#ff5522";
-          ctx.beginPath();
-          ctx.ellipse(lx, ly, 28, 12, 0, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.fillRect(lx - 22, ly - 4, 44, 10);
+          ctx.fillStyle = "#ffaa44";
+          ctx.fillRect(lx - 8, ly - 2, 10, 4);
         }
         break;
       }
       case "star_temple": {
-        ctx.strokeStyle = level.accent;
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 16; i++) {
           const sx = left + ((i * 97 + Math.floor(viewX * 0.15)) % (right - left + 1));
           const sy = top + ((i * 61) % (bottom - top + 1));
-          ctx.globalAlpha = 0.22;
-          ctx.beginPath();
-          ctx.arc(sx, sy, 35 + (i % 4) * 10, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.globalAlpha = 0.28;
+          ctx.fillStyle = level.accent;
+          const r = 12 + (i % 4) * 6;
+          // pixel ring
+          for (let a = 0; a < 24; a++) {
+            const ang = (a / 24) * Math.PI * 2;
+            ctx.fillRect(sx + Math.cos(ang) * r, sy + Math.sin(ang) * r, 2, 2);
+          }
         }
         break;
       }
       case "moon": {
-        ctx.fillStyle = "#ffffff";
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 70; i++) {
           const sx = left + ((i * 47 + Math.floor(viewX * 0.05)) % (right - left + 1));
           const sy = top + ((i * 89) % (bottom - top + 1));
-          ctx.globalAlpha = 0.12 + (i % 4) * 0.04;
+          ctx.globalAlpha = 0.15 + (i % 4) * 0.05;
+          ctx.fillStyle = "#ffffff";
           ctx.fillRect(sx, sy, 2, 2);
         }
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 10; i++) {
           const cx = left + ((i * 131) % (right - left + 1));
           const cy = top + ((i * 101) % (bottom - top + 1));
-          ctx.globalAlpha = 0.14;
+          ctx.globalAlpha = 0.2;
           ctx.fillStyle = "#2a2a38";
-          ctx.beginPath();
-          ctx.arc(cx, cy, 18 + (i % 3) * 10, 0, Math.PI * 2);
-          ctx.fill();
+          const r = 12 + (i % 3) * 8;
+          ctx.fillRect(cx - r, cy - r * 0.6, r * 2, r * 1.2);
         }
         break;
       }
       case "cursed_city": {
-        ctx.fillStyle = "#2a1038";
-        for (let x = Math.floor(left / 180) * 180; x < right; x += 180) {
-          ctx.globalAlpha = 0.24;
-          ctx.fillRect(x, bottom - 70 - (x % 50), 100, 70 + (x % 50));
-        }
-        ctx.globalAlpha = 0.12;
-        ctx.fillStyle = "#6a3088";
-        for (let i = 0; i < 10; i++) {
-          const fx = left + ((i * 83) % (right - left + 1));
-          const fy = top + ((i * 57) % (bottom - top + 1));
-          ctx.beginPath();
-          ctx.ellipse(fx, fy, 60, 24, 0, 0, Math.PI * 2);
-          ctx.fill();
+        for (let x = Math.floor(left / 160) * 160; x < right; x += 160) {
+          const h = 50 + (x % 50);
+          ctx.globalAlpha = 0.28;
+          ctx.fillStyle = "#2a1038";
+          ctx.fillRect(x, bottom - h, 84, h);
+          ctx.fillStyle = "#5a2060";
+          for (let wy = bottom - h + 8; wy < bottom - 8; wy += 12) {
+            ctx.fillRect(x + 10, wy, 8, 6);
+            ctx.fillRect(x + 30, wy, 8, 6);
+            ctx.fillRect(x + 50, wy, 8, 6);
+          }
         }
         break;
       }
       case "star_refuge": {
-        ctx.strokeStyle = level.accent;
-        ctx.fillStyle = level.accent;
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 14; i++) {
           const cx = left + ((i * 109) % (right - left + 1));
           const cy = top + ((i * 79) % (bottom - top + 1));
-          ctx.globalAlpha = 0.2;
-          ctx.beginPath();
-          ctx.moveTo(cx, cy - 28);
-          ctx.lineTo(cx + 18, cy);
-          ctx.lineTo(cx, cy + 28);
-          ctx.lineTo(cx - 18, cy);
-          ctx.closePath();
-          ctx.stroke();
-          ctx.globalAlpha = 0.12;
-          ctx.fill();
+          ctx.globalAlpha = 0.28;
+          ctx.fillStyle = level.accent;
+          ctx.fillRect(cx - 2, cy - 18, 4, 36);
+          ctx.fillRect(cx - 14, cy - 2, 28, 4);
+          ctx.fillRect(cx - 8, cy - 8, 16, 4);
+          ctx.fillRect(cx - 8, cy + 4, 16, 4);
         }
         break;
       }
       case "final": {
-        ctx.globalAlpha = 0.12;
+        ctx.globalAlpha = 0.1;
         ctx.fillStyle = "#ff2200";
         ctx.fillRect(left, top, right - left, bottom - top);
-        ctx.strokeStyle = "#ff6644";
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 10; i++) {
           const cx = left + ((i * 117) % (right - left + 1));
           const cy = top + ((i * 71) % (bottom - top + 1));
-          ctx.globalAlpha = 0.2;
-          ctx.beginPath();
-          ctx.arc(cx, cy, 40, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.globalAlpha = 0.28;
+          ctx.fillStyle = "#ff6644";
+          for (let a = 0; a < 20; a++) {
+            const ang = (a / 20) * Math.PI * 2;
+            ctx.fillRect(cx + Math.cos(ang) * 28, cy + Math.sin(ang) * 28, 3, 3);
+          }
         }
         break;
       }
@@ -1827,9 +1833,8 @@
       const pulse = 0.35 + Math.sin(a.phase) * 0.25;
       ctx.globalAlpha = pulse;
       ctx.fillStyle = a.color;
-      ctx.beginPath();
-      ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
-      ctx.fill();
+      const r = Math.max(1, Math.round(a.r));
+      ctx.fillRect(Math.round(a.x) - r, Math.round(a.y) - r, r * 2, r * 2);
     });
     ctx.globalAlpha = 1;
   }
@@ -1898,191 +1903,80 @@
   }
 
   function drawDecor(d, level) {
-    if (!isOnScreen(d.x, d.y, 140)) return;
+    if (!isOnScreen(d.x, d.y, 160)) return;
     ctx.save();
-    ctx.globalAlpha = 0.78;
+    ctx.imageSmoothingEnabled = false;
+    ctx.globalAlpha = 0.92;
+    const s = DECOR_SCALE;
     switch (d.type) {
       case "holo_ring":
-        ctx.strokeStyle = level.accent;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 0.25;
-        ctx.fillStyle = level.accent;
-        ctx.fill();
+        drawSpriteCentered(ctx, SPRITES.decor_holo, d.x, d.y, s * (d.r / 18), false);
         break;
       case "target_marker":
-        ctx.strokeStyle = level.accent;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-        ctx.moveTo(d.x - d.r, d.y);
-        ctx.lineTo(d.x + d.r, d.y);
-        ctx.moveTo(d.x, d.y - d.r);
-        ctx.lineTo(d.x, d.y + d.r);
-        ctx.stroke();
+        drawSpriteCentered(ctx, SPRITES.decor_target, d.x, d.y, s * (d.r / 12), false);
         break;
-      case "building":
-        ctx.fillStyle = "#0a0520";
-        ctx.fillRect(d.x, d.y, d.w, d.h);
-        ctx.fillStyle = level.accent;
-        ctx.globalAlpha = 0.35;
-        ctx.fillRect(d.x, d.y, d.w, 8);
-        if (d.windows) {
-          let idx = 0;
-          for (let wy = d.y + 10; wy < d.y + d.h - 10; wy += 18) {
-            for (let wx = d.x + 8; wx < d.x + d.w - 8; wx += 14) {
-              ctx.fillStyle = d.windows[idx++] ? level.accent : "#1a1040";
-              ctx.globalAlpha = d.windows[idx - 1] ? 0.85 : 0.35;
-              ctx.fillRect(wx, wy, 8, 10);
-            }
-          }
-        }
+      case "building": {
+        const spr = SPRITES.decor_building;
+        const scaleX = d.w / (spr.w * s);
+        const scaleY = d.h / (spr.h * s);
+        const scale = Math.max(1.2, Math.min(scaleX, scaleY) * s);
+        drawSpriteCentered(ctx, spr, d.x + d.w / 2, d.y + d.h / 2, scale, false);
         break;
+      }
       case "neon_sign":
-        ctx.fillStyle = level.accent;
-        ctx.globalAlpha = 0.7;
-        ctx.fillRect(d.x, d.y, d.w, 8);
-        ctx.globalAlpha = 0.25;
-        ctx.fillRect(d.x - 4, d.y - 4, d.w + 8, 16);
+        drawSpriteCentered(ctx, SPRITES.decor_neon, d.x + d.w / 2, d.y, s, false);
         break;
       case "tree":
-        ctx.fillStyle = d.variant === 1 ? "#0d4a0d" : d.variant === 2 ? "#124012" : "#0a3a0a";
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#2a1a0a";
-        ctx.fillRect(d.x - 5, d.y, 10, d.r);
+        drawSpriteCentered(ctx, SPRITES["decor_tree" + (d.variant || 0)] || SPRITES.decor_tree0, d.x, d.y, s * (d.r / 22), false);
         break;
       case "mushroom":
-        ctx.fillStyle = "#8a2244";
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r, Math.PI, 0);
-        ctx.fill();
-        ctx.fillStyle = "#d8c8a0";
-        ctx.fillRect(d.x - 3, d.y, 6, d.r);
+        drawSpriteCentered(ctx, SPRITES.decor_mushroom, d.x, d.y, s * (d.r / 8), false);
         break;
       case "vine":
-        ctx.strokeStyle = "#1a5a1a";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(d.x, d.y);
-        ctx.quadraticCurveTo(d.x + 12, d.y + d.h * 0.5, d.x, d.y + d.h);
-        ctx.stroke();
+        drawSpriteCentered(ctx, SPRITES.decor_vine, d.x, d.y + d.h / 2, s, false);
         break;
       case "pillar":
-        ctx.fillStyle = "#5a4a30";
-        ctx.fillRect(d.x, d.y, 24, d.h);
-        ctx.fillStyle = level.accent;
-        ctx.globalAlpha = 0.65;
-        ctx.fillRect(d.x - 3, d.y, 30, 10);
-        ctx.fillRect(d.x - 3, d.y + d.h - 10, 30, 10);
+        drawSpriteCentered(ctx, SPRITES.decor_pillar, d.x + 12, d.y + d.h / 2, s * (d.h / 100), false);
         break;
       case "torch":
-        ctx.fillStyle = "#5a3a20";
-        ctx.fillRect(d.x, d.y, 6, 24);
-        ctx.fillStyle = "#ff9933";
-        ctx.globalAlpha = 0.85;
-        ctx.beginPath();
-        ctx.arc(d.x + 3, d.y - 4, 8, 0, Math.PI * 2);
-        ctx.fill();
+        drawSpriteCentered(ctx, SPRITES.decor_torch, d.x, d.y, s, false);
         break;
       case "stalactite":
-        ctx.fillStyle = "#4a2020";
-        ctx.beginPath();
-        ctx.moveTo(d.x, 0);
-        ctx.lineTo(d.x - 10, d.h);
-        ctx.lineTo(d.x + 10, d.h);
-        ctx.fill();
+        drawSpriteCentered(ctx, SPRITES.decor_stalactite, d.x, d.h / 2, s * (d.h / 40), false);
         break;
       case "lava_pool":
-        ctx.fillStyle = "#ff4422";
-        ctx.globalAlpha = 0.45;
-        ctx.beginPath();
-        ctx.ellipse(d.x, d.y, d.r, d.r * 0.6, 0, 0, Math.PI * 2);
-        ctx.fill();
+        drawSpriteCentered(ctx, SPRITES.decor_lava, d.x, d.y, s * (d.r / 14), false);
         break;
       case "rune":
-        ctx.strokeStyle = level.accent;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fillStyle = level.accent;
-        ctx.font = "14px serif";
-        ctx.fillText("✦", d.x - 5, d.y + 5);
+        drawSpriteCentered(ctx, SPRITES.decor_rune, d.x, d.y, s * (d.r / 12), false);
         break;
       case "portal":
-        ctx.strokeStyle = level.accent;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.ellipse(d.x, d.y, d.r, d.r * 0.7, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 0.2;
-        ctx.fillStyle = level.accent;
-        ctx.fill();
+        drawSpriteCentered(ctx, SPRITES.decor_portal, d.x, d.y, s * (d.r / 16), false);
         break;
       case "crater":
-        ctx.fillStyle = "#2a2a35";
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#5a5a65";
-        ctx.stroke();
+        drawSpriteCentered(ctx, SPRITES.decor_crater, d.x, d.y, s * (d.r / 16), false);
         break;
       case "moon_flag":
-        ctx.fillStyle = "#888";
-        ctx.fillRect(d.x, d.y, 3, 28);
-        ctx.fillStyle = "#ddd";
-        ctx.fillRect(d.x + 3, d.y, 16, 10);
+        drawSpriteCentered(ctx, SPRITES.decor_flag, d.x, d.y, s, false);
         break;
       case "ruin":
-        ctx.fillStyle = "#3a2540";
-        ctx.fillRect(d.x, d.y, d.w, d.h);
-        ctx.strokeStyle = "#5a3560";
-        ctx.strokeRect(d.x, d.y, d.w, d.h);
+        drawSpriteCentered(ctx, SPRITES.decor_ruin, d.x + d.w / 2, d.y + d.h / 2, s * Math.max(d.w, d.h) / 40, false);
         break;
       case "fog_patch":
-        ctx.fillStyle = "#6a3088";
-        ctx.globalAlpha = 0.18;
-        ctx.beginPath();
-        ctx.ellipse(d.x, d.y, d.r, d.r * 0.5, 0, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.globalAlpha = 0.35;
+        drawSpriteCentered(ctx, SPRITES.decor_fog, d.x, d.y, s * (d.r / 18), false);
         break;
       case "crystal":
-        ctx.fillStyle = level.accent;
-        ctx.beginPath();
-        ctx.moveTo(d.x, d.y - d.h);
-        ctx.lineTo(d.x - 10, d.y);
-        ctx.lineTo(d.x + 10, d.y);
-        ctx.fill();
-        ctx.globalAlpha = 0.25;
-        ctx.fillRect(d.x - 14, d.y - d.h - 8, 28, d.h + 12);
+        drawSpriteCentered(ctx, SPRITES.decor_crystal, d.x, d.y - d.h / 3, s * (d.h / 30), false);
         break;
       case "star_altar":
-        ctx.strokeStyle = level.accent;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fillStyle = level.accent;
-        ctx.font = "16px serif";
-        ctx.fillText("★", d.x - 7, d.y + 6);
+        drawSpriteCentered(ctx, SPRITES.decor_altar, d.x, d.y, s * (d.r / 12), false);
         break;
       case "moon_rock":
-        ctx.fillStyle = "#4a4a55";
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-        ctx.fill();
+        drawSpriteCentered(ctx, SPRITES.decor_rock, d.x, d.y, s * (d.r / 14), false);
         break;
       case "lunar_spire":
-        ctx.fillStyle = "#5a5a70";
-        ctx.beginPath();
-        ctx.moveTo(d.x, d.y - d.h);
-        ctx.lineTo(d.x + 14, d.y);
-        ctx.lineTo(d.x - 14, d.y);
-        ctx.fill();
+        drawSpriteCentered(ctx, SPRITES.decor_spire, d.x, d.y - d.h / 3, s * (d.h / 50), false);
         break;
     }
     ctx.restore();
@@ -2099,19 +1993,13 @@
 
     if (p.hero.weapon === "orbit_shuriken") {
       orbiters.forEach((o) => {
-        const ox = p.x + Math.cos(o.angle) * o.dist;
-        const oy = p.y + Math.sin(o.angle) * o.dist;
-        ctx.save();
-        ctx.shadowColor = p.hero.accent;
-        ctx.shadowBlur = 8;
+        const ox = Math.round(p.x + Math.cos(o.angle) * o.dist);
+        const oy = Math.round(p.y + Math.sin(o.angle) * o.dist);
         ctx.fillStyle = p.hero.accent;
-        ctx.beginPath();
-        ctx.moveTo(ox, oy - 7);
-        ctx.lineTo(ox + 6, oy);
-        ctx.lineTo(ox, oy + 7);
-        ctx.lineTo(ox - 6, oy);
-        ctx.fill();
-        ctx.restore();
+        ctx.fillRect(ox - 4, oy - 1, 8, 2);
+        ctx.fillRect(ox - 1, oy - 4, 2, 8);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(ox - 1, oy - 1, 2, 2);
       });
     }
 
@@ -2150,9 +2038,10 @@
       const spriteKey = e.sprite || (e.isBoss ? "cat_boss" : "cat_tabby");
       const sprite = SPRITES[spriteKey] || SPRITES.cat_tabby;
       let scale = ENEMY_SPRITE_SCALE;
-      if (e.typeId === "werewolf") scale = PX + 2;
-      if (e.typeId === "hunter" || e.typeId === "archer") scale = PX + 1;
-      if (e.isBoss) scale = PX + 4;
+      if (e.typeId === "werewolf") scale = 2.35;
+      if (e.typeId === "hunter" || e.typeId === "archer") scale = 2.15;
+      if (e.typeId === "kitten") scale = 1.85;
+      if (e.isBoss) scale = BOSS_SPRITE_SCALE;
       const facingLeft = e.x > player.x;
 
       if (e.isBoss) {
@@ -2174,34 +2063,26 @@
 
       if (!e.isBoss && e.typeName && (e.typeId === "werewolf" || e.typeId === "hunter" || e.typeId === "shadow" || e.typeId === "archer")) {
         ctx.fillStyle = "rgba(0,0,0,0.45)";
-        ctx.fillRect(e.x - 34, e.y - e.size - 18, 68, 12);
+        ctx.fillRect(e.x - 34, e.y - e.size - 22, 68, 12);
         ctx.fillStyle = e.typeId === "archer" ? "#ffd080" : e.typeId === "werewolf" ? "#ff8866" : "#ffccaa";
-        ctx.font = "9px sans-serif";
+        ctx.font = "9px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(e.typeName, e.x, e.y - e.size - 9);
-      }
-
-      // Piccolo arco visuale sugli arceri
-      if (e.typeId === "archer") {
-        const facingLeft = e.x > player.x;
-        const bowX = e.x + (facingLeft ? -14 : 14);
-        ctx.strokeStyle = "#8b5a2b";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(bowX, e.y, 10, facingLeft ? Math.PI * 0.65 : -Math.PI * 0.35, facingLeft ? Math.PI * 1.35 : Math.PI * 0.35);
-        ctx.stroke();
+        ctx.fillText(e.typeName, e.x, e.y - e.size - 13);
       }
 
       if (e.isBoss) {
-        const barW = 140;
-        ctx.fillStyle = "#222";
-        ctx.fillRect(e.x - barW / 2, e.y - 55, barW, 8);
+        const barW = 160;
+        const barY = e.y - 70;
+        ctx.fillStyle = "#111";
+        ctx.fillRect(e.x - barW / 2, barY, barW, 10);
+        ctx.fillStyle = "#333";
+        ctx.fillRect(e.x - barW / 2 + 1, barY + 1, barW - 2, 8);
         ctx.fillStyle = e.color;
-        ctx.fillRect(e.x - barW / 2, e.y - 55, barW * (e.hp / e.maxHp), 8);
+        ctx.fillRect(e.x - barW / 2 + 1, barY + 1, (barW - 2) * (e.hp / e.maxHp), 8);
         ctx.fillStyle = "#fff";
         ctx.font = "bold 11px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(e.name, e.x, e.y - 64);
+        ctx.fillText(e.name, e.x, barY - 8);
       }
     });
   }
@@ -2210,13 +2091,11 @@
     const colors = { shuriken: "#c0c0c0", dart: "#ff69b4", plasma: "#ff6347", laser: "#39ff14" };
     projectiles.forEach((p) => {
       if (p.trail) {
-        p.trail.forEach((t, i) => {
+        p.trail.forEach((t) => {
           t.life--;
-          ctx.globalAlpha = (t.life / 10) * 0.35;
+          ctx.globalAlpha = (t.life / 10) * 0.4;
           ctx.fillStyle = colors[p.type] || "#fff";
-          ctx.beginPath();
-          ctx.arc(t.x, t.y, 3, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.fillRect(Math.round(t.x) - 2, Math.round(t.y) - 2, 4, 4);
         });
         p.trail = p.trail.filter((t) => t.life > 0);
       }
@@ -2226,37 +2105,38 @@
         ctx.translate(p.x, p.y);
         ctx.rotate(p.angle);
         const alpha = p.life / 14;
-        ctx.strokeStyle = `rgba(57,255,20,${0.35 + alpha * 0.5})`;
-        ctx.lineWidth = 8;
-        ctx.shadowColor = "#39ff14";
-        ctx.shadowBlur = 12;
-        ctx.beginPath();
-        ctx.arc(0, 0, p.range, -p.arc / 2, p.arc / 2);
-        ctx.stroke();
+        ctx.fillStyle = `rgba(57,255,20,${0.25 + alpha * 0.55})`;
+        const steps = 14;
+        for (let i = 0; i <= steps; i++) {
+          const a = -p.arc / 2 + (p.arc * i) / steps;
+          const px = Math.cos(a) * p.range;
+          const py = Math.sin(a) * p.range;
+          ctx.fillRect(px - 3, py - 3, 6, 6);
+          ctx.fillRect(Math.cos(a) * (p.range - 10) - 2, Math.sin(a) * (p.range - 10) - 2, 4, 4);
+        }
         ctx.restore();
         return;
       }
       if (p.type === "arcane_orb") {
-        ctx.strokeStyle = "rgba(0,245,255,0.75)";
-        ctx.lineWidth = 4;
-        ctx.shadowColor = "#00f5ff";
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fillStyle = "rgba(0,245,255,0.3)";
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = "#00f5ff";
+        const rr = Math.round(p.r);
+        for (let a = 0; a < 20; a++) {
+          const ang = (a / 20) * Math.PI * 2;
+          ctx.fillRect(p.x + Math.cos(ang) * rr - 2, p.y + Math.sin(ang) * rr - 2, 4, 4);
+        }
+        ctx.globalAlpha = 0.35;
+        ctx.fillRect(p.x - rr * 0.5, p.y - rr * 0.5, rr, rr);
+        ctx.globalAlpha = 1;
         return;
       }
-      const r = p.size || 5;
-      ctx.shadowColor = colors[p.type] || "#fff";
-      ctx.shadowBlur = 8;
+      const r = Math.max(3, Math.round(p.size || 5));
+      const x = Math.round(p.x);
+      const y = Math.round(p.y);
       ctx.fillStyle = colors[p.type] || "#fff";
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      ctx.fillRect(x - r, y - r, r * 2, r * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(x - Math.floor(r / 2), y - Math.floor(r / 2), Math.max(2, r), Math.max(2, r));
     });
     ctx.globalAlpha = 1;
   }
@@ -2264,28 +2144,17 @@
   function drawEnemyShots() {
     enemyShots.forEach((a) => {
       if (!isOnScreen(a.x, a.y, 40)) return;
-      ctx.save();
-      ctx.translate(a.x, a.y);
-      ctx.rotate(a.angle || Math.atan2(a.vy, a.vx));
+      const ang = a.angle || Math.atan2(a.vy, a.vx);
+      const x = Math.round(a.x);
+      const y = Math.round(a.y);
+      ctx.fillStyle = "#8b5a2b";
+      ctx.fillRect(x - 6, y - 1, 10, 3);
       ctx.fillStyle = "#e8c090";
-      ctx.strokeStyle = "#8b5a2b";
-      ctx.lineWidth = 1.5;
-      // freccia
-      ctx.beginPath();
-      ctx.moveTo(10, 0);
-      ctx.lineTo(-8, -3);
-      ctx.lineTo(-8, 3);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fillRect(x + 2, y - 2, 6, 5);
       ctx.fillStyle = "#ff6644";
-      ctx.beginPath();
-      ctx.moveTo(10, 0);
-      ctx.lineTo(4, -3.5);
-      ctx.lineTo(4, 3.5);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
+      ctx.fillRect(x + 6, y - 1, 4, 3);
+      // tip direction nudge
+      ctx.fillRect(x + Math.round(Math.cos(ang) * 8), y + Math.round(Math.sin(ang) * 8) - 1, 3, 3);
     });
   }
 
@@ -2357,37 +2226,32 @@
   function drawXpGems() {
     xpGems.forEach((g) => {
       const pulse = 1 + Math.sin((g.phase || 0) + gameTime * 0.1) * 0.2;
-      const size = 5 * pulse;
-      ctx.save();
-      ctx.translate(g.x, g.y);
-      ctx.rotate((g.phase || 0) + gameTime * 0.05);
-      ctx.shadowColor = "#00f5ff";
-      ctx.shadowBlur = 10;
+      const size = Math.max(3, Math.round(5 * pulse));
+      const x = Math.round(g.x);
+      const y = Math.round(g.y);
       ctx.fillStyle = "#00f5ff";
-      ctx.beginPath();
-      ctx.moveTo(0, -size);
-      ctx.lineTo(size * 0.8, 0);
-      ctx.lineTo(0, size);
-      ctx.lineTo(-size * 0.8, 0);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
+      ctx.fillRect(x - size, y - 1, size * 2, 3);
+      ctx.fillRect(x - 1, y - size, 3, size * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(x - 1, y - 1, 3, 3);
     });
   }
 
   function drawPickups() {
-    const icons = { heal: "💚", damage: "💥", speed: "💨", magnet: "🧲" };
     const colors = { heal: "#39ff14", damage: "#ff6347", speed: "#00f5ff", magnet: "#ffd700" };
     pickups.forEach((p) => {
+      const x = Math.round(p.x);
+      const y = Math.round(p.y);
+      ctx.globalAlpha = 0.35 + (p.life % 30) / 60;
       ctx.fillStyle = colors[p.type];
-      ctx.globalAlpha = 0.3 + (p.life % 30) / 60;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 16, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillRect(x - 12, y - 12, 24, 24);
       ctx.globalAlpha = 1;
-      ctx.font = "16px serif";
-      ctx.textAlign = "center";
-      ctx.fillText(icons[p.type], p.x, p.y + 5);
+      ctx.fillStyle = "#111";
+      ctx.fillRect(x - 8, y - 8, 16, 16);
+      ctx.fillStyle = colors[p.type];
+      ctx.fillRect(x - 4, y - 4, 8, 8);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x - 2, y - 2, 4, 4);
     });
   }
 
@@ -2395,19 +2259,12 @@
     particles.forEach((p) => {
       const alpha = p.maxLife ? p.life / p.maxLife : p.life / 35;
       ctx.globalAlpha = alpha;
-      if (p.kind === "smoke") {
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        ctx.fillStyle = p.color;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 6;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+      const s = Math.max(1, Math.round(p.size));
+      ctx.fillStyle = p.color;
+      ctx.fillRect(Math.round(p.x) - s, Math.round(p.y) - s, s * 2, s * 2);
+      if (p.kind !== "smoke") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(Math.round(p.x) - 1, Math.round(p.y) - 1, 2, 2);
       }
     });
     ctx.globalAlpha = 1;
@@ -2657,7 +2514,7 @@
       ctx.fillRect(cx - cw / 2, cy - ch / 2, cw, ch);
       ctx.strokeRect(cx - cw / 2, cy - ch / 2, cw, ch);
 
-      drawSpriteCentered(ctx, SPRITES[h.id], cx - cw / 2 + 50, cy - 10, PLAYER_SCALE - 1, false);
+      drawSpriteCentered(ctx, SPRITES[h.id], cx - cw / 2 + 50, cy - 10, 2.2, false);
 
       ctx.fillStyle = h.color;
       ctx.font = "bold 18px sans-serif";
@@ -2754,10 +2611,12 @@
   function drawPlaying() {
     const level = LEVELS[currentLevel];
 
+    ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
 
     ctx.save();
+    ctx.imageSmoothingEnabled = false;
     ctx.translate(-Math.floor(camera.x + shake.x), -Math.floor(camera.y + shake.y));
 
     drawWorldBackground(level);
