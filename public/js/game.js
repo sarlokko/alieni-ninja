@@ -598,14 +598,30 @@
     }
   }
 
+  function getSelectLayout() {
+    const cols = W < 1100 ? 2 : 3;
+    const cardW = Math.min(320, Math.floor((W - 80) / cols) - 16);
+    const cardH = 250;
+    const gapX = 18;
+    const gapY = 18;
+    const gridW = cols * cardW + (cols - 1) * gapX;
+    const rows = Math.ceil(HEROES.length / cols);
+    const gridH = rows * cardH + (rows - 1) * gapY;
+    const startX = Math.floor((W - gridW) / 2);
+    const startY = Math.max(90, Math.floor((H - gridH) / 2) - 10);
+    return { cols, cardW, cardH, gapX, gapY, startX, startY };
+  }
+
   function getHeroCardRect(i) {
-    const col = i % 3;
-    const row = Math.floor(i / 3);
-    const cx = 200 + col * 340;
-    const cy = 200 + row * 210;
-    const cw = 290;
-    const ch = 175;
-    return { x: cx - cw / 2, y: cy - ch / 2, w: cw, h: ch };
+    const layout = getSelectLayout();
+    const col = i % layout.cols;
+    const row = Math.floor(i / layout.cols);
+    return {
+      x: layout.startX + col * (layout.cardW + layout.gapX),
+      y: layout.startY + row * (layout.cardH + layout.gapY),
+      w: layout.cardW,
+      h: layout.cardH,
+    };
   }
 
   function getLevelUpCardRect(i) {
@@ -2612,37 +2628,75 @@
     ctx.fillStyle = "#00f5ff";
     ctx.font = "bold 26px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Scegli il tuo Ninja — Sprite pixel unici", W / 2, 45);
+    ctx.fillText("Scegli il tuo Ninja — Sprite pixel unici", W / 2, 42);
     ctx.fillStyle = "#888";
     ctx.font = "13px sans-serif";
-    ctx.fillText("Tocca un eroe per selezionarlo", W / 2, 72);
+    ctx.fillText("Tocca un eroe per selezionarlo", W / 2, 66);
+
+    const layout = getSelectLayout();
 
     HEROES.forEach((h, i) => {
-      const col = i % 3;
-      const row = Math.floor(i / 3);
-      const cx = 200 + col * 340;
-      const cy = 200 + row * 210;
-      const cw = 290, ch = 175;
-      ctx.fillStyle = "rgba(20,20,50,0.85)";
+      const r = getHeroCardRect(i);
+      const x = r.x;
+      const y = r.y;
+      const cardW = r.w;
+      const cardH = r.h;
+
+      ctx.fillStyle = "rgba(12,16,40,0.9)";
       ctx.strokeStyle = h.color;
       ctx.lineWidth = 2;
-      ctx.fillRect(cx - cw / 2, cy - ch / 2, cw, ch);
-      ctx.strokeRect(cx - cw / 2, cy - ch / 2, cw, ch);
+      ctx.fillRect(x, y, cardW, cardH);
+      ctx.strokeRect(x, y, cardW, cardH);
 
-      drawSpriteCentered(ctx, SPRITES[h.id], cx - cw / 2 + 50, cy - 10, 2.2, false);
+      // Sprite in alto, centrato — senza sovrapporre il testo
+      const spriteScale = Math.min(1.85, (cardW - 40) / (SPRITES[h.id].w || 48));
+      const spriteY = y + 58;
+      drawSpriteCentered(ctx, SPRITES[h.id], x + cardW / 2, spriteY, spriteScale, false);
 
+      // Testo tutto sotto lo sprite
+      const textTop = y + 125;
+      ctx.textAlign = "center";
       ctx.fillStyle = h.color;
       ctx.font = "bold 18px sans-serif";
-      ctx.textAlign = "left";
-      ctx.fillText(`${i + 1}. ${h.name}`, cx - cw / 2 + 95, cy - 30);
-      ctx.fillStyle = "#aaa";
+      ctx.fillText(`${i + 1}. ${h.name}`, x + cardW / 2, textTop);
+
+      ctx.fillStyle = "#bbb";
       ctx.font = "12px sans-serif";
-      ctx.fillText(h.desc, cx - cw / 2 + 15, cy + 15, cw - 30);
+      wrapSelectText(h.desc, x + 14, textTop + 22, cardW - 28, 15);
+
       ctx.fillStyle = h.accent;
-      ctx.fillText(`⚔ ${h.weaponName}`, cx - cw / 2 + 15, cy + 40);
-      ctx.fillStyle = "#666";
-      ctx.fillText(`HP ${h.hp} | SPD ${h.speed}`, cx - cw / 2 + 15, cy + 62);
+      ctx.font = "bold 13px sans-serif";
+      ctx.fillText(`⚔ ${h.weaponName}`, x + cardW / 2, textTop + 72);
+
+      ctx.fillStyle = "#888";
+      ctx.font = "12px sans-serif";
+      ctx.fillText(`HP ${h.hp}  ·  SPD ${h.speed}`, x + cardW / 2, textTop + 94);
     });
+  }
+
+  function wrapSelectText(text, x, y, maxW, lineH) {
+    const words = String(text || "").split(" ");
+    let line = "";
+    let yy = y;
+    let lines = 0;
+    ctx.textAlign = "center";
+    const cx = x + maxW / 2;
+    for (let i = 0; i < words.length; i++) {
+      const test = line ? `${line} ${words[i]}` : words[i];
+      if (ctx.measureText(test).width > maxW && line) {
+        ctx.fillText(line, cx, yy);
+        line = words[i];
+        yy += lineH;
+        lines++;
+        if (lines >= 2) {
+          ctx.fillText(line.length > 28 ? line.slice(0, 26) + "…" : line, cx, yy);
+          return;
+        }
+      } else {
+        line = test;
+      }
+    }
+    if (line) ctx.fillText(line, cx, yy);
   }
 
   function drawLevelIntro() {
