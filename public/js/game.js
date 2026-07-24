@@ -971,7 +971,7 @@
       star_refuge: "#ff8c00", final: "#ff2200",
     };
     const color = colors[theme] || "#ffffff";
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 36; i++) {
       items.push({
         x: Math.random() * WORLD_W,
         y: Math.random() * WORLD_H,
