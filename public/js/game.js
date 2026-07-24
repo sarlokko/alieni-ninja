@@ -13,8 +13,9 @@
   const BOSS_SPRITE_SCALE = 2.5;
   const TILE_SCALE = 4;
   const DECOR_SCALE = 2.5;
-  const MAX_VIEW_W = 1280;
-  const MAX_VIEW_H = 720;
+  const MOVE_MULT = 1.4;
+  const MAX_VIEW_W = 1920;
+  const MAX_VIEW_H = 1080;
 
   const gameLogo = new Image();
   gameLogo.src = "img/logo.png";
@@ -52,7 +53,7 @@
       desc: "Shuriken verso il cursore del mouse",
       weapon: "orbit_shuriken",
       weaponName: "Shuriken Orbitale",
-      speed: 2.1,
+      speed: 2.9,
       hp: 120,
       baseDamage: 18,
       baseCooldown: 68,
@@ -68,7 +69,7 @@
       desc: "Arco laser verso il cursore",
       weapon: "laser_arc",
       weaponName: "Spada Laser",
-      speed: 1.8,
+      speed: 2.5,
       hp: 130,
       baseDamage: 22,
       baseCooldown: 60,
@@ -84,7 +85,7 @@
       desc: "Sfere di plasma verso il cursore",
       weapon: "plasma_burst",
       weaponName: "Burst di Plasma",
-      speed: 1.5,
+      speed: 2.1,
       hp: 190,
       baseDamage: 26,
       baseCooldown: 88,
@@ -100,7 +101,7 @@
       desc: "Dardi semi-automatici: mira soft verso i nemici vicini",
       weapon: "homing_dart",
       weaponName: "Dardi Cercatori",
-      speed: 2.3,
+      speed: 3.2,
       hp: 100,
       baseDamage: 14,
       baseCooldown: 52,
@@ -116,7 +117,7 @@
       desc: "Onda arcana verso il cursore",
       weapon: "arcane_wave",
       weaponName: "Onda Arcana",
-      speed: 1.7,
+      speed: 2.4,
       hp: 110,
       baseDamage: 17,
       baseCooldown: 78,
@@ -421,19 +422,18 @@
   };
 
   function resizeGame() {
-    // Riquadro grande a schermo, ma risoluzione interna limitata (performance)
+    // Riquadro grande a schermo: risoluzione ampia (max 1920x1080)
     const rect = canvas.getBoundingClientRect();
-    const cssW = Math.max(640, Math.floor(rect.width || window.innerWidth || 1280));
-    const cssH = Math.max(360, Math.floor(rect.height || window.innerHeight || 720));
+    let cssW = Math.max(960, Math.floor(rect.width || window.innerWidth || 1600));
+    let cssH = Math.max(540, Math.floor(rect.height || window.innerHeight || 900));
+    if (rect.width < 40) {
+      cssW = Math.floor((window.innerWidth || 1600) * 0.985);
+      cssH = Math.floor((window.innerHeight || 900) * 0.985);
+    }
+    // Scala solo se lo schermo supera il cap (evita lag estremi su 4K)
     const scale = Math.min(1, MAX_VIEW_W / cssW, MAX_VIEW_H / cssH);
     W = Math.max(960, Math.floor(cssW * scale));
     H = Math.max(540, Math.floor(cssH * scale));
-    // Mantieni aspect del riquadro
-    const aspect = cssW / cssH;
-    if (W / H > aspect) W = Math.floor(H * aspect);
-    else H = Math.floor(W / aspect);
-    W = Math.min(W, MAX_VIEW_W);
-    H = Math.min(H, MAX_VIEW_H);
     canvas.width = W;
     canvas.height = H;
     touchJoyAnchors.move.x = W * 0.16;
@@ -1000,8 +1000,8 @@
   function updateCamera() {
     const tx = player.x - W / 2;
     const ty = player.y - H / 2;
-    camera.x += (tx - camera.x) * 0.11;
-    camera.y += (ty - camera.y) * 0.11;
+    camera.x += (tx - camera.x) * 0.18;
+    camera.y += (ty - camera.y) * 0.18;
     camera.x = Math.max(0, Math.min(WORLD_W - W, camera.x));
     camera.y = Math.max(0, Math.min(WORLD_H - H, camera.y));
     updateShake();
@@ -1075,7 +1075,7 @@
     const amount = Math.floor(player.stats.amount);
     const area = player.stats.area;
     const aim = player.aimAngle;
-    const projSpeed = 5.5;
+    const projSpeed = 7.2;
 
     switch (weapon) {
       case "orbit_shuriken": {
@@ -1385,14 +1385,14 @@
     if (keys.ArrowUp || keys.KeyW) dy -= 1;
     if (keys.ArrowDown || keys.KeyS) dy += 1;
 
-    const spd = player.stats.speed * (player.tempSpeed > 0 ? 1.35 : 1);
+    const spd = player.stats.speed * MOVE_MULT * (player.tempSpeed > 0 ? 1.35 : 1);
     if (dx !== 0 || dy !== 0) {
       const len = Math.hypot(dx, dy);
       player.vx = (dx / len) * spd;
       player.vy = (dy / len) * spd;
     } else {
-      player.vx *= 0.85;
-      player.vy *= 0.85;
+      player.vx *= 0.78;
+      player.vy *= 0.78;
     }
 
     player.x = Math.max(40, Math.min(WORLD_W - 40, player.x + player.vx));
