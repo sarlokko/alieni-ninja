@@ -13,7 +13,7 @@
   const BOSS_SPRITE_SCALE = 2.5;
   const TILE_SCALE = 4;
   const DECOR_SCALE = 2.5;
-  const MOVE_MULT = 1.1;
+  const MOVE_MULT = 0.75;
   const MAX_VIEW_W = 1920;
   const MAX_VIEW_H = 1080;
 
@@ -53,7 +53,7 @@
       desc: "Shuriken verso il cursore del mouse",
       weapon: "orbit_shuriken",
       weaponName: "Shuriken Orbitale",
-      speed: 2.2,
+      speed: 2.1,
       hp: 120,
       baseDamage: 18,
       baseCooldown: 68,
@@ -69,7 +69,7 @@
       desc: "Arco laser verso il cursore",
       weapon: "laser_arc",
       weaponName: "Spada Laser",
-      speed: 1.9,
+      speed: 1.8,
       hp: 130,
       baseDamage: 22,
       baseCooldown: 60,
@@ -85,7 +85,7 @@
       desc: "Sfere di plasma verso il cursore",
       weapon: "plasma_burst",
       weaponName: "Burst di Plasma",
-      speed: 1.6,
+      speed: 1.5,
       hp: 190,
       baseDamage: 26,
       baseCooldown: 88,
@@ -101,7 +101,7 @@
       desc: "Dardi semi-automatici: mira soft verso i nemici vicini",
       weapon: "homing_dart",
       weaponName: "Dardi Cercatori",
-      speed: 2.4,
+      speed: 2.3,
       hp: 100,
       baseDamage: 14,
       baseCooldown: 52,
@@ -117,7 +117,7 @@
       desc: "Onda arcana verso il cursore",
       weapon: "arcane_wave",
       weaponName: "Onda Arcana",
-      speed: 1.8,
+      speed: 1.7,
       hp: 110,
       baseDamage: 17,
       baseCooldown: 78,
@@ -1391,8 +1391,8 @@
       player.vx = (dx / len) * spd;
       player.vy = (dy / len) * spd;
     } else {
-      player.vx *= 0.82;
-      player.vy *= 0.82;
+      player.vx *= 0.85;
+      player.vy *= 0.85;
     }
 
     player.x = Math.max(40, Math.min(WORLD_W - 40, player.x + player.vx));
