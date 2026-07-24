@@ -22,12 +22,12 @@
   gameLogo.onload = () => { logoReady = true; };
 
   const ENEMY_TYPES = {
-    kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.5,  speedMult: 0.62, damage: 2, size: 14, xp: 2, weight: 40 },
-    tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.85, speedMult: 0.75, damage: 3, size: 16, xp: 3, weight: 35 },
-    hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore",      hpMult: 0.7,  speedMult: 0.95, damage: 3, size: 17, xp: 4, weight: 22 },
-    archer:   { id: "archer",   sprite: "cat_archer",   name: "Gatto Arcere",    hpMult: 0.65, speedMult: 0.6,  damage: 2, size: 16, xp: 5, weight: 18, ranged: true, preferDist: 220, shootCd: 95, arrowDamage: 4, arrowSpeed: 4.6 },
-    werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro",   hpMult: 1.4,  speedMult: 0.68, damage: 5, size: 20, xp: 7, weight: 18 },
-    shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Felina",    hpMult: 0.45, speedMult: 1.1,  damage: 4, size: 15, xp: 5, weight: 12 },
+    kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Cucciolo Feroce", hpMult: 0.5,  speedMult: 0.62, damage: 2, size: 14, xp: 2, weight: 40 },
+    tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Predatore Tigrato", hpMult: 0.85, speedMult: 0.75, damage: 3, size: 16, xp: 3, weight: 35 },
+    hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore Sanguinario", hpMult: 0.7,  speedMult: 0.95, damage: 3, size: 17, xp: 4, weight: 22 },
+    archer:   { id: "archer",   sprite: "cat_archer",   name: "Arcere Oscuro", hpMult: 0.65, speedMult: 0.6,  damage: 2, size: 16, xp: 5, weight: 18, ranged: true, preferDist: 220, shootCd: 95, arrowDamage: 4, arrowSpeed: 4.6 },
+    werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro", hpMult: 1.4,  speedMult: 0.68, damage: 5, size: 20, xp: 7, weight: 18 },
+    shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Devastatrice", hpMult: 0.45, speedMult: 1.1,  damage: 4, size: 15, xp: 5, weight: 12 },
   };
 
   const STATE = {
