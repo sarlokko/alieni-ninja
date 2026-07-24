@@ -11,8 +11,10 @@
   const PLAYER_SCALE = 2.25;
   const ENEMY_SPRITE_SCALE = 2.15;
   const BOSS_SPRITE_SCALE = 2.5;
-  const TILE_SCALE = 3.5;
-  const DECOR_SCALE = 2.75;
+  const TILE_SCALE = 4;
+  const DECOR_SCALE = 2.5;
+  const MAX_VIEW_W = 1280;
+  const MAX_VIEW_H = 720;
 
   const gameLogo = new Image();
   gameLogo.src = "img/logo.png";
@@ -419,15 +421,19 @@
   };
 
   function resizeGame() {
-    // Riempie il riquadro azzurro (quasi tutto lo schermo)
+    // Riquadro grande a schermo, ma risoluzione interna limitata (performance)
     const rect = canvas.getBoundingClientRect();
-    const vw = Math.max(640, Math.floor(rect.width || window.innerWidth || 1600));
-    const vh = Math.max(360, Math.floor(rect.height || window.innerHeight || 900));
-    // Se il layout non è ancora pronto, usa quasi tutto il viewport
-    const fallbackW = Math.floor((window.innerWidth || 1600) * 0.985);
-    const fallbackH = Math.floor((window.innerHeight || 900) * 0.985);
-    W = rect.width > 40 ? vw : fallbackW;
-    H = rect.height > 40 ? vh : fallbackH;
+    const cssW = Math.max(640, Math.floor(rect.width || window.innerWidth || 1280));
+    const cssH = Math.max(360, Math.floor(rect.height || window.innerHeight || 720));
+    const scale = Math.min(1, MAX_VIEW_W / cssW, MAX_VIEW_H / cssH);
+    W = Math.max(960, Math.floor(cssW * scale));
+    H = Math.max(540, Math.floor(cssH * scale));
+    // Mantieni aspect del riquadro
+    const aspect = cssW / cssH;
+    if (W / H > aspect) W = Math.floor(H * aspect);
+    else H = Math.floor(W / aspect);
+    W = Math.min(W, MAX_VIEW_W);
+    H = Math.min(H, MAX_VIEW_H);
     canvas.width = W;
     canvas.height = H;
     touchJoyAnchors.move.x = W * 0.16;
@@ -841,8 +847,8 @@
     const rnd = (n) => Math.random() * n;
     const at = () => ({ x: rnd(WORLD_W), y: rnd(WORLD_H) });
     const count = {
-      training: 380, alien_city: 360, forest: 480, temple: 340, underworld: 380,
-      star_temple: 360, moon: 400, cursed_city: 370, star_refuge: 390, final: 360,
+      training: 140, alien_city: 120, forest: 160, temple: 110, underworld: 120,
+      star_temple: 120, moon: 130, cursed_city: 120, star_refuge: 130, final: 120,
     };
     const n = count[theme] || 80;
 
@@ -1413,7 +1419,7 @@
 
     const quotaReached = levelKills >= level.killQuota;
     const trashCount = enemies.reduce((n, e) => n + (e.isBoss ? 0 : 1), 0);
-    const enemyCap = bossPhase ? 40 : 70;
+    const enemyCap = bossPhase ? 32 : 52;
 
     if (spawnTimer > 0) spawnTimer--;
     else if (trashCount < enemyCap) {
@@ -1692,7 +1698,7 @@
   function drawWorldBackground(level) {
     const viewX = camera.x + shake.x;
     const viewY = camera.y + shake.y;
-    const pad = 80;
+    const pad = 48;
     const left = viewX - pad;
     const top = viewY - pad;
     const right = viewX + W + pad;
@@ -1702,46 +1708,40 @@
     ctx.fillStyle = level.bg[0];
     ctx.fillRect(left, top, right - left, bottom - top);
 
-    const gx = player.x;
-    const gy = player.y;
-    const grad = ctx.createRadialGradient(gx, gy, 40, gx, gy, Math.max(W, H) * 0.85);
-    grad.addColorStop(0, level.bg[1] + "aa");
-    grad.addColorStop(0.55, level.bg[0] + "cc");
-    grad.addColorStop(1, level.bg[0]);
-    ctx.fillStyle = grad;
-    ctx.fillRect(left, top, right - left, bottom - top);
-
-    // Pixel tile floor
-    const tileSprite = SPRITES["tile_" + level.theme] || SPRITES.tile_training;
-    const tile = (tileSprite.w || 16) * TILE_SCALE;
+    // Pavimento a scacchi grandi (pochissimi fillRect)
+    const tile = 96;
     const startTX = Math.floor(left / tile) * tile;
     const startTY = Math.floor(top / tile) * tile;
-    ctx.globalAlpha = 0.88;
     for (let x = startTX; x < right; x += tile) {
       for (let y = startTY; y < bottom; y += tile) {
         const parity = ((x / tile) + (y / tile)) % 2 === 0;
-        ctx.globalAlpha = parity ? 0.95 : 0.72;
-        drawSprite(ctx, tileSprite, x, y, TILE_SCALE, false);
-        // micro-detail speckles
-        if (parity) {
-          ctx.globalAlpha = 0.18;
-          ctx.fillStyle = level.accent;
-          ctx.fillRect(x + 6, y + 6, 2, 2);
-          ctx.fillRect(x + tile - 10, y + tile - 10, 2, 2);
-        }
+        ctx.globalAlpha = parity ? 0.55 : 0.28;
+        ctx.fillStyle = parity ? level.floor : level.bg[1];
+        ctx.fillRect(x, y, tile, tile);
       }
     }
     ctx.globalAlpha = 1;
 
-    // Soft ground noise (pixel blocks)
-    ctx.fillStyle = level.accent;
-    for (let i = 0; i < 120; i++) {
-      const nx = Math.floor(left + ((i * 97 + Math.floor(viewX)) % Math.max(1, right - left)));
-      const ny = Math.floor(top + ((i * 53 + Math.floor(viewY * 0.7)) % Math.max(1, bottom - top)));
-      ctx.globalAlpha = 0.08 + (i % 5) * 0.015;
-      ctx.fillRect(nx, ny, 2 + (i % 3), 2);
+    // Un solo tile-stamp ogni tanto per dettaglio (non griglia piena)
+    const stamp = SPRITES["tile_" + level.theme] || SPRITES.tile_training;
+    const stampEvery = tile * 2;
+    const s0x = Math.floor(left / stampEvery) * stampEvery;
+    const s0y = Math.floor(top / stampEvery) * stampEvery;
+    ctx.globalAlpha = 0.55;
+    for (let x = s0x; x < right; x += stampEvery) {
+      for (let y = s0y; y < bottom; y += stampEvery) {
+        drawSprite(ctx, stamp, x + 16, y + 16, 2, false);
+      }
     }
     ctx.globalAlpha = 1;
+
+    const gx = player.x;
+    const gy = player.y;
+    const grad = ctx.createRadialGradient(gx, gy, 30, gx, gy, Math.max(W, H) * 0.65);
+    grad.addColorStop(0, level.bg[1] + "44");
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(left, top, right - left, bottom - top);
 
     ctx.save();
     drawThemeOverlay(level, left, top, right, bottom, viewX, viewY);
@@ -1754,16 +1754,31 @@
       ctx.globalAlpha = 1;
     }
 
-    // Pixel world border
+    // Bordo mondo solo se visibile in camera
     ctx.fillStyle = level.accent;
-    ctx.globalAlpha = 0.35;
-    for (let x = 30; x < WORLD_W - 30; x += 8) {
-      ctx.fillRect(x, 30, 4, 4);
-      ctx.fillRect(x, WORLD_H - 34, 4, 4);
+    ctx.globalAlpha = 0.4;
+    const b = 30;
+    if (top < b + 8 && bottom > b) {
+      const x0 = Math.max(left, b);
+      const x1 = Math.min(right, WORLD_W - b);
+      for (let x = Math.floor(x0 / 12) * 12; x < x1; x += 12) ctx.fillRect(x, b, 5, 5);
     }
-    for (let y = 30; y < WORLD_H - 30; y += 8) {
-      ctx.fillRect(30, y, 4, 4);
-      ctx.fillRect(WORLD_W - 34, y, 4, 4);
+    if (bottom > WORLD_H - 40 && top < WORLD_H - 26) {
+      const y = WORLD_H - 34;
+      const x0 = Math.max(left, b);
+      const x1 = Math.min(right, WORLD_W - b);
+      for (let x = Math.floor(x0 / 12) * 12; x < x1; x += 12) ctx.fillRect(x, y, 5, 5);
+    }
+    if (left < b + 8 && right > b) {
+      const y0 = Math.max(top, b);
+      const y1 = Math.min(bottom, WORLD_H - b);
+      for (let y = Math.floor(y0 / 12) * 12; y < y1; y += 12) ctx.fillRect(b, y, 5, 5);
+    }
+    if (right > WORLD_W - 40 && left < WORLD_W - 26) {
+      const x = WORLD_W - 34;
+      const y0 = Math.max(top, b);
+      const y1 = Math.min(bottom, WORLD_H - b);
+      for (let y = Math.floor(y0 / 12) * 12; y < y1; y += 12) ctx.fillRect(x, y, 5, 5);
     }
     ctx.globalAlpha = 1;
   }
@@ -1772,18 +1787,12 @@
     ctx.imageSmoothingEnabled = false;
     switch (level.theme) {
       case "training": {
-        for (let x = Math.floor(left / 220) * 220; x < right; x += 220) {
-          for (let y = Math.floor(top / 180) * 180; y < bottom; y += 180) {
-            ctx.globalAlpha = 0.22;
-            ctx.fillStyle = level.accent;
-            // pixel frame
-            for (let i = 0; i < 140; i += 4) {
-              ctx.fillRect(x + 20 + i, y + 20, 2, 2);
-              ctx.fillRect(x + 20 + i, y + 140, 2, 2);
-              ctx.fillRect(x + 20, y + 20 + i * 0.85, 2, 2);
-              ctx.fillRect(x + 160, y + 20 + i * 0.85, 2, 2);
-            }
-            drawPixelCircle(ctx, x + 90, y + 80, 10, level.accent);
+        for (let x = Math.floor(left / 280) * 280; x < right; x += 280) {
+          for (let y = Math.floor(top / 220) * 220; y < bottom; y += 220) {
+            ctx.globalAlpha = 0.2;
+            ctx.strokeStyle = level.accent;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x + 24, y + 24, 160, 120);
           }
         }
         break;
