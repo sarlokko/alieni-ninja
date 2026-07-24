@@ -17,12 +17,12 @@
   gameLogo.onload = () => { logoReady = true; };
 
   const ENEMY_TYPES = {
-    kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.55, speedMult: 0.5,  damage: 2, size: 14, xp: 2, weight: 40 },
-    tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.9,  speedMult: 0.65, damage: 3, size: 16, xp: 3, weight: 35 },
-    hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore",      hpMult: 0.75, speedMult: 0.85, damage: 4, size: 17, xp: 4, weight: 22 },
-    archer:   { id: "archer",   sprite: "cat_archer",   name: "Gatto Arcere",    hpMult: 0.7,  speedMult: 0.45, damage: 3, size: 16, xp: 5, weight: 18, ranged: true, preferDist: 220, shootCd: 90, arrowDamage: 5, arrowSpeed: 4.2 },
-    werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro",   hpMult: 1.6,  speedMult: 0.55, damage: 6, size: 20, xp: 7, weight: 18 },
-    shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Felina",    hpMult: 0.5,  speedMult: 1.0,  damage: 5, size: 15, xp: 5, weight: 12 },
+    kitten:   { id: "kitten",   sprite: "cat_kitten",   name: "Gattino Mannaro", hpMult: 0.55, speedMult: 0.72, damage: 2, size: 14, xp: 2, weight: 40 },
+    tabby:    { id: "tabby",    sprite: "cat_tabby",    name: "Gatto Tigrato",   hpMult: 0.9,  speedMult: 0.88, damage: 3, size: 16, xp: 3, weight: 35 },
+    hunter:   { id: "hunter",   sprite: "cat_hunter",   name: "Cacciatore",      hpMult: 0.75, speedMult: 1.15, damage: 4, size: 17, xp: 4, weight: 22 },
+    archer:   { id: "archer",   sprite: "cat_archer",   name: "Gatto Arcere",    hpMult: 0.7,  speedMult: 0.7,  damage: 3, size: 16, xp: 5, weight: 18, ranged: true, preferDist: 220, shootCd: 70, arrowDamage: 6, arrowSpeed: 5.4 },
+    werewolf: { id: "werewolf", sprite: "cat_werewolf", name: "Gatto Mannaro",   hpMult: 1.6,  speedMult: 0.78, damage: 6, size: 20, xp: 7, weight: 18 },
+    shadow:   { id: "shadow",   sprite: "cat_shadow",   name: "Ombra Felina",    hpMult: 0.5,  speedMult: 1.35, damage: 5, size: 15, xp: 5, weight: 12 },
   };
 
   const STATE = {
@@ -151,8 +151,8 @@
       killQuota: 25,
       spawnRate: 140,
       enemyHp: 16,
-      enemySpeed: 0.55,
-      boss: { name: "Simulacro Alfa", hp: 160, speed: 0.75, size: 34, color: "#00f5ff", sprite: "cat_boss" },
+      enemySpeed: 0.78,
+      boss: { name: "Simulacro Alfa", hp: 280, speed: 1.05, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 10 },
       fragment: false,
     },
     {
@@ -165,8 +165,8 @@
       killQuota: 35,
       spawnRate: 125,
       enemyHp: 20,
-      enemySpeed: 0.65,
-      boss: { name: "Capo Distretto Neon", hp: 210, speed: 0.78, size: 36, color: "#b026ff", sprite: "cat_boss" },
+      enemySpeed: 0.9,
+      boss: { name: "Capo Distretto Neon", hp: 360, speed: 1.1, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 11 },
       fragment: false,
     },
     {
@@ -179,8 +179,8 @@
       killQuota: 45,
       spawnRate: 115,
       enemyHp: 24,
-      enemySpeed: 0.72,
-      boss: { name: "Signore del Bosco", hp: 260, speed: 0.72, size: 36, color: "#39ff14", sprite: "cat_boss" },
+      enemySpeed: 0.98,
+      boss: { name: "Signore del Bosco", hp: 450, speed: 1.05, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 12 },
       fragment: false,
     },
     {
@@ -193,8 +193,8 @@
       killQuota: 55,
       spawnRate: 108,
       enemyHp: 28,
-      enemySpeed: 0.78,
-      boss: { name: "Custode delle Stelle", hp: 320, speed: 0.7, size: 38, color: "#ffd700", sprite: "cat_boss" },
+      enemySpeed: 1.05,
+      boss: { name: "Custode delle Stelle", hp: 560, speed: 1.0, size: 38, color: "#ffd700", sprite: "cat_boss", damage: 13 },
       fragment: true,
     },
     {
@@ -207,8 +207,8 @@
       killQuota: 65,
       spawnRate: 102,
       enemyHp: 32,
-      enemySpeed: 0.82,
-      boss: { name: "Matrona degli Arcani", hp: 380, speed: 0.75, size: 36, color: "#ff4466", sprite: "cat_boss" },
+      enemySpeed: 1.12,
+      boss: { name: "Matrona degli Arcani", hp: 680, speed: 1.08, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 14 },
       fragment: true,
     },
     {
@@ -221,8 +221,8 @@
       killQuota: 75,
       spawnRate: 96,
       enemyHp: 36,
-      enemySpeed: 0.86,
-      boss: { name: "Guardiano Dimensionale", hp: 430, speed: 0.8, size: 40, color: "#7b68ee", sprite: "cat_boss" },
+      enemySpeed: 1.18,
+      boss: { name: "Guardiano Dimensionale", hp: 780, speed: 1.15, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 15 },
       fragment: true,
     },
     {
@@ -235,8 +235,8 @@
       killQuota: 85,
       spawnRate: 92,
       enemyHp: 40,
-      enemySpeed: 0.88,
-      boss: { name: "Drago Stellare", hp: 480, speed: 0.65, size: 44, color: "#ff6347", sprite: "cat_boss" },
+      enemySpeed: 1.22,
+      boss: { name: "Drago Stellare", hp: 900, speed: 0.95, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 16 },
       fragment: true,
     },
     {
@@ -249,8 +249,8 @@
       killQuota: 95,
       spawnRate: 88,
       enemyHp: 44,
-      enemySpeed: 0.92,
-      boss: { name: "Signore del Caos", hp: 520, speed: 0.85, size: 42, color: "#9400d3", sprite: "cat_boss" },
+      enemySpeed: 1.28,
+      boss: { name: "Signore del Caos", hp: 1000, speed: 1.2, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 17 },
       fragment: true,
     },
     {
@@ -263,8 +263,8 @@
       killQuota: 110,
       spawnRate: 84,
       enemyHp: 48,
-      enemySpeed: 0.95,
-      boss: { name: "Matriarca del Mondo Felino", hp: 560, speed: 0.88, size: 40, color: "#ff8c00", sprite: "cat_boss" },
+      enemySpeed: 1.32,
+      boss: { name: "Matriarca del Mondo Felino", hp: 1120, speed: 1.25, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 18 },
       fragment: true,
     },
     {
@@ -277,9 +277,9 @@
       killQuota: 125,
       spawnRate: 80,
       enemyHp: 52,
-      enemySpeed: 0.98,
-      boss: { name: "Re dei Gatti Mannari", hp: 650, speed: 0.72, size: 46, color: "#ff2200", sprite: "cat_boss" },
-      finalBoss: { name: "Guardiano dell'Universo", hp: 420, speed: 0.9, size: 42, color: "#00f5ff", sprite: "cat_boss" },
+      enemySpeed: 1.38,
+      boss: { name: "Re dei Gatti Mannari", hp: 1300, speed: 1.15, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 20 },
+      finalBoss: { name: "Guardiano dell'Universo", hp: 900, speed: 1.3, size: 42, color: "#00f5ff", sprite: "cat_boss", damage: 18 },
       fragment: true,
     },
   ];
@@ -1098,7 +1098,7 @@
         speed: bossData.speed, size: bossData.size,
         color: bossData.color, isBoss: true, name: bossData.name,
         sprite: bossData.sprite || "cat_boss",
-        damage: 8,
+        damage: bossData.damage || 12,
         wobblePhase: 0,
         hitFlash: 0,
         knockVx: 0,
@@ -1124,7 +1124,7 @@
       x, y,
       hp: Math.floor(level.enemyHp * etype.hpMult * scale),
       maxHp: Math.floor(level.enemyHp * etype.hpMult * scale),
-      speed: level.enemySpeed * etype.speedMult * (0.92 + Math.random() * 0.16),
+      speed: level.enemySpeed * etype.speedMult * (0.98 + Math.random() * 0.18),
       size: etype.size,
       color: etype.id === "archer" ? "#c8a060" : "#cc8844",
       isBoss: false,
@@ -1442,7 +1442,7 @@
       }
 
       if (dist < e.size + 14 && player.invulnerable <= 0) {
-        const baseDmg = e.isBoss ? 8 : (e.damage || 3);
+        const baseDmg = e.isBoss ? (e.damage || 12) : (e.damage || 3);
         const dmg = Math.max(1, Math.floor(baseDmg * (1 - player.stats.damageReduction)));
         player.hp -= dmg;
         player.invulnerable = 25;
