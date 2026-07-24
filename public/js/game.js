@@ -150,11 +150,11 @@
     {
       name: "Addestramento",
       theme: "training",
-      story: "Campo olografico. Elimina 35 simulacri, poi il Simulacro Alfa.",
+      story: "Campo olografico. Elimina 65 simulacri, poi il Simulacro Alfa.",
       bg: ["#0d1b2a", "#1b263b"],
       floor: "#152238",
       accent: "#00f5ff",
-      killQuota: 35,
+      killQuota: 65,
       spawnRate: 69,
       enemyHp: 12,
       enemySpeed: 0.715,
@@ -164,11 +164,11 @@
     {
       name: "Città Alienigena",
       theme: "alien_city",
-      story: "Neon e grattacieli. Uccidi 48 predatori, poi il Capo Distretto.",
+      story: "Neon e grattacieli. Uccidi 90 predatori, poi il Capo Distretto.",
       bg: ["#1a0a2e", "#2d1b4e"],
       floor: "#1e1040",
       accent: "#b026ff",
-      killQuota: 48,
+      killQuota: 90,
       spawnRate: 63,
       enemyHp: 15,
       enemySpeed: 0.814,
@@ -178,11 +178,11 @@
     {
       name: "Bosco Infestato",
       theme: "forest",
-      story: "Bosco bioluminescente. Abbatti 60 predatori, poi il Signore del Bosco.",
+      story: "Bosco bioluminescente. Abbatti 110 predatori, poi il Signore del Bosco.",
       bg: ["#0a1f0a", "#1a3a1a"],
       floor: "#0f2a12",
       accent: "#39ff14",
-      killQuota: 60,
+      killQuota: 110,
       spawnRate: 59,
       enemyHp: 18,
       enemySpeed: 0.88,
@@ -192,11 +192,11 @@
     {
       name: "Tempio Antico",
       theme: "temple",
-      story: "Pilastri e torce. Uccidi 75 gatti, poi il Custode.",
+      story: "Pilastri e torce. Uccidi 140 gatti, poi il Custode.",
       bg: ["#2a1a0a", "#4a3020"],
       floor: "#3a2818",
       accent: "#ffd700",
-      killQuota: 75,
+      killQuota: 140,
       spawnRate: 55,
       enemyHp: 21,
       enemySpeed: 0.946,
@@ -206,11 +206,11 @@
     {
       name: "Sottomondo Felino",
       theme: "underworld",
-      story: "Gallerie laviche. Elimina 90 nemici e la Matrona.",
+      story: "Gallerie laviche. Elimina 165 nemici e la Matrona.",
       bg: ["#1a0a0a", "#3a1515"],
       floor: "#2a1010",
       accent: "#ff4466",
-      killQuota: 90,
+      killQuota: 165,
       spawnRate: 53,
       enemyHp: 24,
       enemySpeed: 1.012,
@@ -220,11 +220,11 @@
     {
       name: "Tempio delle Stelle",
       theme: "star_temple",
-      story: "Portali dimensionali. Uccidi 105 gatti, poi il Guardiano.",
+      story: "Portali dimensionali. Uccidi 195 gatti, poi il Guardiano.",
       bg: ["#0a0a2a", "#1a1a5a"],
       floor: "#12124a",
       accent: "#7b68ee",
-      killQuota: 105,
+      killQuota: 195,
       spawnRate: 50,
       enemyHp: 27,
       enemySpeed: 1.078,
@@ -234,11 +234,11 @@
     {
       name: "Battaglia sulla Luna",
       theme: "moon",
-      story: "Crateri e stelle. Elimina 120 predatori, poi il Drago.",
+      story: "Crateri e stelle. Elimina 230 predatori, poi il Drago.",
       bg: ["#1a1a2a", "#2a2a4a"],
       floor: "#3a3a4a",
       accent: "#ff6347",
-      killQuota: 120,
+      killQuota: 230,
       spawnRate: 47,
       enemyHp: 30,
       enemySpeed: 1.122,
@@ -248,11 +248,11 @@
     {
       name: "Città Maledetta",
       theme: "cursed_city",
-      story: "Rovine e nebbia. Uccidi 140 gatti e il Signore del Caos.",
+      story: "Rovine e nebbia. Uccidi 270 gatti e il Signore del Caos.",
       bg: ["#1a0a1a", "#3a1a3a"],
       floor: "#2a1530",
       accent: "#9400d3",
-      killQuota: 140,
+      killQuota: 270,
       spawnRate: 45,
       enemyHp: 33,
       enemySpeed: 1.166,
@@ -262,11 +262,11 @@
     {
       name: "Rifugio delle Stelle",
       theme: "star_refuge",
-      story: "Cristalli cosmici. Elimina 155 nemici e la Matriarca.",
+      story: "Cristalli cosmici. Elimina 310 nemici e la Matriarca.",
       bg: ["#0a1a2a", "#1a3a5a"],
       floor: "#102840",
       accent: "#ff8c00",
-      killQuota: 155,
+      killQuota: 310,
       spawnRate: 43,
       enemyHp: 36,
       enemySpeed: 1.21,
@@ -276,11 +276,11 @@
     {
       name: "Confronto Finale",
       theme: "final",
-      story: "La Luna. Uccidi 175 gatti, poi il Re e il Guardiano.",
+      story: "La Luna. Uccidi 360 gatti, poi il Re e il Guardiano.",
       bg: ["#0a0a1a", "#1a0a2a"],
       floor: "#2a2a35",
       accent: "#ff2200",
-      killQuota: 175,
+      killQuota: 360,
       spawnRate: 41,
       enemyHp: 40,
       enemySpeed: 1.254,
@@ -1259,6 +1259,15 @@
     });
   }
 
+  const PICKUP_META = {
+    heal: { label: "CURA", hint: "+30 Vita", color: "#39ff14" },
+    damage: { label: "POTENZA", hint: "Danno x1.4", color: "#ff6347" },
+    speed: { label: "VELOCE", hint: "Più veloce", color: "#00f5ff" },
+    magnet: { label: "CALAMITA", hint: "Aspira tutto l'XP", color: "#ffd700" },
+  };
+  const PICKUP_ATTRACT = 130;
+  const PICKUP_COLLECT = 52;
+
   function spawnPickup() {
     const types = ["heal", "damage", "speed", "magnet"];
     const type = types[Math.floor(Math.random() * types.length)];
@@ -1268,7 +1277,8 @@
       x: Math.max(60, Math.min(WORLD_W - 60, player.x + Math.cos(angle) * dist)),
       y: Math.max(60, Math.min(WORLD_H - 60, player.y + Math.sin(angle) * dist)),
       type,
-      life: 600,
+      life: 720,
+      bob: Math.random() * Math.PI * 2,
     });
   }
 
@@ -1649,12 +1659,29 @@
 
     pickups.forEach((p) => {
       p.life--;
-      if (Math.hypot(player.x - p.x, player.y - p.y) < 22) {
+      p.bob = (p.bob || 0) + 0.12;
+      const dist = Math.hypot(player.x - p.x, player.y - p.y);
+      if (dist < PICKUP_ATTRACT && dist > 1) {
+        const a = Math.atan2(player.y - p.y, player.x - p.x);
+        const pull = dist < PICKUP_COLLECT + 20 ? 5.5 : 3.2;
+        p.x += Math.cos(a) * pull;
+        p.y += Math.sin(a) * pull;
+      }
+      if (dist < PICKUP_COLLECT) {
+        const meta = PICKUP_META[p.type];
         if (p.type === "heal") player.hp = Math.min(player.maxHp, player.hp + 30);
         if (p.type === "damage") player.tempBuff = 600;
         if (p.type === "speed") player.tempSpeed = 600;
-        if (p.type === "magnet") xpGems.forEach((g) => { g.x = player.x; g.y = player.y; g.collected = true; addXp(g.value); });
-        addParticles(p.x, p.y, "#ffd700", 10);
+        if (p.type === "magnet") {
+          xpGems.forEach((g) => {
+            g.x = player.x;
+            g.y = player.y;
+            g.collected = true;
+            addXp(g.value);
+          });
+        }
+        addFloatText(p.x, p.y - 18, `${meta.label}!`, meta.color, 16);
+        addParticles(p.x, p.y, meta.color, 14);
         p.collected = true;
       }
     });
@@ -2401,22 +2428,85 @@
     });
   }
 
-  function drawPickups() {
-    const colors = { heal: "#39ff14", damage: "#ff6347", speed: "#00f5ff", magnet: "#ffd700" };
-    pickups.forEach((p) => {
-      const x = Math.round(p.x);
-      const y = Math.round(p.y);
-      ctx.globalAlpha = 0.35 + (p.life % 30) / 60;
-      ctx.fillStyle = colors[p.type];
-      ctx.fillRect(x - 12, y - 12, 24, 24);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = "#111";
-      ctx.fillRect(x - 8, y - 8, 16, 16);
-      ctx.fillStyle = colors[p.type];
-      ctx.fillRect(x - 4, y - 4, 8, 8);
+  function drawPickupIcon(type, x, y, color) {
+    ctx.fillStyle = color;
+    if (type === "heal") {
+      // croce medica
+      ctx.fillRect(x - 2, y - 8, 4, 16);
+      ctx.fillRect(x - 8, y - 2, 16, 4);
       ctx.fillStyle = "#fff";
-      ctx.fillRect(x - 2, y - 2, 4, 4);
+      ctx.fillRect(x - 1, y - 6, 2, 12);
+      ctx.fillRect(x - 6, y - 1, 12, 2);
+    } else if (type === "damage") {
+      // lama / potenza
+      ctx.fillRect(x - 2, y - 9, 4, 14);
+      ctx.fillRect(x - 5, y + 4, 10, 3);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x - 1, y - 7, 2, 8);
+    } else if (type === "speed") {
+      // freccia / boost
+      ctx.fillRect(x - 7, y - 1, 10, 3);
+      ctx.beginPath();
+      ctx.moveTo(x + 4, y - 6);
+      ctx.lineTo(x + 10, y);
+      ctx.lineTo(x + 4, y + 6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x - 5, y, 7, 1);
+    } else if (type === "magnet") {
+      // calamita a U
+      ctx.fillRect(x - 8, y - 7, 5, 14);
+      ctx.fillRect(x + 3, y - 7, 5, 14);
+      ctx.fillRect(x - 8, y + 4, 16, 5);
+      ctx.fillStyle = "#ff3355";
+      ctx.fillRect(x - 8, y - 7, 5, 5);
+      ctx.fillStyle = "#4488ff";
+      ctx.fillRect(x + 3, y - 7, 5, 5);
+    }
+  }
+
+  function drawPickups() {
+    pickups.forEach((p) => {
+      const meta = PICKUP_META[p.type];
+      const bobY = Math.sin(p.bob || 0) * 3;
+      const x = Math.round(p.x);
+      const y = Math.round(p.y + bobY);
+      const pulse = 0.55 + (Math.sin((p.life || 0) * 0.18) + 1) * 0.2;
+
+      // alone di raccolta
+      ctx.globalAlpha = 0.18 * pulse;
+      ctx.fillStyle = meta.color;
+      ctx.beginPath();
+      ctx.arc(x, y, 28, 0, Math.PI * 2);
+      ctx.fill();
+
+      // base
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = "rgba(8,10,18,0.85)";
+      ctx.fillRect(x - 16, y - 16, 32, 32);
+      ctx.strokeStyle = meta.color;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 16, y - 16, 32, 32);
+
+      ctx.globalAlpha = 1;
+      drawPickupIcon(p.type, x, y, meta.color);
+
+      // etichetta chiara
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(0,0,0,0.85)";
+      ctx.fillStyle = meta.color;
+      ctx.strokeText(meta.label, x, y - 24);
+      ctx.fillText(meta.label, x, y - 24);
+      ctx.font = "9px sans-serif";
+      ctx.fillStyle = "#e8e8e8";
+      ctx.strokeText(meta.hint, x, y + 30);
+      ctx.fillText(meta.hint, x, y + 30);
     });
+    ctx.globalAlpha = 1;
+    ctx.textAlign = "left";
   }
 
   function drawParticles() {
