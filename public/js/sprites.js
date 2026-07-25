@@ -734,7 +734,7 @@
       "BBAAAAAAAAAAAAAAAAAAAABB",
       "ABBBBBBBBBBBBBBBBBBBBBBA",
       "ABABABABABABABABABABABAB"
-    ], { '.':null,'A':'#2a1a0a','B':'#3a2818','C':'#ffd700','D':'#ffffff' }),
+    ], { '.':null,'A':'#1a140e','B':'#241810','C':'#6a5840','D':'#4a3a28' }),
 
     // tile_underworld
     tile_underworld: parseSprite([
@@ -1156,7 +1156,7 @@
       "....................",
       "....................",
       "...................."
-    ], { '.':null,'A':'#d4b840','B':'#ffd700','C':'#6a5840','D':'#8a7860' }),
+    ], { '.':null,'A':'#6a5840','B':'#8a7040','C':'#4a3a28','D':'#5a4a34' }),
 
     // decor_building
     decor_building: parseSprite([
@@ -1240,7 +1240,7 @@
       ".....DDD....",
       ".....DDD....",
       ".....DDD...."
-    ], { '.':null,'A':'#ff9933','B':'#ffe088','C':'#ff4422','D':'#5a3a20' }),
+    ], { '.':null,'A':'#c87830','B':'#d4a050','C':'#9a3a18','D':'#4a3220' }),
 
     // decor_crater
     decor_crater: parseSprite([

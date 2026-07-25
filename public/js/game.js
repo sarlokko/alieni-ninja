@@ -150,85 +150,85 @@
     {
       name: "Addestramento",
       theme: "training",
-      story: "Campo olografico. Elimina 65 simulacri, poi il Simulacro Alfa.",
+      story: "Campo olografico. Elimina 40 simulacri, poi il Simulacro Alfa.",
       bg: ["#0d1b2a", "#1b263b"],
       floor: "#152238",
       accent: "#00f5ff",
-      killQuota: 65,
-      spawnRate: 69,
-      enemyHp: 12,
-      enemySpeed: 0.715,
-      boss: { name: "Simulacro Alfa", hp: 520, speed: 0.97, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 7 },
+      killQuota: 40,
+      spawnRate: 92,
+      enemyHp: 8,
+      enemySpeed: 0.55,
+      boss: { name: "Simulacro Alfa", hp: 280, speed: 0.78, size: 34, color: "#00f5ff", sprite: "cat_boss", damage: 5 },
       fragment: false,
     },
     {
       name: "Città Alienigena",
       theme: "alien_city",
-      story: "Neon e grattacieli. Uccidi 90 predatori, poi il Capo Distretto.",
+      story: "Neon e grattacieli. Uccidi 60 predatori, poi il Capo Distretto.",
       bg: ["#1a0a2e", "#2d1b4e"],
       floor: "#1e1040",
       accent: "#b026ff",
-      killQuota: 90,
-      spawnRate: 63,
-      enemyHp: 15,
-      enemySpeed: 0.814,
-      boss: { name: "Capo Distretto Neon", hp: 720, speed: 1.01, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 8 },
+      killQuota: 60,
+      spawnRate: 82,
+      enemyHp: 11,
+      enemySpeed: 0.64,
+      boss: { name: "Capo Distretto Neon", hp: 420, speed: 0.86, size: 36, color: "#b026ff", sprite: "cat_boss", damage: 6 },
       fragment: false,
     },
     {
       name: "Bosco Infestato",
       theme: "forest",
-      story: "Bosco bioluminescente. Abbatti 110 predatori, poi il Signore del Bosco.",
+      story: "Bosco bioluminescente. Abbatti 85 predatori, poi il Signore del Bosco.",
       bg: ["#0a1f0a", "#1a3a1a"],
       floor: "#0f2a12",
       accent: "#39ff14",
-      killQuota: 110,
-      spawnRate: 59,
-      enemyHp: 18,
-      enemySpeed: 0.88,
-      boss: { name: "Signore del Bosco", hp: 920, speed: 0.99, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 9 },
+      killQuota: 85,
+      spawnRate: 74,
+      enemyHp: 14,
+      enemySpeed: 0.72,
+      boss: { name: "Signore del Bosco", hp: 620, speed: 0.9, size: 36, color: "#39ff14", sprite: "cat_boss", damage: 7 },
       fragment: false,
     },
     {
       name: "Tempio Antico",
       theme: "temple",
-      story: "Pilastri e torce. Uccidi 140 gatti, poi il Custode.",
-      bg: ["#2a1a0a", "#4a3020"],
-      floor: "#3a2818",
-      accent: "#ffd700",
-      killQuota: 140,
-      spawnRate: 55,
-      enemyHp: 21,
-      enemySpeed: 0.946,
-      boss: { name: "Custode delle Stelle", hp: 1150, speed: 0.97, size: 38, color: "#ffd700", sprite: "cat_boss", damage: 10 },
+      story: "Pietra e torce. Uccidi 110 gatti, poi il Custode.",
+      bg: ["#1a140e", "#261c14"],
+      floor: "#22180f",
+      accent: "#b8954a",
+      killQuota: 110,
+      spawnRate: 66,
+      enemyHp: 17,
+      enemySpeed: 0.8,
+      boss: { name: "Custode delle Stelle", hp: 900, speed: 0.92, size: 38, color: "#b8954a", sprite: "cat_boss", damage: 8 },
       fragment: true,
     },
     {
       name: "Sottomondo Felino",
       theme: "underworld",
-      story: "Gallerie laviche. Elimina 165 nemici e la Matrona.",
+      story: "Gallerie laviche. Elimina 145 nemici e la Matrona.",
       bg: ["#1a0a0a", "#3a1515"],
       floor: "#2a1010",
       accent: "#ff4466",
-      killQuota: 165,
-      spawnRate: 53,
-      enemyHp: 24,
-      enemySpeed: 1.012,
-      boss: { name: "Matrona degli Arcani", hp: 1450, speed: 1.03, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 10 },
+      killQuota: 145,
+      spawnRate: 56,
+      enemyHp: 22,
+      enemySpeed: 0.92,
+      boss: { name: "Matrona degli Arcani", hp: 1300, speed: 1.0, size: 36, color: "#ff4466", sprite: "cat_boss", damage: 10 },
       fragment: true,
     },
     {
       name: "Tempio delle Stelle",
       theme: "star_temple",
-      story: "Portali dimensionali. Uccidi 195 gatti, poi il Guardiano.",
+      story: "Portali dimensionali. Uccidi 185 gatti, poi il Guardiano.",
       bg: ["#0a0a2a", "#1a1a5a"],
       floor: "#12124a",
       accent: "#7b68ee",
-      killQuota: 195,
-      spawnRate: 50,
+      killQuota: 185,
+      spawnRate: 46,
       enemyHp: 27,
-      enemySpeed: 1.078,
-      boss: { name: "Guardiano Dimensionale", hp: 1800, speed: 1.08, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 11 },
+      enemySpeed: 1.04,
+      boss: { name: "Guardiano Dimensionale", hp: 1750, speed: 1.08, size: 40, color: "#7b68ee", sprite: "cat_boss", damage: 12 },
       fragment: true,
     },
     {
@@ -239,53 +239,53 @@
       floor: "#3a3a4a",
       accent: "#ff6347",
       killQuota: 230,
-      spawnRate: 47,
-      enemyHp: 30,
-      enemySpeed: 1.122,
-      boss: { name: "Drago Stellare", hp: 2200, speed: 0.935, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 12 },
+      spawnRate: 38,
+      enemyHp: 33,
+      enemySpeed: 1.16,
+      boss: { name: "Drago Stellare", hp: 2400, speed: 1.0, size: 44, color: "#ff6347", sprite: "cat_boss", damage: 14 },
       fragment: true,
     },
     {
       name: "Città Maledetta",
       theme: "cursed_city",
-      story: "Rovine e nebbia. Uccidi 270 gatti e il Signore del Caos.",
+      story: "Rovine e nebbia. Uccidi 290 gatti e il Signore del Caos.",
       bg: ["#1a0a1a", "#3a1a3a"],
       floor: "#2a1530",
       accent: "#9400d3",
-      killQuota: 270,
-      spawnRate: 45,
-      enemyHp: 33,
-      enemySpeed: 1.166,
-      boss: { name: "Signore del Caos", hp: 2650, speed: 1.1, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 13 },
+      killQuota: 290,
+      spawnRate: 32,
+      enemyHp: 40,
+      enemySpeed: 1.28,
+      boss: { name: "Signore del Caos", hp: 3200, speed: 1.12, size: 42, color: "#9400d3", sprite: "cat_boss", damage: 15 },
       fragment: true,
     },
     {
       name: "Rifugio delle Stelle",
       theme: "star_refuge",
-      story: "Cristalli cosmici. Elimina 310 nemici e la Matriarca.",
+      story: "Cristalli cosmici. Elimina 350 nemici e la Matriarca.",
       bg: ["#0a1a2a", "#1a3a5a"],
       floor: "#102840",
       accent: "#ff8c00",
-      killQuota: 310,
-      spawnRate: 43,
-      enemyHp: 36,
-      enemySpeed: 1.21,
-      boss: { name: "Matriarca del Mondo Felino", hp: 3100, speed: 1.155, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 14 },
+      killQuota: 350,
+      spawnRate: 28,
+      enemyHp: 48,
+      enemySpeed: 1.38,
+      boss: { name: "Matriarca del Mondo Felino", hp: 4100, speed: 1.18, size: 40, color: "#ff8c00", sprite: "cat_boss", damage: 17 },
       fragment: true,
     },
     {
       name: "Confronto Finale",
       theme: "final",
-      story: "La Luna. Uccidi 360 gatti, poi il Re e il Guardiano.",
+      story: "La Luna. Uccidi 420 gatti, poi il Re e il Guardiano.",
       bg: ["#0a0a1a", "#1a0a2a"],
       floor: "#2a2a35",
       accent: "#ff2200",
-      killQuota: 360,
-      spawnRate: 41,
-      enemyHp: 40,
-      enemySpeed: 1.254,
-      boss: { name: "Re dei Gatti Mannari", hp: 3800, speed: 1.1, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 15 },
-      finalBoss: { name: "Guardiano dell'Universo", hp: 2800, speed: 1.21, size: 42, color: "#00f5ff", sprite: "cat_boss", damage: 14 },
+      killQuota: 420,
+      spawnRate: 24,
+      enemyHp: 56,
+      enemySpeed: 1.5,
+      boss: { name: "Re dei Gatti Mannari", hp: 5200, speed: 1.15, size: 46, color: "#ff2200", sprite: "cat_boss", damage: 18 },
+      finalBoss: { name: "Guardiano dell'Universo", hp: 3900, speed: 1.25, size: 42, color: "#00f5ff", sprite: "cat_boss", damage: 17 },
       fragment: true,
     },
   ];
@@ -734,7 +734,8 @@
     player.invulnerable = Math.max(player.invulnerable, 40);
     spawnTimer = 8;
     showLevelBanner(level);
-    for (let i = 0; i < 8; i++) spawnEnemy();
+    const openCount = Math.min(12, 3 + currentLevel);
+    for (let i = 0; i < openCount; i++) spawnEnemy();
     addShockwave(player.x, player.y, level.accent, 110);
     addBurst(player.x, player.y, level.accent, 18, "spark");
     addScreenShake(8);
@@ -818,14 +819,16 @@
     finalBossSpawned = false;
     bossPhase = false;
     levelKills = 0;
-    for (let i = 0; i < 10; i++) spawnEnemy();
+    const openCount = Math.min(12, 3 + currentLevel);
+    for (let i = 0; i < openCount; i++) spawnEnemy();
   }
 
   function startLevel() {
     state = STATE.PLAYING;
     showLevelBanner(LEVELS[currentLevel]);
     if (enemies.length < 8) {
-      for (let i = 0; i < 10; i++) spawnEnemy();
+      const openCount = Math.min(12, 3 + currentLevel);
+      for (let i = 0; i < openCount; i++) spawnEnemy();
     }
   }
 
@@ -847,7 +850,7 @@
     const rnd = (n) => Math.random() * n;
     const at = () => ({ x: rnd(WORLD_W), y: rnd(WORLD_H) });
     const count = {
-      training: 140, alien_city: 120, forest: 160, temple: 110, underworld: 120,
+      training: 140, alien_city: 120, forest: 160, temple: 58, underworld: 120,
       star_temple: 120, moon: 130, cursed_city: 120, star_refuge: 130, final: 120,
     };
     const n = count[theme] || 80;
@@ -893,12 +896,11 @@
         break;
       case "temple":
         for (let i = 0; i < n; i++) {
-          items.push({ type: "pillar", ...at(), h: 80 + rnd(120) });
-          if (i % 3 === 0) items.push({ type: "torch", ...at() });
-          if (i % 4 === 0) items.push({ type: "rune", ...at(), r: 10 + rnd(18) });
-          if (i % 5 === 0) items.push({ type: "statue", ...at() });
-          if (i % 6 === 0) items.push({ type: "debris", ...at() });
-          if (i % 7 === 0) items.push({ type: "crate", ...at() });
+          items.push({ type: "pillar", ...at(), h: 70 + rnd(70) });
+          if (i % 6 === 0) items.push({ type: "torch", ...at() });
+          if (i % 8 === 0) items.push({ type: "statue", ...at() });
+          if (i % 5 === 0) items.push({ type: "debris", ...at() });
+          if (i % 9 === 0) items.push({ type: "crate", ...at() });
         }
         break;
       case "underworld":
@@ -966,20 +968,22 @@
   function generateAmbience(theme) {
     const items = [];
     const colors = {
-      training: "#00f5ff", alien_city: "#b026ff", forest: "#39ff14", temple: "#ffd700",
+      training: "#00f5ff", alien_city: "#b026ff", forest: "#39ff14", temple: "#8a7040",
       underworld: "#ff4466", star_temple: "#7b68ee", moon: "#c0c0ff", cursed_city: "#9400d3",
       star_refuge: "#ff8c00", final: "#ff2200",
     };
     const color = colors[theme] || "#ffffff";
-    for (let i = 0; i < 36; i++) {
+    const count = theme === "temple" ? 10 : 36;
+    for (let i = 0; i < count; i++) {
       items.push({
         x: Math.random() * WORLD_W,
         y: Math.random() * WORLD_H,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: (Math.random() - 0.5) * 0.35,
-        r: 1 + Math.random() * 2.5,
+        vx: (Math.random() - 0.5) * (theme === "temple" ? 0.12 : 0.35),
+        vy: (Math.random() - 0.5) * (theme === "temple" ? 0.12 : 0.35),
+        r: 1 + Math.random() * (theme === "temple" ? 1.4 : 2.5),
         phase: Math.random() * Math.PI * 2,
         color,
+        calm: theme === "temple",
       });
     }
     return items;
@@ -989,7 +993,7 @@
     ambience.forEach((a) => {
       a.x += a.vx;
       a.y += a.vy;
-      a.phase += 0.04;
+      a.phase += a.calm ? 0.015 : 0.04;
       if (a.x < 0) a.x = WORLD_W;
       if (a.x > WORLD_W) a.x = 0;
       if (a.y < 0) a.y = WORLD_H;
@@ -1042,6 +1046,9 @@
 
   function pickEnemyType() {
     const progress = getKillProgress();
+    const lv = currentLevel;
+    // Early levels stay soft; late levels unlock elites sooner
+    const p = Math.max(0, Math.min(1, progress + Math.max(0, lv - 4) * 0.06 - Math.max(0, 2 - lv) * 0.18));
     const pool = [];
 
     const add = (id, w) => {
@@ -1049,13 +1056,16 @@
       if (t) pool.push({ type: t, weight: w });
     };
 
-    if (progress < 0.2) {
+    if (lv === 0) {
+      add("kitten", 70); add("tabby", 30);
+      if (p > 0.55) { add("hunter", 12); }
+    } else if (p < 0.22) {
       add("kitten", 55); add("tabby", 45);
-    } else if (progress < 0.4) {
+    } else if (p < 0.42) {
       add("kitten", 25); add("tabby", 35); add("hunter", 20); add("archer", 20);
-    } else if (progress < 0.65) {
+    } else if (p < 0.65) {
       add("tabby", 20); add("hunter", 22); add("archer", 28); add("werewolf", 18); add("shadow", 12);
-    } else if (progress < 0.85) {
+    } else if (p < 0.85) {
       add("hunter", 18); add("archer", 30); add("werewolf", 28); add("shadow", 24);
     } else {
       add("archer", 28); add("werewolf", 30); add("shadow", 27); add("hunter", 15);
@@ -1063,9 +1073,9 @@
 
     const total = pool.reduce((s, p) => s + p.weight, 0);
     let roll = Math.random() * total;
-    for (const p of pool) {
-      roll -= p.weight;
-      if (roll <= 0) return p.type;
+    for (const entry of pool) {
+      roll -= entry.weight;
+      if (roll <= 0) return entry.type;
     }
     return ENEMY_TYPES.tabby;
   }
@@ -1232,7 +1242,8 @@
     y = Math.max(50, Math.min(WORLD_H - 50, y));
 
     const etype = pickEnemyType();
-    const scale = bossPhase ? 1.05 : 1 + getKillProgress() * 0.18;
+    const scale = bossPhase ? 1.05 : 1 + getKillProgress() * (0.08 + currentLevel * 0.02);
+    const dmgScale = 0.72 + currentLevel * 0.09;
     enemies.push({
       x, y,
       hp: Math.floor(level.enemyHp * etype.hpMult * scale),
@@ -1244,13 +1255,13 @@
       typeId: etype.id,
       typeName: etype.name,
       sprite: etype.sprite,
-      damage: etype.damage,
+      damage: Math.max(1, Math.round(etype.damage * dmgScale)),
       xp: etype.xp,
       ranged: !!etype.ranged,
       preferDist: etype.preferDist || 0,
       shootCd: etype.shootCd || 0,
       shootTimer: etype.ranged ? 40 + Math.random() * 40 : 0,
-      arrowDamage: etype.arrowDamage || 0,
+      arrowDamage: Math.max(1, Math.round((etype.arrowDamage || 0) * dmgScale)),
       arrowSpeed: etype.arrowSpeed || 0,
       wobblePhase: Math.random() * Math.PI * 2,
       hitFlash: 0,
@@ -1429,18 +1440,25 @@
 
     const quotaReached = levelKills >= level.killQuota;
     const trashCount = enemies.reduce((n, e) => n + (e.isBoss ? 0 : 1), 0);
-    const enemyCap = bossPhase ? 32 : 52;
+    const enemyCap = bossPhase
+      ? Math.min(48, 20 + currentLevel * 2)
+      : Math.min(72, 24 + currentLevel * 5);
 
     if (spawnTimer > 0) spawnTimer--;
     else if (trashCount < enemyCap) {
       if (bossPhase) {
-        const burst = trashCount < 14 ? 4 : trashCount < 26 ? 3 : 2;
+        const burst = trashCount < 12 ? (currentLevel < 3 ? 2 : 4) : trashCount < 24 ? 2 : 1;
         for (let i = 0; i < burst; i++) spawnEnemy(false, null, { near: true });
-        spawnTimer = 14;
+        spawnTimer = currentLevel < 3 ? 20 : 14;
       } else {
-        const burst = trashCount < 18 ? 3 : trashCount < 40 ? 2 : 1;
+        const soft = currentLevel < 2;
+        const burst = trashCount < (soft ? 8 : 14 + currentLevel)
+          ? (soft ? 1 : currentLevel < 5 ? 2 : 3)
+          : trashCount < (soft ? 16 : 36) ? (soft ? 1 : 2) : 1;
         for (let i = 0; i < burst; i++) spawnEnemy();
-        spawnTimer = Math.max(18, level.spawnRate - Math.floor(getKillProgress() * 28));
+        const accel = 12 + currentLevel * 3;
+        const floor = Math.max(10, 24 - currentLevel * 2);
+        spawnTimer = Math.max(floor, level.spawnRate - Math.floor(getKillProgress() * accel));
       }
     } else {
       spawnTimer = 8;
@@ -1736,13 +1754,16 @@
     ctx.fillRect(left, top, right - left, bottom - top);
 
     // Pavimento a scacchi grandi (pochissimi fillRect)
-    const tile = 96;
+    const calmTemple = level.theme === "temple";
+    const tile = calmTemple ? 128 : 96;
+    const aHi = calmTemple ? 0.2 : 0.55;
+    const aLo = calmTemple ? 0.08 : 0.28;
     const startTX = Math.floor(left / tile) * tile;
     const startTY = Math.floor(top / tile) * tile;
     for (let x = startTX; x < right; x += tile) {
       for (let y = startTY; y < bottom; y += tile) {
         const parity = ((x / tile) + (y / tile)) % 2 === 0;
-        ctx.globalAlpha = parity ? 0.55 : 0.28;
+        ctx.globalAlpha = parity ? aHi : aLo;
         ctx.fillStyle = parity ? level.floor : level.bg[1];
         ctx.fillRect(x, y, tile, tile);
       }
@@ -1751,10 +1772,10 @@
 
     // Un solo tile-stamp ogni tanto per dettaglio (non griglia piena)
     const stamp = SPRITES["tile_" + level.theme] || SPRITES.tile_training;
-    const stampEvery = tile * 2;
+    const stampEvery = calmTemple ? tile * 3 : tile * 2;
     const s0x = Math.floor(left / stampEvery) * stampEvery;
     const s0y = Math.floor(top / stampEvery) * stampEvery;
-    ctx.globalAlpha = 0.55;
+    ctx.globalAlpha = calmTemple ? 0.16 : 0.55;
     for (let x = s0x; x < right; x += stampEvery) {
       for (let y = s0y; y < bottom; y += stampEvery) {
         drawSprite(ctx, stamp, x + 16, y + 16, 2, false);
@@ -1776,7 +1797,7 @@
 
     if (worldShift > 0) {
       ctx.fillStyle = level.accent;
-      ctx.globalAlpha = worldShift * 0.18;
+      ctx.globalAlpha = worldShift * (level.theme === "temple" ? 0.06 : 0.18);
       ctx.fillRect(left, top, right - left, bottom - top);
       ctx.globalAlpha = 1;
     }
@@ -1861,17 +1882,14 @@
         break;
       }
       case "temple": {
-        for (let x = Math.floor(left / 200) * 200; x < right; x += 200) {
-          ctx.globalAlpha = 0.32;
-          ctx.fillStyle = "#4a3420";
-          ctx.fillRect(x + 40, top, 18, bottom - top);
-          ctx.fillStyle = "#6a5040";
-          ctx.fillRect(x + 44, top, 4, bottom - top);
-          ctx.globalAlpha = 0.55;
-          ctx.fillStyle = level.accent;
-          for (let yy = top + 20; yy < bottom; yy += 48) {
-            ctx.fillRect(x + 34, yy, 30, 6);
-          }
+        // Colonne di pietra soft, niente bande oro che "strobano" con la camera
+        for (let x = Math.floor(left / 300) * 300; x < right; x += 300) {
+          ctx.globalAlpha = 0.14;
+          ctx.fillStyle = "#3a2a1c";
+          ctx.fillRect(x + 54, top, 20, bottom - top);
+          ctx.globalAlpha = 0.1;
+          ctx.fillStyle = "#4a3a28";
+          ctx.fillRect(x + 60, top, 5, bottom - top);
         }
         break;
       }
@@ -1974,7 +1992,9 @@
   function drawAmbience(level) {
     ambience.forEach((a) => {
       if (!isOnScreen(a.x, a.y, 40)) return;
-      const pulse = 0.35 + Math.sin(a.phase) * 0.25;
+      const pulse = a.calm
+        ? 0.16 + Math.sin(a.phase) * 0.05
+        : 0.35 + Math.sin(a.phase) * 0.25;
       ctx.globalAlpha = pulse;
       ctx.fillStyle = a.color;
       const r = Math.max(1, Math.round(a.r));
@@ -2009,17 +2029,18 @@
   function drawScreenFX(level) {
     const px = player.x - camera.x + shake.x;
     const py = player.y - camera.y + shake.y;
+    const calm = level.theme === "temple";
 
-    const light = ctx.createRadialGradient(px, py, 20, px, py, 220);
-    light.addColorStop(0, level.accent + "33");
-    light.addColorStop(0.5, level.accent + "11");
+    const light = ctx.createRadialGradient(px, py, 20, px, py, calm ? 180 : 220);
+    light.addColorStop(0, level.accent + (calm ? "18" : "33"));
+    light.addColorStop(0.5, level.accent + (calm ? "08" : "11"));
     light.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = light;
     ctx.fillRect(0, 0, W, H);
 
     const vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.85);
     vig.addColorStop(0, "rgba(0,0,0,0)");
-    vig.addColorStop(1, "rgba(0,0,0,0.62)");
+    vig.addColorStop(1, calm ? "rgba(0,0,0,0.48)" : "rgba(0,0,0,0.62)");
     ctx.fillStyle = vig;
     ctx.fillRect(0, 0, W, H);
   }
