@@ -734,7 +734,7 @@
     player.invulnerable = Math.max(player.invulnerable, 40);
     spawnTimer = 8;
     showLevelBanner(level);
-    const openCount = Math.min(12, 3 + currentLevel);
+    const openCount = Math.min(14, 3 + Math.floor(getHeroLevel() * 0.7));
     for (let i = 0; i < openCount; i++) spawnEnemy();
     addShockwave(player.x, player.y, level.accent, 110);
     addBurst(player.x, player.y, level.accent, 18, "spark");
@@ -819,7 +819,7 @@
     finalBossSpawned = false;
     bossPhase = false;
     levelKills = 0;
-    const openCount = Math.min(12, 3 + currentLevel);
+    const openCount = Math.min(14, 3 + Math.floor(getHeroLevel() * 0.7));
     for (let i = 0; i < openCount; i++) spawnEnemy();
   }
 
@@ -827,7 +827,7 @@
     state = STATE.PLAYING;
     showLevelBanner(LEVELS[currentLevel]);
     if (enemies.length < 8) {
-      const openCount = Math.min(12, 3 + currentLevel);
+      const openCount = Math.min(14, 3 + Math.floor(getHeroLevel() * 0.7));
       for (let i = 0; i < openCount; i++) spawnEnemy();
     }
   }
@@ -1044,11 +1044,15 @@
       .map((x) => x.e);
   }
 
+  function getHeroLevel() {
+    return (player && player.level) || 1;
+  }
+
   function pickEnemyType() {
+    const hl = getHeroLevel();
     const progress = getKillProgress();
-    const lv = currentLevel;
-    // Early levels stay soft; late levels unlock elites sooner
-    const p = Math.max(0, Math.min(1, progress + Math.max(0, lv - 4) * 0.06 - Math.max(0, 2 - lv) * 0.18));
+    // Progressione legata al livello eroe (+ un po' di avanzamento quota mappa)
+    const p = Math.max(0, Math.min(1, (hl - 1) * 0.09 + progress * 0.28));
     const pool = [];
 
     const add = (id, w) => {
@@ -1056,22 +1060,22 @@
       if (t) pool.push({ type: t, weight: w });
     };
 
-    if (lv === 0) {
-      add("kitten", 70); add("tabby", 30);
-      if (p > 0.55) { add("hunter", 12); }
+    if (hl <= 2) {
+      add("kitten", 72); add("tabby", 28);
+      if (hl >= 2 && progress > 0.5) add("hunter", 10);
     } else if (p < 0.22) {
       add("kitten", 55); add("tabby", 45);
     } else if (p < 0.42) {
       add("kitten", 25); add("tabby", 35); add("hunter", 20); add("archer", 20);
-    } else if (p < 0.65) {
-      add("tabby", 20); add("hunter", 22); add("archer", 28); add("werewolf", 18); add("shadow", 12);
-    } else if (p < 0.85) {
-      add("hunter", 18); add("archer", 30); add("werewolf", 28); add("shadow", 24);
+    } else if (p < 0.62) {
+      add("tabby", 18); add("hunter", 24); add("archer", 28); add("werewolf", 18); add("shadow", 12);
+    } else if (p < 0.82) {
+      add("hunter", 16); add("archer", 30); add("werewolf", 30); add("shadow", 24);
     } else {
-      add("archer", 28); add("werewolf", 30); add("shadow", 27); add("hunter", 15);
+      add("archer", 26); add("werewolf", 32); add("shadow", 28); add("hunter", 14);
     }
 
-    const total = pool.reduce((s, p) => s + p.weight, 0);
+    const total = pool.reduce((s, entry) => s + entry.weight, 0);
     let roll = Math.random() * total;
     for (const entry of pool) {
       roll -= entry.weight;
@@ -1174,8 +1178,8 @@
             type: "arcane_orb",
             life: 75,
             expand: 2.1 * area,
-            maxR: 46 * area,
-            r: 8,
+            maxR: 52 * area,
+            r: 10,
             hit: new Set(),
           });
         }
@@ -1242,13 +1246,17 @@
     y = Math.max(50, Math.min(WORLD_H - 50, y));
 
     const etype = pickEnemyType();
-    const scale = bossPhase ? 1.05 : 1 + getKillProgress() * (0.08 + currentLevel * 0.02);
-    const dmgScale = 0.72 + currentLevel * 0.09;
+    const hl = getHeroLevel();
+    const scale = bossPhase
+      ? 1.08 + (hl - 1) * 0.03
+      : 1 + getKillProgress() * 0.1 + (hl - 1) * 0.055;
+    const dmgScale = 0.68 + (hl - 1) * 0.07;
+    const spdMult = 1 + (hl - 1) * 0.028;
     enemies.push({
       x, y,
       hp: Math.floor(level.enemyHp * etype.hpMult * scale),
       maxHp: Math.floor(level.enemyHp * etype.hpMult * scale),
-      speed: level.enemySpeed * etype.speedMult * (0.95 + Math.random() * 0.16),
+      speed: level.enemySpeed * etype.speedMult * spdMult * (0.95 + Math.random() * 0.16),
       size: etype.size,
       color: etype.id === "archer" ? "#c8a060" : "#cc8844",
       isBoss: false,
@@ -1440,25 +1448,29 @@
 
     const quotaReached = levelKills >= level.killQuota;
     const trashCount = enemies.reduce((n, e) => n + (e.isBoss ? 0 : 1), 0);
+    const hl = getHeroLevel();
     const enemyCap = bossPhase
-      ? Math.min(48, 20 + currentLevel * 2)
-      : Math.min(72, 24 + currentLevel * 5);
+      ? Math.min(52, 18 + Math.floor(hl * 1.6))
+      : Math.min(85, 18 + Math.floor(hl * 3.4));
 
     if (spawnTimer > 0) spawnTimer--;
     else if (trashCount < enemyCap) {
       if (bossPhase) {
-        const burst = trashCount < 12 ? (currentLevel < 3 ? 2 : 4) : trashCount < 24 ? 2 : 1;
+        const burst = trashCount < 12 ? (hl < 4 ? 2 : 4) : trashCount < 24 ? 2 : 1;
         for (let i = 0; i < burst; i++) spawnEnemy(false, null, { near: true });
-        spawnTimer = currentLevel < 3 ? 20 : 14;
+        spawnTimer = hl < 4 ? 20 : 13;
       } else {
-        const soft = currentLevel < 2;
-        const burst = trashCount < (soft ? 8 : 14 + currentLevel)
-          ? (soft ? 1 : currentLevel < 5 ? 2 : 3)
-          : trashCount < (soft ? 16 : 36) ? (soft ? 1 : 2) : 1;
+        const soft = hl <= 3;
+        const burst = trashCount < (soft ? 7 : 10 + hl)
+          ? (soft ? 1 : hl < 7 ? 2 : 3)
+          : trashCount < (soft ? 14 : 20 + hl * 2) ? (soft ? 1 : 2) : 1;
         for (let i = 0; i < burst; i++) spawnEnemy();
-        const accel = 12 + currentLevel * 3;
-        const floor = Math.max(10, 24 - currentLevel * 2);
-        spawnTimer = Math.max(floor, level.spawnRate - Math.floor(getKillProgress() * accel));
+        const accel = 10 + hl * 2;
+        const floor = Math.max(8, 28 - hl * 2);
+        spawnTimer = Math.max(
+          floor,
+          level.spawnRate - Math.floor(getKillProgress() * accel) - Math.floor(hl * 1.8)
+        );
       }
     } else {
       spawnTimer = 8;
@@ -1486,7 +1498,7 @@
       if (p.type === "arcane_orb") {
         p.x += p.vx;
         p.y += p.vy;
-        p.r += p.expand;
+        p.r = Math.min((p.r || 8) + p.expand, p.maxR || 52);
         p.life--;
         enemies.forEach((e) => {
           const d = Math.hypot(e.x - p.x, e.y - p.y);
@@ -2330,15 +2342,28 @@
         return;
       }
       if (p.type === "arcane_orb") {
-        ctx.globalAlpha = 0.85;
+        const rr = Math.max(6, p.r || 8);
+        const fade = Math.max(0.2, Math.min(0.85, p.life / 75));
+        // disco pieno soft
+        ctx.globalAlpha = 0.16 * fade;
         ctx.fillStyle = "#00f5ff";
-        const rr = Math.round(p.r);
-        for (let a = 0; a < 20; a++) {
-          const ang = (a / 20) * Math.PI * 2;
-          ctx.fillRect(p.x + Math.cos(ang) * rr - 2, p.y + Math.sin(ang) * rr - 2, 4, 4);
-        }
-        ctx.globalAlpha = 0.35;
-        ctx.fillRect(p.x - rr * 0.5, p.y - rr * 0.5, rr, rr);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
+        ctx.fill();
+        // anello esterno tondo
+        ctx.globalAlpha = 0.9 * fade;
+        ctx.strokeStyle = "#00f5ff";
+        ctx.lineWidth = Math.max(3, 9 - rr * 0.06);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
+        ctx.stroke();
+        // alone interno
+        ctx.globalAlpha = 0.55 * fade;
+        ctx.strokeStyle = "#c8ffff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(4, rr * 0.7), 0, Math.PI * 2);
+        ctx.stroke();
         ctx.globalAlpha = 1;
         return;
       }
