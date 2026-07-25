@@ -1644,7 +1644,7 @@
       kills++;
       if (!e.isBoss) levelKills++;
       if (!e.isBoss) {
-        dropXp(e.x, e.y, e.xp || (3 + Math.floor(currentLevel / 2)));
+        dropXp(e.x, e.y, e.xp || (3 + Math.floor(getHeroLevel() / 2)));
       } else {
         dropXp(e.x, e.y, 30);
         if (level.fragment) fragments++;
