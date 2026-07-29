@@ -303,6 +303,9 @@
   let lastPickedUpgrade = null;
   let levelUpChoices = [];
   let levelUpSelected = 0;
+  let pendingLevelUps = 0;
+  const COMBO_WINDOW = 210;
+  const FEVER_DURATION = 240;
 
   let combo = 0;
   let comboTimer = 0;
@@ -310,6 +313,7 @@
   let feverTimer = 0;
   let bountyTimer = 420;
   let styleFlash = 0;
+  let funCooldown = 0;
 
   let player = null;
   let enemies = [];
@@ -722,11 +726,22 @@
   }
 
   function showLevelBanner(level) {
+    // Non sovrascrivere un Fever ancora fresco con eventi minori
+    if (
+      levelBanner &&
+      feverTimer > 90 &&
+      levelBanner.title === "FEVER TIME!" &&
+      level.name !== "FEVER TIME!" &&
+      !(level.name || "").includes("BOSS") &&
+      levelBanner.life > 40
+    ) {
+      return;
+    }
     levelBanner = {
       title: level.name,
       subtitle: `Settore ${currentLevel + 1} / ${LEVELS.length}`,
-      life: 160,
-      maxLife: 160,
+      life: 140,
+      maxLife: 140,
       accent: level.accent,
     };
   }
@@ -807,7 +822,7 @@
         upgrades: {},
         xp: 0,
         level: 1,
-        xpToNext: 8,
+        xpToNext: 16,
         tempBuff: 0,
         tempSpeed: 0,
       };
@@ -830,11 +845,12 @@
     decor = generateDecor(level.theme);
     ambience = generateAmbience(level.theme);
     spawnTimer = 8;
-    pickupTimer = 600;
+    pickupTimer = 780;
     bossSpawned = false;
     finalBossSpawned = false;
     bossPhase = false;
     levelKills = 0;
+    pendingLevelUps = 0;
     resetFunState();
     const openCount = Math.min(14, 3 + Math.floor(getHeroLevel() * 0.7));
     for (let i = 0; i < openCount; i++) spawnEnemy();
@@ -1033,8 +1049,13 @@
            wy > camera.y - margin && wy < camera.y + H + margin;
   }
 
+  function xpForLevel(level) {
+    // Curve più morbida: meno pause all'inizio, progressione leggibile
+    return 14 + level * 9;
+  }
+
   function getComboMult() {
-    return 1 + Math.min(1.2, Math.floor(combo / 4) * 0.12);
+    return 1 + Math.min(0.55, Math.floor(combo / 5) * 0.1);
   }
 
   function comboRank(n) {
@@ -1050,67 +1071,72 @@
     combo = 0;
     comboTimer = 0;
     feverTimer = 0;
-    bountyTimer = 360 + Math.floor(Math.random() * 180);
+    bountyTimer = 720 + Math.floor(Math.random() * 240);
     styleFlash = 0;
+    funCooldown = 0;
+  }
+
+  function hasActiveBounty() {
+    return enemies.some((e) => e.isBounty && e.hp > 0);
   }
 
   function startFever(reason) {
-    if (feverTimer > 90) return;
-    feverTimer = 320;
+    // Un solo momento "wow" alla volta: no Fever se c'è già una taglia o un cooldown
+    if (feverTimer > 40) return;
+    if (hasActiveBounty() || funCooldown > 0 || bossPhase) return;
+    feverTimer = FEVER_DURATION;
+    funCooldown = FEVER_DURATION + 240;
     styleFlash = 40;
     showLevelBanner({ name: "FEVER TIME!", accent: "#ffd700" });
-    if (levelBanner) levelBanner.subtitle = reason || "Modalità ninja!";
-    addShockwave(player.x, player.y, "#ffd700", 160);
-    addBurst(player.x, player.y, "#ffd700", 22, "spark");
-    addScreenShake(10);
-    // Pulse: colpo leggero ai nemici vicini
+    if (levelBanner) levelBanner.subtitle = reason || "Più danno, più velocità!";
+    addShockwave(player.x, player.y, "#ffd700", 140);
+    addBurst(player.x, player.y, "#ffd700", 18, "spark");
+    addScreenShake(8);
     enemies.forEach((e) => {
       if (e.isBoss) return;
       const d = Math.hypot(e.x - player.x, e.y - player.y);
-      if (d < 180) hurtEnemy(e, Math.max(4, getDamage(0.35)), "#ffd700");
+      if (d < 150) hurtEnemy(e, Math.max(3, getDamage(0.28)), "#ffd700");
     });
   }
 
   function registerKill(e) {
     combo++;
-    comboTimer = 160;
+    comboTimer = COMBO_WINDOW;
     if (combo > comboBest) comboBest = combo;
-    styleFlash = Math.max(styleFlash, 12);
+    styleFlash = Math.max(styleFlash, 10);
 
     const rank = comboRank(combo);
-    if (rank && (combo === 5 || combo === 10 || combo === 15 || combo === 25 || combo === 40 || combo % 10 === 0)) {
+    if (rank && (combo === 5 || combo === 10 || combo === 15 || combo === 25 || combo === 40)) {
       addFloatText(player.x, player.y - 50, rank, "#ffd700", 18);
-    } else if (combo >= 3 && combo % 3 === 0) {
-      addFloatText(e.x, e.y - e.size - 16, `x${combo}`, "#ffe08a", 14);
     }
 
-    if (combo === 12 || combo === 28 || combo === 45) {
+    // Fever raro e chiaro: solo a traguardi alti
+    if (combo === 20 || combo === 40) {
       startFever(`Combo x${combo}`);
     }
 
     if (e.isBounty) {
-      const bonus = 18 + getHeroLevel() * 2;
+      const bonus = 14 + getHeroLevel() * 2;
       dropXp(e.x, e.y, bonus);
-      dropXp(e.x + 12, e.y - 8, Math.floor(bonus * 0.5));
-      for (let i = 0; i < 2; i++) {
-        const types = ["heal", "damage", "speed", "magnet"];
-        pickups.push({
-          x: e.x + (Math.random() - 0.5) * 40,
-          y: e.y + (Math.random() - 0.5) * 40,
-          type: types[Math.floor(Math.random() * types.length)],
-          life: 780,
-          bob: Math.random() * Math.PI * 2,
-        });
-      }
-      addShockwave(e.x, e.y, "#ffd700", 100);
-      addFloatText(e.x, e.y - 30, "TAGLIA!", "#ffd700", 20);
-      showLevelBanner({ name: "Taglia riscossa!", accent: "#ffd700" });
-      if (Math.random() < 0.45) startFever("Caccia completata");
+      const types = ["heal", "damage", "speed", "magnet"];
+      pickups.push({
+        x: e.x + (Math.random() - 0.5) * 28,
+        y: e.y + (Math.random() - 0.5) * 28,
+        type: types[Math.floor(Math.random() * types.length)],
+        life: 780,
+        bob: Math.random() * Math.PI * 2,
+      });
+      addShockwave(e.x, e.y, "#ff8c42", 90);
+      addFloatText(e.x, e.y - 30, "TAGLIA!", "#ff8c42", 18);
+      showLevelBanner({ name: "Taglia riscossa!", accent: "#ff8c42" });
+      if (levelBanner) levelBanner.subtitle = `+${bonus} XP e un potenziamento`;
+      funCooldown = Math.max(funCooldown, 300);
+      // Niente Fever automatico: la taglia è già il premio
     }
   }
 
   function breakCombo(reason) {
-    if (combo >= 6) {
+    if (combo >= 8) {
       addFloatText(player.x, player.y - 40, `Combo x${combo} rotta`, "#ff8866", 14);
     }
     combo = 0;
@@ -1118,12 +1144,16 @@
   }
 
   function markBounty() {
-    const candidates = enemies.filter((e) => !e.isBoss && !e.isBounty && e.hp > 0);
-    if (!candidates.length) {
-      bountyTimer = 90;
+    // Niente taglia durante Fever / cooldown / boss: un evento alla volta
+    if (feverTimer > 0 || funCooldown > 0 || bossPhase) {
+      bountyTimer = 180;
       return;
     }
-    // Preferisci nemici mediamente lontani ma ancora in gioco
+    const candidates = enemies.filter((e) => !e.isBoss && !e.isBounty && e.hp > 0);
+    if (!candidates.length) {
+      bountyTimer = 120;
+      return;
+    }
     candidates.sort((a, b) => {
       const da = Math.hypot(a.x - player.x, a.y - player.y);
       const db = Math.hypot(b.x - player.x, b.y - player.y);
@@ -1131,25 +1161,26 @@
     });
     const target = candidates[0];
     target.isBounty = true;
-    target.hp = Math.floor(target.hp * 1.55);
-    target.maxHp = Math.floor(target.maxHp * 1.55);
-    target.speed *= 1.12;
-    target.xp = Math.floor((target.xp || 4) * 3);
-    addFloatText(target.x, target.y - 28, "CACCIA!", "#ffd700", 16);
-    showLevelBanner({ name: `Caccia: ${target.typeName || "Predatore"}`, accent: "#ffd700" });
-    if (levelBanner) levelBanner.subtitle = "Eliminalo per la taglia";
-    bountyTimer = 520 + Math.floor(Math.random() * 220);
+    target.hp = Math.floor(target.hp * 1.4);
+    target.maxHp = Math.floor(target.maxHp * 1.4);
+    target.speed *= 1.08;
+    target.xp = Math.floor((target.xp || 4) * 2.5);
+    addFloatText(target.x, target.y - 28, "CACCIA!", "#ff8c42", 16);
+    showLevelBanner({ name: `Caccia: ${target.typeName || "Predatore"}`, accent: "#ff8c42" });
+    if (levelBanner) levelBanner.subtitle = "Segui la freccia arancione";
+    funCooldown = 200;
+    bountyTimer = 960 + Math.floor(Math.random() * 360);
   }
 
   function getCooldown() {
-    const fever = feverTimer > 0 ? 0.62 : 1;
-    return Math.max(10, Math.floor(player.hero.baseCooldown * player.stats.cooldownMult * fever));
+    const fever = feverTimer > 0 ? 0.7 : 1;
+    return Math.max(12, Math.floor(player.hero.baseCooldown * player.stats.cooldownMult * fever));
   }
 
   function getDamage(mult = 1) {
-    const buff = player.tempBuff > 0 ? 1.4 : 1;
-    const fever = feverTimer > 0 ? 1.25 : 1;
-    const comboBonus = 1 + Math.min(0.35, Math.floor(combo / 8) * 0.05);
+    const buff = player.tempBuff > 0 ? 1.3 : 1;
+    const fever = feverTimer > 0 ? 1.2 : 1;
+    const comboBonus = 1 + Math.min(0.25, Math.floor(combo / 10) * 0.05);
     return player.stats.damage * mult * buff * fever * comboBonus * (1 + (player.stats.weaponLevel - 1) * 0.12);
   }
 
@@ -1397,10 +1428,10 @@
     const etype = pickEnemyType();
     const hl = getHeroLevel();
     const scale = bossPhase
-      ? 1.08 + (hl - 1) * 0.03
-      : 1 + getKillProgress() * 0.1 + (hl - 1) * 0.055;
-    const dmgScale = 0.68 + (hl - 1) * 0.07;
-    const spdMult = 1 + (hl - 1) * 0.028;
+      ? 1.06 + (hl - 1) * 0.025
+      : 1 + getKillProgress() * 0.08 + (hl - 1) * 0.04;
+    const dmgScale = 0.7 + (hl - 1) * 0.055;
+    const spdMult = 1 + (hl - 1) * 0.02;
     enemies.push({
       x, y,
       hp: Math.floor(level.enemyHp * etype.hpMult * scale),
@@ -1480,7 +1511,14 @@
 
     lastPickedUpgrade = choice;
     levelUpChoices = [];
-    // Reset stick: tempo per rimettere le dita sul telefono
+
+    // Se hai salito più livelli insieme (es. calamita), scegli a catena senza ripause
+    if (pendingLevelUps > 0) {
+      pendingLevelUps--;
+      triggerLevelUp();
+      return;
+    }
+
     moveJoy.active = false;
     moveJoy.id = null;
     aimJoy.active = false;
@@ -1488,10 +1526,11 @@
     if (player) {
       player.vx = 0;
       player.vy = 0;
-      player.invulnerable = Math.max(player.invulnerable, 100);
+      player.invulnerable = Math.max(player.invulnerable, 70);
     }
     Object.keys(keys).forEach((k) => { keys[k] = false; });
-    resumePauseTimer = 96; // ~1.6s
+    // Desktop: ripresa rapida. Touch: un secondo per rimettere le dita.
+    resumePauseTimer = isTouchDevice ? 60 : 24;
     state = STATE.RESUME_PAUSE;
   }
 
@@ -1542,20 +1581,32 @@
     }
 
     levelUpSelected = 0;
-    addBurst(player.x, player.y, "#ffd700", 20, "spark");
-    addShockwave(player.x, player.y, "#b026ff", 70);
+    addBurst(player.x, player.y, "#ffd700", 16, "spark");
+    addShockwave(player.x, player.y, "#b026ff", 55);
     state = STATE.LEVEL_UP;
+  }
+
+  function tryOpenLevelUp() {
+    if (pendingLevelUps <= 0) return;
+    if (state !== STATE.PLAYING) return;
+    pendingLevelUps--;
+    triggerLevelUp();
   }
 
   function addXp(amount) {
     player.xp += amount;
+    let gained = 0;
     while (player.xp >= player.xpToNext) {
       player.xp -= player.xpToNext;
       player.level++;
-      player.xpToNext = 8 + player.level * 6;
-      triggerLevelUp();
-      return;
+      player.xpToNext = xpForLevel(player.level);
+      pendingLevelUps++;
+      gained++;
     }
+    if (gained > 1 && state === STATE.PLAYING) {
+      addFloatText(player.x, player.y - 56, `+${gained} LIVELLI`, "#00f5ff", 16);
+    }
+    tryOpenLevelUp();
   }
 
   function addParticles(x, y, color, count) {
@@ -1577,7 +1628,7 @@
 
     const spd = player.stats.speed * MOVE_MULT
       * (player.tempSpeed > 0 ? 1.35 : 1)
-      * (feverTimer > 0 ? 1.22 : 1);
+      * (feverTimer > 0 ? 1.15 : 1);
     if (dx !== 0 || dy !== 0) {
       const len = Math.hypot(dx, dy);
       player.vx = (dx / len) * spd;
@@ -1598,6 +1649,7 @@
     if (player.tempSpeed > 0) player.tempSpeed--;
     if (feverTimer > 0) feverTimer--;
     if (styleFlash > 0) styleFlash--;
+    if (funCooldown > 0) funCooldown--;
     if (comboTimer > 0) {
       comboTimer--;
       if (comboTimer <= 0 && combo > 0) breakCombo("timeout");
@@ -1606,7 +1658,7 @@
     else if (!bossPhase) markBounty();
 
     if (player.stats.regen > 0 && player.hp < player.maxHp) {
-      player.hp = Math.min(player.maxHp, player.hp + player.stats.regen / 60 * (feverTimer > 0 ? 1.5 : 1));
+      player.hp = Math.min(player.maxHp, player.hp + player.stats.regen / 60 * (feverTimer > 0 ? 1.35 : 1));
     }
 
     player.weaponTimer--;
@@ -1622,30 +1674,30 @@
     const trashCount = enemies.reduce((n, e) => n + (e.isBoss ? 0 : 1), 0);
     const hl = getHeroLevel();
     const enemyCap = bossPhase
-      ? Math.min(52, 18 + Math.floor(hl * 1.6))
-      : Math.min(85, 18 + Math.floor(hl * 3.4));
+      ? Math.min(42, 16 + Math.floor(hl * 1.2))
+      : Math.min(62, 16 + Math.floor(hl * 2.2));
 
     if (spawnTimer > 0) spawnTimer--;
     else if (trashCount < enemyCap) {
       if (bossPhase) {
-        const burst = trashCount < 12 ? (hl < 4 ? 2 : 4) : trashCount < 24 ? 2 : 1;
+        const burst = trashCount < 10 ? (hl < 4 ? 2 : 3) : trashCount < 22 ? 2 : 1;
         for (let i = 0; i < burst; i++) spawnEnemy(false, null, { near: true });
-        spawnTimer = hl < 4 ? 20 : 13;
+        spawnTimer = hl < 4 ? 24 : 16;
       } else {
-        const soft = hl <= 3;
-        const burst = trashCount < (soft ? 7 : 10 + hl)
-          ? (soft ? 1 : hl < 7 ? 2 : 3)
-          : trashCount < (soft ? 14 : 20 + hl * 2) ? (soft ? 1 : 2) : 1;
+        const soft = hl <= 4;
+        const burst = trashCount < (soft ? 8 : 12 + hl)
+          ? (soft ? 1 : hl < 8 ? 2 : 2)
+          : trashCount < (soft ? 16 : 22 + hl) ? 1 : 1;
         for (let i = 0; i < burst; i++) spawnEnemy();
-        const accel = 10 + hl * 2;
-        const floor = Math.max(8, 28 - hl * 2);
+        const accel = 8 + hl * 1.2;
+        const floor = Math.max(14, 34 - hl * 1.4);
         spawnTimer = Math.max(
           floor,
-          level.spawnRate - Math.floor(getKillProgress() * accel) - Math.floor(hl * 1.8)
+          level.spawnRate - Math.floor(getKillProgress() * accel) - Math.floor(hl * 1.1)
         );
       }
     } else {
-      spawnTimer = 8;
+      spawnTimer = 12;
     }
 
     if (!bossSpawned && quotaReached && level.boss) {
@@ -1663,7 +1715,7 @@
     if (worldShift < 0.01) worldShift = 0;
 
     if (pickupTimer > 0) pickupTimer--;
-    else { spawnPickup(); pickupTimer = 480 + Math.random() * 240; }
+    else { spawnPickup(); pickupTimer = 720 + Math.random() * 360; }
 
     projectiles.forEach((p) => {
       if (p.type === "arc_slash") { p.life--; return; }
@@ -1856,18 +1908,18 @@
       g.y += g.vy;
       g.vx *= 0.9;
       g.vy *= 0.9;
-      const magnetR = player.stats.magnet * (feverTimer > 0 ? 2.4 : 1);
+      const magnetR = player.stats.magnet * (feverTimer > 0 ? 1.55 : 1);
       const dist = Math.hypot(player.x - g.x, player.y - g.y);
       if (dist < magnetR) {
         const a = Math.atan2(player.y - g.y, player.x - g.x);
-        const pull = feverTimer > 0 ? (dist < 50 ? 10 : 7) : (dist < 40 ? 7 : 4.5);
+        const pull = feverTimer > 0 ? (dist < 50 ? 8 : 5.5) : (dist < 40 ? 7 : 4.5);
         g.x += Math.cos(a) * pull;
         g.y += Math.sin(a) * pull;
       }
       if (dist < 18) {
         addXp(g.value);
         g.collected = true;
-        addBurst(g.x, g.y, feverTimer > 0 ? "#ffd700" : "#00f5ff", 6, "spark");
+        addBurst(g.x, g.y, feverTimer > 0 ? "#ffd700" : "#00f5ff", 5, "spark");
       }
     });
     xpGems = xpGems.filter((g) => !g.collected);
@@ -1885,18 +1937,19 @@
       if (dist < PICKUP_COLLECT) {
         const meta = PICKUP_META[p.type];
         if (p.type === "heal") player.hp = Math.min(player.maxHp, player.hp + 30);
-        if (p.type === "damage") player.tempBuff = 600;
-        if (p.type === "speed") player.tempSpeed = 600;
+        if (p.type === "damage") player.tempBuff = 360;
+        if (p.type === "speed") player.tempSpeed = 360;
         if (p.type === "magnet") {
+          // Accumula XP in un colpo: i livelli in coda si aprono a catena dopo
+          let sucked = 0;
           xpGems.forEach((g) => {
-            g.x = player.x;
-            g.y = player.y;
+            sucked += g.value;
             g.collected = true;
-            addXp(g.value);
           });
+          if (sucked > 0) addXp(sucked);
         }
         addFloatText(p.x, p.y - 18, `${meta.label}!`, meta.color, 16);
-        addParticles(p.x, p.y, meta.color, 14);
+        addParticles(p.x, p.y, meta.color, 12);
         p.collected = true;
       }
     });
@@ -2478,18 +2531,18 @@
       if (e.isBounty) {
         const pulse = 0.35 + Math.sin(gameTime * 0.25) * 0.2;
         ctx.globalAlpha = pulse;
-        ctx.strokeStyle = "#ffd700";
+        ctx.strokeStyle = "#ff8c42";
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(e.x, e.y, e.size + 16 + Math.sin(gameTime * 0.2) * 3, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.globalAlpha = pulse * 0.45;
-        ctx.fillStyle = "#ffd700";
+        ctx.globalAlpha = pulse * 0.4;
+        ctx.fillStyle = "#ff8c42";
         ctx.beginPath();
         ctx.arc(e.x, e.y, e.size + 10, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
-        ctx.fillStyle = "#ffd700";
+        ctx.fillStyle = "#ffb07a";
         ctx.font = "bold 11px sans-serif";
         ctx.textAlign = "center";
         ctx.fillText("★ TAGLIA", e.x, e.y - e.size - 28);
@@ -2993,7 +3046,7 @@
     ctx.fillText(`${level.name}`, 14, 20);
     ctx.fillStyle = "#aaa";
     ctx.font = "12px sans-serif";
-    ctx.fillText(`${player.hero.name} | Lv.${player.level} | Nemici: ${levelKills}/${level.killQuota}`, 14, 38);
+    ctx.fillText(`${player.hero.name}  ·  Lv.${player.level}`, 14, 38);
 
     ctx.textAlign = "center";
     ctx.fillStyle = bossPhase ? "#ff4444" : "#fff";
@@ -3015,28 +3068,37 @@
     ctx.fillStyle = "#ffd700";
     ctx.fillText(`⭐ Frammenti: ${fragments}/7`, W - 14, 20);
 
-    // Combo / Fever HUD
+    // Combo / Fever: un solo pannello chiaro con timer
     if (combo >= 2 || feverTimer > 0) {
       ctx.textAlign = "left";
       const cx = 14;
       const cy = 70;
+      const boxH = feverTimer > 0 ? 48 : 36;
       ctx.fillStyle = "rgba(0,0,0,0.55)";
-      ctx.fillRect(cx, cy, 168, feverTimer > 0 ? 44 : 28);
+      ctx.fillRect(cx, cy, 176, boxH);
       if (feverTimer > 0) {
         ctx.fillStyle = "#ffd700";
         ctx.font = "bold 13px sans-serif";
         ctx.fillText(`FEVER ${Math.ceil(feverTimer / 60)}s`, cx + 8, cy + 16);
         ctx.fillStyle = "#ffe8a0";
         ctx.font = "12px sans-serif";
-        ctx.fillText(`Combo x${combo}  ·  XP x${getComboMult().toFixed(1)}`, cx + 8, cy + 34);
+        ctx.fillText(`Combo x${combo}  ·  XP x${getComboMult().toFixed(1)}`, cx + 8, cy + 32);
+        ctx.fillStyle = "#554400";
+        ctx.fillRect(cx + 8, cy + 38, 160, 5);
+        ctx.fillStyle = "#ffd700";
+        ctx.fillRect(cx + 8, cy + 38, 160 * (feverTimer / FEVER_DURATION), 5);
       } else {
         ctx.fillStyle = styleFlash > 0 ? "#fff0a0" : "#ffcc66";
         ctx.font = "bold 13px sans-serif";
-        ctx.fillText(`COMBO x${combo}`, cx + 8, cy + 18);
+        ctx.fillText(`COMBO x${combo}`, cx + 8, cy + 16);
+        ctx.fillStyle = "#443300";
+        ctx.fillRect(cx + 8, cy + 24, 160, 5);
+        ctx.fillStyle = "#ffcc66";
+        ctx.fillRect(cx + 8, cy + 24, 160 * Math.max(0, comboTimer / COMBO_WINDOW), 5);
       }
     }
 
-    // Bounty arrow on minimap-ish edge marker
+    // Bounty arrow — arancione (diverso dal Fever oro)
     const bounty = enemies.find((e) => e.isBounty);
     if (bounty) {
       const sx = bounty.x - camera.x;
@@ -3044,7 +3106,7 @@
       if (sx < 20 || sx > W - 20 || sy < 70 || sy > H - 20) {
         const ax = Math.max(24, Math.min(W - 24, sx));
         const ay = Math.max(74, Math.min(H - 24, sy));
-        ctx.fillStyle = "#ffd700";
+        ctx.fillStyle = "#ff8c42";
         ctx.beginPath();
         ctx.moveTo(ax, ay - 8);
         ctx.lineTo(ax + 7, ay + 5);
@@ -3114,6 +3176,11 @@
     ctx.fillStyle = "#aaa";
     ctx.font = "13px sans-serif";
     ctx.fillText(`Danno ${Math.round(player.stats.damage)} | HP ${Math.floor(player.hp)}/${player.maxHp} | Arma Lv.${player.stats.weaponLevel}`, W / 2, 88);
+    if (pendingLevelUps > 0) {
+      ctx.fillStyle = "#00f5ff";
+      ctx.font = "bold 14px sans-serif";
+      ctx.fillText(`Ancora ${pendingLevelUps} scelt${pendingLevelUps === 1 ? "a" : "e"} in coda — poi riparti`, W / 2, 112);
+    }
 
     const catColors = { offense: "#ff6644", defense: "#44cc88", utility: "#44aaff", weapon: "#ffd700" };
     levelUpChoices.forEach((c, i) => {
@@ -3550,32 +3617,34 @@
   function drawResumePause() {
     drawPlaying();
 
-    ctx.fillStyle = "rgba(0,0,0,0.48)";
+    ctx.fillStyle = "rgba(0,0,0,0.42)";
     ctx.fillRect(0, 0, W, H);
 
     const secs = Math.max(1, Math.ceil(resumePauseTimer / 60));
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffd700";
-    ctx.font = "bold 28px sans-serif";
-    ctx.fillText("Riposiziona le dita", W / 2, H * 0.38);
+    ctx.font = "bold 26px sans-serif";
+    ctx.fillText(isTouchDevice ? "Riposiziona le dita" : "Di nuovo in azione", W / 2, H * 0.38);
     ctx.fillStyle = "#e8e8e8";
     ctx.font = "16px sans-serif";
     if (lastPickedUpgrade) {
       ctx.fillText(`${lastPickedUpgrade.icon || "✨"} ${lastPickedUpgrade.name}`, W / 2, H * 0.38 + 36);
     }
-    ctx.fillStyle = "#00f5ff";
-    ctx.font = "bold 54px sans-serif";
-    ctx.fillText(String(secs), W / 2, H * 0.38 + 100);
-    ctx.fillStyle = "#aaa";
-    ctx.font = "14px sans-serif";
-    ctx.fillText("Il gioco riparte tra un attimo…", W / 2, H * 0.38 + 130);
-
-    // Ghost stick ben visibili durante la pausa
     if (isTouchDevice) {
+      ctx.fillStyle = "#00f5ff";
+      ctx.font = "bold 48px sans-serif";
+      ctx.fillText(String(secs), W / 2, H * 0.38 + 96);
+      ctx.fillStyle = "#aaa";
+      ctx.font = "14px sans-serif";
+      ctx.fillText("Il gioco riparte tra un attimo…", W / 2, H * 0.38 + 126);
       drawJoyGhost(touchJoyAnchors.move, "rgba(0,245,255,0.35)");
       drawJoyGhost(touchJoyAnchors.aim, "rgba(255,120,80,0.35)");
       drawJoy(moveJoy, "rgba(0,245,255,0.7)");
       drawJoy(aimJoy, "rgba(255,120,80,0.75)");
+    } else {
+      ctx.fillStyle = "#aaa";
+      ctx.font = "14px sans-serif";
+      ctx.fillText("Spazio per saltare", W / 2, H * 0.38 + 70);
     }
   }
 
@@ -3588,6 +3657,7 @@
       else {
         lastPickedUpgrade = null;
         state = STATE.PLAYING;
+        tryOpenLevelUp();
       }
     }
   }
