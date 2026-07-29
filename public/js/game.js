@@ -628,15 +628,15 @@
 
   function getSelectLayout() {
     const cols = W < 1100 ? 2 : 3;
-    const cardW = Math.min(340, Math.floor((W - 80) / cols) - 16);
-    const cardH = 318;
-    const gapX = 18;
-    const gapY = 16;
+    const cardW = Math.min(340, Math.floor((W - 72) / cols) - 14);
+    const cardH = 340;
+    const gapX = 16;
+    const gapY = 14;
     const gridW = cols * cardW + (cols - 1) * gapX;
     const rows = Math.ceil(HEROES.length / cols);
     const gridH = rows * cardH + (rows - 1) * gapY;
     const startX = Math.floor((W - gridW) / 2);
-    const startY = Math.max(78, Math.floor((H - gridH) / 2) - 6);
+    const startY = Math.max(72, Math.floor((H - gridH) / 2) - 4);
     return { cols, cardW, cardH, gapX, gapY, startX, startY };
   }
 
@@ -3038,83 +3038,88 @@
     ctx.rect(left, top, boxW, boxH);
     ctx.clip();
 
-    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    // sfondo ben visibile
+    ctx.fillStyle = "rgba(0,0,0,0.72)";
     ctx.fillRect(left, top, boxW, boxH);
-    ctx.strokeStyle = accent + "aa";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(left + 0.5, top + 0.5, boxW - 1, boxH - 1);
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(left + 1, top + 1, boxW - 2, boxH - 2);
+
+    ctx.fillStyle = accent;
+    ctx.font = "bold 10px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("ATTACCO", left + 8, top + 14);
 
     // mini ninja
-    const hx = left + boxW * 0.28;
-    const hy = cy;
+    const hx = left + boxW * 0.26;
+    const hy = cy + 4;
     ctx.fillStyle = color;
-    ctx.fillRect(hx - 5, hy - 7, 10, 14);
+    ctx.fillRect(hx - 6, hy - 8, 12, 16);
     ctx.fillStyle = "#fff";
-    ctx.fillRect(hx - 2, hy - 4, 2, 2);
-    ctx.fillRect(hx + 1, hy - 4, 2, 2);
+    ctx.fillRect(hx - 3, hy - 5, 2, 2);
+    ctx.fillRect(hx + 1, hy - 5, 2, 2);
 
     // mini bersaglio
     const ex = left + boxW * 0.78;
-    const ey = cy + Math.sin(t * 0.05) * 2;
+    const ey = cy + 4 + Math.sin(t * 0.05) * 2;
     ctx.fillStyle = "#a06030";
-    ctx.fillRect(ex - 7, ey - 7, 14, 14);
+    ctx.fillRect(ex - 8, ey - 8, 16, 16);
     ctx.fillStyle = "#ff4422";
-    ctx.fillRect(ex - 2, ey - 2, 4, 4);
+    ctx.fillRect(ex - 3, ey - 3, 6, 6);
 
     const phase = (t % 90) / 90;
 
     if (weapon === "orbit_shuriken") {
       for (let i = 0; i < 3; i++) {
-        const a = t * 0.12 + i * (Math.PI * 2 / 3);
-        const r = 16;
+        const a = t * 0.14 + i * (Math.PI * 2 / 3);
+        const r = 18;
         const x = hx + Math.cos(a) * r;
         const y = hy + Math.sin(a) * r;
         ctx.fillStyle = accent;
-        ctx.fillRect(x - 3, y - 1, 6, 2);
-        ctx.fillRect(x - 1, y - 3, 2, 6);
+        ctx.fillRect(x - 4, y - 1, 8, 3);
+        ctx.fillRect(x - 1, y - 4, 3, 8);
         ctx.fillStyle = "#fff";
-        ctx.fillRect(x - 1, y - 1, 2, 2);
+        ctx.fillRect(x - 1, y - 1, 3, 3);
       }
     } else if (weapon === "laser_arc") {
-      const sweep = -0.9 + phase * 2.2;
+      const sweep = -1.0 + phase * 2.4;
       ctx.strokeStyle = accent;
-      ctx.globalAlpha = 0.85;
-      ctx.lineWidth = 3;
+      ctx.globalAlpha = 0.9;
+      ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.arc(hx, hy, 22, sweep - 0.55, sweep + 0.55);
+      ctx.arc(hx, hy, 24, sweep - 0.6, sweep + 0.6);
       ctx.stroke();
-      ctx.globalAlpha = 0.35;
-      ctx.lineWidth = 7;
+      ctx.globalAlpha = 0.4;
+      ctx.lineWidth = 8;
       ctx.beginPath();
-      ctx.arc(hx, hy, 22, sweep - 0.35, sweep + 0.35);
+      ctx.arc(hx, hy, 24, sweep - 0.4, sweep + 0.4);
       ctx.stroke();
       ctx.globalAlpha = 1;
-      // impact spark near tip
-      const tipX = hx + Math.cos(sweep) * 22;
-      const tipY = hy + Math.sin(sweep) * 22;
+      const tipX = hx + Math.cos(sweep) * 24;
+      const tipY = hy + Math.sin(sweep) * 24;
       ctx.fillStyle = "#fff";
-      ctx.fillRect(tipX - 2, tipY - 2, 4, 4);
+      ctx.fillRect(tipX - 2, tipY - 2, 5, 5);
     } else if (weapon === "plasma_burst") {
       for (let i = 0; i < 3; i++) {
         const p = (phase + i * 0.28) % 1;
         const x = hx + (ex - hx) * p;
-        const y = hy + Math.sin(p * Math.PI) * -6;
-        const r = 3 + p * 7;
-        ctx.globalAlpha = 1 - p * 0.4;
+        const y = hy + Math.sin(p * Math.PI) * -8;
+        const r = 4 + p * 8;
+        ctx.globalAlpha = 1 - p * 0.35;
         ctx.fillStyle = accent;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = "#fff";
         ctx.beginPath();
-        ctx.arc(x, y, Math.max(1, r * 0.35), 0, Math.PI * 2);
+        ctx.arc(x, y, Math.max(1.5, r * 0.35), 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
     } else if (weapon === "homing_dart") {
       for (let i = 0; i < 2; i++) {
         const p = (phase + i * 0.45) % 1;
-        const curve = Math.sin(p * Math.PI) * (i === 0 ? 12 : -12);
+        const curve = Math.sin(p * Math.PI) * (i === 0 ? 14 : -14);
         const x = hx + (ex - hx) * p;
         const y = hy + curve * (1 - p);
         const ang = Math.atan2(ey - y, ex - x);
@@ -3122,31 +3127,29 @@
         ctx.translate(x, y);
         ctx.rotate(ang);
         ctx.fillStyle = accent;
-        ctx.fillRect(-5, -1, 10, 3);
+        ctx.fillRect(-6, -2, 12, 4);
         ctx.fillStyle = "#fff";
-        ctx.fillRect(3, -1, 4, 3);
+        ctx.fillRect(4, -2, 5, 4);
         ctx.restore();
       }
     } else if (weapon === "arcane_wave") {
       const p = phase;
-      const r = 6 + p * 34;
-      ctx.globalAlpha = 0.85 * (1 - p);
+      const r = 8 + p * 36;
+      ctx.globalAlpha = 0.9 * (1 - p);
       ctx.strokeStyle = accent;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.arc(hx, hy, r, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.globalAlpha = 0.25 * (1 - p);
+      ctx.globalAlpha = 0.28 * (1 - p);
       ctx.fillStyle = accent;
       ctx.beginPath();
       ctx.arc(hx, hy, r, 0, Math.PI * 2);
       ctx.fill();
-      ctx.globalAlpha = 1;
-      // second trailing wave
-      const r2 = 6 + ((phase + 0.45) % 1) * 34;
-      const fade2 = 1 - ((phase + 0.45) % 1);
-      ctx.globalAlpha = 0.4 * fade2;
-      ctx.strokeStyle = "#a8ffff";
+      const p2 = (phase + 0.45) % 1;
+      const r2 = 8 + p2 * 36;
+      ctx.globalAlpha = 0.45 * (1 - p2);
+      ctx.strokeStyle = "#c8ffff";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(hx, hy, r2, 0, Math.PI * 2);
@@ -3154,23 +3157,19 @@
       ctx.globalAlpha = 1;
     }
 
-    ctx.fillStyle = "#9aa";
-    ctx.font = "9px sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText("COLPO", left + 6, top + 12);
     ctx.restore();
   }
 
   function drawSelect() {
     drawMenuBackground(LEVELS[0]);
-    drawGameLogo(70, 48, 56);
+    drawGameLogo(70, 44, 52);
     ctx.fillStyle = "#00f5ff";
-    ctx.font = "bold 26px sans-serif";
+    ctx.font = "bold 24px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Scegli il tuo Ninja", W / 2, 38);
-    ctx.fillStyle = "#888";
+    ctx.fillText("Scegli il tuo Ninja", W / 2, 34);
+    ctx.fillStyle = "#9ab";
     ctx.font = "13px sans-serif";
-    ctx.fillText("Tocca un eroe — sotto vedi l'attacco in anteprima", W / 2, 60);
+    ctx.fillText("Sotto ogni eroe c’è l’attacco animato — così capisci cosa scegli", W / 2, 56);
 
     const layout = getSelectLayout();
 
@@ -3181,31 +3180,35 @@
       const cardW = r.w;
       const cardH = r.h;
 
-      ctx.fillStyle = "rgba(12,16,40,0.92)";
+      ctx.fillStyle = "rgba(12,16,40,0.94)";
       ctx.strokeStyle = h.color;
       ctx.lineWidth = 2;
       ctx.fillRect(x, y, cardW, cardH);
       ctx.strokeRect(x, y, cardW, cardH);
 
-      // Sprite in alto
-      const spriteScale = Math.min(1.45, (cardW - 48) / (SPRITES[h.id].w || 48));
-      const spriteY = y + 52;
-      drawSpriteCentered(ctx, SPRITES[h.id], x + cardW / 2, spriteY, spriteScale, false);
+      // Sprite piccolo, ritagliato in alto (non copre l'anteprima)
+      const spriteAreaH = 78;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x + 6, y + 6, cardW - 12, spriteAreaH);
+      ctx.clip();
+      const spriteScale = Math.min(1.05, (spriteAreaH - 8) / (SPRITES[h.id].h || 72));
+      drawSpriteCentered(ctx, SPRITES[h.id], x + cardW / 2, y + 6 + spriteAreaH / 2, spriteScale, false);
+      ctx.restore();
 
-      // Anteprima attacco animata
+      // Anteprima attacco ben separata
       drawWeaponPreview(
         h.weapon,
         x + cardW / 2,
-        y + 118,
-        cardW - 20,
-        54,
+        y + 128,
+        cardW - 18,
+        68,
         h.color,
         h.accent,
         gameTime + i * 17
       );
 
-      // Testo sotto
-      const textTop = y + 158;
+      const textTop = y + 178;
       ctx.textAlign = "center";
       ctx.fillStyle = h.color;
       ctx.font = "bold 17px sans-serif";
@@ -3221,7 +3224,7 @@
 
       ctx.fillStyle = "#777";
       ctx.font = "11px sans-serif";
-      ctx.fillText(`HP ${h.hp}  ·  SPD ${h.speed}`, x + cardW / 2, y + cardH - 14);
+      ctx.fillText(`HP ${h.hp}  ·  SPD ${h.speed}`, x + cardW / 2, y + cardH - 12);
     });
   }
 
