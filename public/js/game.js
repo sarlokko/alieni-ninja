@@ -1232,9 +1232,13 @@
             type: "shuriken",
             life: 70,
             piercing: false,
+            spin: Math.random() * Math.PI * 2,
+            spinSpeed: 0.45,
+            size: 7,
           });
         }
         orbiters = initOrbiters();
+        addBurst(player.x, player.y, player.hero.accent, 6, "spark");
         break;
       }
       case "laser_arc": {
@@ -1248,7 +1252,17 @@
             hurtEnemy(e, getDamage(1.2), "#39ff14");
           }
         });
-        projectiles.push({ type: "arc_slash", x: player.x, y: player.y, angle: aim, arc, range: 140 * area, life: 14, damage: 0 });
+        projectiles.push({
+          type: "arc_slash",
+          x: player.x, y: player.y,
+          angle: aim, arc, range: 140 * area,
+          life: 16, maxLife: 16, damage: 0,
+        });
+        addBurst(
+          player.x + Math.cos(aim) * 40,
+          player.y + Math.sin(aim) * 40,
+          "#39ff14", 10, "spark"
+        );
         break;
       }
       case "plasma_burst": {
@@ -1265,9 +1279,12 @@
             size: 8 + area * 2,
             piercing: true,
             hit: new Set(),
+            spin: Math.random() * Math.PI * 2,
+            spinSpeed: 0.18,
           });
         }
-        addParticles(player.x, player.y, "#ffd700", 8);
+        addParticles(player.x, player.y, "#ffd700", 10);
+        addBurst(player.x, player.y, "#ff6347", 8, "spark");
         break;
       }
       case "homing_dart": {
@@ -1284,14 +1301,16 @@
             damage: getDamage(0.95),
             type: "dart",
             life: 58,
-            size: 4,
+            size: 5,
             piercing: false,
             homing: !!target,
             target,
             turnRate: 0.11,
             homingSpeed: 4.6,
+            spin: angle,
           });
         }
+        addBurst(player.x, player.y, "#ff69b4", 6, "spark");
         break;
       }
       case "arcane_wave": {
@@ -1309,8 +1328,10 @@
             maxR: 52 * area,
             r: 10,
             hit: new Set(),
+            spin: Math.random() * Math.PI * 2,
           });
         }
+        addBurst(player.x, player.y, "#00f5ff", 8, "spark");
         break;
       }
     }
@@ -1650,6 +1671,7 @@
         p.x += p.vx;
         p.y += p.vy;
         p.r = Math.min((p.r || 8) + p.expand, p.maxR || 52);
+        p.spin = (p.spin || 0) + 0.08;
         p.life--;
         enemies.forEach((e) => {
           const d = Math.hypot(e.x - p.x, e.y - p.y);
@@ -1677,10 +1699,17 @@
       p.x += p.vx;
       p.y += p.vy;
       p.life--;
+      if (p.spinSpeed) p.spin = (p.spin || 0) + p.spinSpeed;
+      else if (p.type === "dart") p.spin = Math.atan2(p.vy, p.vx);
       if (!p.trail) p.trail = [];
-      if (p.type !== "arc_slash" && p.life % 2 === 0) {
-        p.trail.push({ x: p.x, y: p.y, life: 10 });
-        if (p.trail.length > 8) p.trail.shift();
+      if (p.type !== "arc_slash" && p.type !== "arcane_orb" && p.life % 2 === 0) {
+        p.trail.push({
+          x: p.x, y: p.y,
+          life: 16,
+          size: (p.size || 6) * (0.5 + Math.random() * 0.4),
+          spin: p.spin || 0,
+        });
+        if (p.trail.length > 12) p.trail.shift();
       }
       enemies.forEach((e) => {
         const hitR = (p.size || 5) + e.size * 0.5;
@@ -2365,14 +2394,10 @@
     drawEntityShadow(p.x, p.y, 22);
 
     if (p.hero.weapon === "orbit_shuriken") {
-      orbiters.forEach((o) => {
-        const ox = Math.round(p.x + Math.cos(o.angle) * o.dist);
-        const oy = Math.round(p.y + Math.sin(o.angle) * o.dist);
-        ctx.fillStyle = p.hero.accent;
-        ctx.fillRect(ox - 4, oy - 1, 8, 2);
-        ctx.fillRect(ox - 1, oy - 4, 2, 8);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(ox - 1, oy - 1, 2, 2);
+      orbiters.forEach((o, idx) => {
+        const ox = p.x + Math.cos(o.angle) * o.dist;
+        const oy = p.y + Math.sin(o.angle) * o.dist;
+        drawFancyShuriken(ox, oy, o.angle * 3 + idx, 8, "#d8e4ff", p.hero.accent || "#00f5ff");
       });
     }
 
@@ -2504,71 +2529,265 @@
     });
   }
 
+  function drawFancyShuriken(x, y, angle, size, color, accent) {
+    const blade = size || 8;
+    const fill = color || "#d8e4ff";
+    const glow = accent || "#9eb6ff";
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle || 0);
+    ctx.shadowColor = glow;
+    ctx.shadowBlur = blade * 1.35;
+    const aura = ctx.createRadialGradient(0, 0, 0, 0, 0, blade * 1.35);
+    aura.addColorStop(0, "rgba(200,220,255,0.5)");
+    aura.addColorStop(1, "rgba(120,150,255,0)");
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(0, 0, blade * 1.35, 0, Math.PI * 2);
+    ctx.fill();
+    for (let i = 0; i < 4; i++) {
+      ctx.rotate(Math.PI / 2);
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+      ctx.moveTo(0, -blade * 0.18);
+      ctx.lineTo(blade, 0);
+      ctx.lineTo(0, blade * 0.18);
+      ctx.lineTo(-blade * 0.28, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "rgba(60,70,100,0.45)";
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(blade, 0);
+      ctx.lineTo(0, blade * 0.18);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = "#1a2030";
+    ctx.beginPath();
+    ctx.arc(0, 0, blade * 0.28, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(0, 0, blade * 0.14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawFancyDart(x, y, angle, size, color) {
+    const s = (size || 5) / 5;
+    const bodyCol = color || "#ff69b4";
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle || 0);
+    ctx.shadowColor = bodyCol;
+    ctx.shadowBlur = 14 * s;
+    const body = ctx.createLinearGradient(-10 * s, 0, 13 * s, 0);
+    body.addColorStop(0, "#5a1040");
+    body.addColorStop(0.45, bodyCol);
+    body.addColorStop(1, "#ffe8f6");
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.moveTo(13 * s, 0);
+    ctx.lineTo(-2 * s, -3.4 * s);
+    ctx.lineTo(-9 * s, -1.5 * s);
+    ctx.lineTo(-9 * s, 1.5 * s);
+    ctx.lineTo(-2 * s, 3.4 * s);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#ffb6d9";
+    ctx.beginPath();
+    ctx.moveTo(-6 * s, 0);
+    ctx.lineTo(-12 * s, -5 * s);
+    ctx.lineTo(-8.5 * s, 0);
+    ctx.lineTo(-12 * s, 5 * s);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(13 * s, 0);
+    ctx.lineTo(7 * s, -1.3 * s);
+    ctx.lineTo(7 * s, 1.3 * s);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawFancyPlasma(x, y, angle, size, spin, color) {
+    const s = (size || 8) / 8;
+    const col = color || "#ff6347";
+    const t = (spin || 0);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle || 0);
+    ctx.shadowColor = col;
+    ctx.shadowBlur = 20 * s;
+    const aura = ctx.createRadialGradient(0, 0, 0, 0, 0, 14 * s);
+    aura.addColorStop(0, "rgba(255,230,160,0.95)");
+    aura.addColorStop(0.4, "rgba(255,140,50,0.55)");
+    aura.addColorStop(1, "rgba(255,60,20,0)");
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(0, 0, 14 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.rotate(t);
+    for (let i = 0; i < 3; i++) {
+      ctx.rotate((Math.PI * 2) / 3);
+      ctx.fillStyle = "rgba(255,210,90,0.55)";
+      ctx.beginPath();
+      ctx.ellipse(6 * s, 0, 6 * s, 2.2 * s, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = "#fff4c8";
+    ctx.beginPath();
+    ctx.arc(0, 0, 4.6 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(-1.2 * s, -1.4 * s, 1.7 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawFancyLaserArc(p) {
+    const life = p.life / (p.maxLife || 16);
+    const pulse = 0.78 + Math.sin(Date.now() * 0.055) * 0.22;
+    const half = (p.arc || 1.2) / 2;
+    const range = p.range || 140;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.angle || 0);
+    ctx.globalAlpha = Math.max(0.28, life) * pulse;
+    const fan = ctx.createRadialGradient(0, 0, 6, 0, 0, range);
+    fan.addColorStop(0, "rgba(180,255,140,0.5)");
+    fan.addColorStop(0.45, "rgba(57,255,20,0.32)");
+    fan.addColorStop(1, "rgba(40,180,20,0)");
+    ctx.fillStyle = fan;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, range, -half, half);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#b8ff7a";
+    ctx.lineWidth = 9;
+    ctx.shadowColor = "#39ff14";
+    ctx.shadowBlur = 24;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.arc(0, 0, range * 0.92, -half * 0.95, half * 0.95);
+    ctx.stroke();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2.8;
+    ctx.shadowBlur = 10;
+    ctx.globalAlpha = Math.max(0.35, life * 0.95);
+    ctx.beginPath();
+    ctx.arc(0, 0, range * 0.92, -half * 0.72, half * 0.72);
+    ctx.stroke();
+    for (const side of [-half * 0.95, half * 0.95]) {
+      const sx = Math.cos(side) * range * 0.92;
+      const sy = Math.sin(side) * range * 0.92;
+      ctx.fillStyle = "#ffffff";
+      ctx.globalAlpha = life * 0.95;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawFancyArcaneOrb(p) {
+    const rr = Math.max(8, p.r || 8);
+    const fade = Math.max(0.2, Math.min(0.9, p.life / 75));
+    const pulse = 0.82 + Math.sin(Date.now() * 0.06 + (p.spin || 0)) * 0.18;
+    ctx.save();
+    ctx.globalAlpha = 0.2 * fade * pulse;
+    const wash = ctx.createRadialGradient(p.x, p.y, rr * 0.15, p.x, p.y, rr);
+    wash.addColorStop(0, "rgba(160,255,255,0.5)");
+    wash.addColorStop(1, "rgba(0,180,255,0)");
+    ctx.fillStyle = wash;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 0.95 * fade * pulse;
+    ctx.strokeStyle = "#00f5ff";
+    ctx.lineWidth = Math.max(4, 10 - rr * 0.05);
+    ctx.shadowColor = "#00f5ff";
+    ctx.shadowBlur = 22;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 0.6 * fade;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2.2;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(5, rr * 0.68), 0, Math.PI * 2);
+    ctx.stroke();
+    const ticks = 8;
+    ctx.fillStyle = "#c8ffff";
+    ctx.globalAlpha = 0.75 * fade;
+    for (let i = 0; i < ticks; i++) {
+      const a = (i / ticks) * Math.PI * 2 + (p.spin || 0) + Date.now() * 0.002;
+      ctx.beginPath();
+      ctx.arc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   function drawProjectiles() {
-    const colors = { shuriken: "#c0c0c0", dart: "#ff69b4", plasma: "#ff6347", laser: "#39ff14" };
     projectiles.forEach((p) => {
-      if (p.trail) {
+      if (p.trail && p.trail.length) {
         p.trail.forEach((t) => {
           t.life--;
-          ctx.globalAlpha = (t.life / 10) * 0.4;
-          ctx.fillStyle = colors[p.type] || "#fff";
-          ctx.fillRect(Math.round(t.x) - 2, Math.round(t.y) - 2, 4, 4);
+          const a = (t.life / 16) * 0.5;
+          const r = (t.size || 3) * (0.4 + (t.life / 16) * 0.7);
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, a);
+          if (p.type === "shuriken") {
+            ctx.fillStyle = "#b8c8e8";
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, r * 0.65, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (p.type === "dart") {
+            ctx.fillStyle = "#ff69b4";
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, r * 0.55, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (p.type === "plasma") {
+            const g = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, r * 1.5);
+            g.addColorStop(0, "rgba(255,210,90,0.85)");
+            g.addColorStop(1, "rgba(255,80,30,0)");
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, r * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
         });
         p.trail = p.trail.filter((t) => t.life > 0);
       }
 
       if (p.type === "arc_slash") {
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.angle);
-        const alpha = p.life / 14;
-        ctx.fillStyle = `rgba(57,255,20,${0.25 + alpha * 0.55})`;
-        const steps = 14;
-        for (let i = 0; i <= steps; i++) {
-          const a = -p.arc / 2 + (p.arc * i) / steps;
-          const px = Math.cos(a) * p.range;
-          const py = Math.sin(a) * p.range;
-          ctx.fillRect(px - 3, py - 3, 6, 6);
-          ctx.fillRect(Math.cos(a) * (p.range - 10) - 2, Math.sin(a) * (p.range - 10) - 2, 4, 4);
-        }
-        ctx.restore();
+        drawFancyLaserArc(p);
         return;
       }
       if (p.type === "arcane_orb") {
-        const rr = Math.max(6, p.r || 8);
-        const fade = Math.max(0.2, Math.min(0.85, p.life / 75));
-        // disco pieno soft
-        ctx.globalAlpha = 0.16 * fade;
-        ctx.fillStyle = "#00f5ff";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
-        ctx.fill();
-        // anello esterno tondo
-        ctx.globalAlpha = 0.9 * fade;
-        ctx.strokeStyle = "#00f5ff";
-        ctx.lineWidth = Math.max(3, 9 - rr * 0.06);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, rr, 0, Math.PI * 2);
-        ctx.stroke();
-        // alone interno
-        ctx.globalAlpha = 0.55 * fade;
-        ctx.strokeStyle = "#c8ffff";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, Math.max(4, rr * 0.7), 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
+        drawFancyArcaneOrb(p);
         return;
       }
-      const r = Math.max(3, Math.round(p.size || 5));
-      const x = Math.round(p.x);
-      const y = Math.round(p.y);
-      ctx.fillStyle = colors[p.type] || "#fff";
-      ctx.fillRect(x - r, y - r, r * 2, r * 2);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(x - Math.floor(r / 2), y - Math.floor(r / 2), Math.max(2, r), Math.max(2, r));
+      if (p.type === "shuriken") {
+        drawFancyShuriken(p.x, p.y, p.spin || 0, (p.size || 7) + 2, "#e8eefc", "#9eb6ff");
+      } else if (p.type === "dart") {
+        const ang = p.spin != null ? p.spin : Math.atan2(p.vy || 0, p.vx || 1);
+        drawFancyDart(p.x, p.y, ang, p.size || 5, "#ff69b4");
+      } else if (p.type === "plasma") {
+        drawFancyPlasma(p.x, p.y, Math.atan2(p.vy || 0, p.vx || 1), p.size || 8, p.spin || 0, "#ff6347");
+      }
     });
     ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
   }
 
   function drawEnemyShots() {
@@ -3075,47 +3294,25 @@
         const r = 18;
         const x = hx + Math.cos(a) * r;
         const y = hy + Math.sin(a) * r;
-        ctx.fillStyle = accent;
-        ctx.fillRect(x - 4, y - 1, 8, 3);
-        ctx.fillRect(x - 1, y - 4, 3, 8);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(x - 1, y - 1, 3, 3);
+        drawFancyShuriken(x, y, a * 3 + i, 6, "#e8eefc", accent);
       }
     } else if (weapon === "laser_arc") {
-      const sweep = -1.0 + phase * 2.4;
-      ctx.strokeStyle = accent;
-      ctx.globalAlpha = 0.9;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(hx, hy, 24, sweep - 0.6, sweep + 0.6);
-      ctx.stroke();
-      ctx.globalAlpha = 0.4;
-      ctx.lineWidth = 8;
-      ctx.beginPath();
-      ctx.arc(hx, hy, 24, sweep - 0.4, sweep + 0.4);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-      const tipX = hx + Math.cos(sweep) * 24;
-      const tipY = hy + Math.sin(sweep) * 24;
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(tipX - 2, tipY - 2, 5, 5);
+      const sweep = -0.2 + phase * 0.4;
+      drawFancyLaserArc({
+        x: hx, y: hy,
+        angle: sweep,
+        arc: 1.35,
+        range: 28,
+        life: 14,
+        maxLife: 16,
+      });
     } else if (weapon === "plasma_burst") {
       for (let i = 0; i < 3; i++) {
         const p = (phase + i * 0.28) % 1;
         const x = hx + (ex - hx) * p;
         const y = hy + Math.sin(p * Math.PI) * -8;
-        const r = 4 + p * 8;
-        ctx.globalAlpha = 1 - p * 0.35;
-        ctx.fillStyle = accent;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.arc(x, y, Math.max(1.5, r * 0.35), 0, Math.PI * 2);
-        ctx.fill();
+        drawFancyPlasma(x, y, 0, 5 + p * 4, t * 0.2 + i, accent);
       }
-      ctx.globalAlpha = 1;
     } else if (weapon === "homing_dart") {
       for (let i = 0; i < 2; i++) {
         const p = (phase + i * 0.45) % 1;
@@ -3123,38 +3320,25 @@
         const x = hx + (ex - hx) * p;
         const y = hy + curve * (1 - p);
         const ang = Math.atan2(ey - y, ex - x);
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(ang);
-        ctx.fillStyle = accent;
-        ctx.fillRect(-6, -2, 12, 4);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(4, -2, 5, 4);
-        ctx.restore();
+        drawFancyDart(x, y, ang, 4.2, accent);
       }
     } else if (weapon === "arcane_wave") {
       const p = phase;
       const r = 8 + p * 36;
-      ctx.globalAlpha = 0.9 * (1 - p);
-      ctx.strokeStyle = accent;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(hx, hy, r, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.globalAlpha = 0.28 * (1 - p);
-      ctx.fillStyle = accent;
-      ctx.beginPath();
-      ctx.arc(hx, hy, r, 0, Math.PI * 2);
-      ctx.fill();
+      drawFancyArcaneOrb({
+        x: hx, y: hy,
+        r,
+        life: Math.max(8, 75 * (1 - p)),
+        spin: t * 0.05,
+      });
       const p2 = (phase + 0.45) % 1;
       const r2 = 8 + p2 * 36;
-      ctx.globalAlpha = 0.45 * (1 - p2);
-      ctx.strokeStyle = "#c8ffff";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(hx, hy, r2, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
+      drawFancyArcaneOrb({
+        x: hx, y: hy,
+        r: r2,
+        life: Math.max(8, 55 * (1 - p2)),
+        spin: t * 0.05 + 1.2,
+      });
     }
 
     ctx.restore();
