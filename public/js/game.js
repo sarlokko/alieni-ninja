@@ -304,6 +304,13 @@
   let levelUpChoices = [];
   let levelUpSelected = 0;
 
+  let combo = 0;
+  let comboTimer = 0;
+  let comboBest = 0;
+  let feverTimer = 0;
+  let bountyTimer = 420;
+  let styleFlash = 0;
+
   let player = null;
   let enemies = [];
   let projectiles = [];
@@ -736,6 +743,7 @@
     bossSpawned = false;
     finalBossSpawned = false;
     bossPhase = false;
+    resetFunState();
     decor = generateDecor(level.theme);
     ambience = generateAmbience(level.theme);
     worldShift = 1;
@@ -827,6 +835,7 @@
     finalBossSpawned = false;
     bossPhase = false;
     levelKills = 0;
+    resetFunState();
     const openCount = Math.min(14, 3 + Math.floor(getHeroLevel() * 0.7));
     for (let i = 0; i < openCount; i++) spawnEnemy();
   }
@@ -1024,13 +1033,124 @@
            wy > camera.y - margin && wy < camera.y + H + margin;
   }
 
+  function getComboMult() {
+    return 1 + Math.min(1.2, Math.floor(combo / 4) * 0.12);
+  }
+
+  function comboRank(n) {
+    if (n >= 40) return "LEGGENDARIO!";
+    if (n >= 25) return "INFERNALE!";
+    if (n >= 15) return "FANTASTICO!";
+    if (n >= 10) return "GRANDE!";
+    if (n >= 5) return "BELLO!";
+    return null;
+  }
+
+  function resetFunState() {
+    combo = 0;
+    comboTimer = 0;
+    feverTimer = 0;
+    bountyTimer = 360 + Math.floor(Math.random() * 180);
+    styleFlash = 0;
+  }
+
+  function startFever(reason) {
+    if (feverTimer > 90) return;
+    feverTimer = 320;
+    styleFlash = 40;
+    showLevelBanner({ name: "FEVER TIME!", accent: "#ffd700" });
+    if (levelBanner) levelBanner.subtitle = reason || "Modalità ninja!";
+    addShockwave(player.x, player.y, "#ffd700", 160);
+    addBurst(player.x, player.y, "#ffd700", 22, "spark");
+    addScreenShake(10);
+    // Pulse: colpo leggero ai nemici vicini
+    enemies.forEach((e) => {
+      if (e.isBoss) return;
+      const d = Math.hypot(e.x - player.x, e.y - player.y);
+      if (d < 180) hurtEnemy(e, Math.max(4, getDamage(0.35)), "#ffd700");
+    });
+  }
+
+  function registerKill(e) {
+    combo++;
+    comboTimer = 160;
+    if (combo > comboBest) comboBest = combo;
+    styleFlash = Math.max(styleFlash, 12);
+
+    const rank = comboRank(combo);
+    if (rank && (combo === 5 || combo === 10 || combo === 15 || combo === 25 || combo === 40 || combo % 10 === 0)) {
+      addFloatText(player.x, player.y - 50, rank, "#ffd700", 18);
+    } else if (combo >= 3 && combo % 3 === 0) {
+      addFloatText(e.x, e.y - e.size - 16, `x${combo}`, "#ffe08a", 14);
+    }
+
+    if (combo === 12 || combo === 28 || combo === 45) {
+      startFever(`Combo x${combo}`);
+    }
+
+    if (e.isBounty) {
+      const bonus = 18 + getHeroLevel() * 2;
+      dropXp(e.x, e.y, bonus);
+      dropXp(e.x + 12, e.y - 8, Math.floor(bonus * 0.5));
+      for (let i = 0; i < 2; i++) {
+        const types = ["heal", "damage", "speed", "magnet"];
+        pickups.push({
+          x: e.x + (Math.random() - 0.5) * 40,
+          y: e.y + (Math.random() - 0.5) * 40,
+          type: types[Math.floor(Math.random() * types.length)],
+          life: 780,
+          bob: Math.random() * Math.PI * 2,
+        });
+      }
+      addShockwave(e.x, e.y, "#ffd700", 100);
+      addFloatText(e.x, e.y - 30, "TAGLIA!", "#ffd700", 20);
+      showLevelBanner({ name: "Taglia riscossa!", accent: "#ffd700" });
+      if (Math.random() < 0.45) startFever("Caccia completata");
+    }
+  }
+
+  function breakCombo(reason) {
+    if (combo >= 6) {
+      addFloatText(player.x, player.y - 40, `Combo x${combo} rotta`, "#ff8866", 14);
+    }
+    combo = 0;
+    comboTimer = 0;
+  }
+
+  function markBounty() {
+    const candidates = enemies.filter((e) => !e.isBoss && !e.isBounty && e.hp > 0);
+    if (!candidates.length) {
+      bountyTimer = 90;
+      return;
+    }
+    // Preferisci nemici mediamente lontani ma ancora in gioco
+    candidates.sort((a, b) => {
+      const da = Math.hypot(a.x - player.x, a.y - player.y);
+      const db = Math.hypot(b.x - player.x, b.y - player.y);
+      return Math.abs(da - 280) - Math.abs(db - 280);
+    });
+    const target = candidates[0];
+    target.isBounty = true;
+    target.hp = Math.floor(target.hp * 1.55);
+    target.maxHp = Math.floor(target.maxHp * 1.55);
+    target.speed *= 1.12;
+    target.xp = Math.floor((target.xp || 4) * 3);
+    addFloatText(target.x, target.y - 28, "CACCIA!", "#ffd700", 16);
+    showLevelBanner({ name: `Caccia: ${target.typeName || "Predatore"}`, accent: "#ffd700" });
+    if (levelBanner) levelBanner.subtitle = "Eliminalo per la taglia";
+    bountyTimer = 520 + Math.floor(Math.random() * 220);
+  }
+
   function getCooldown() {
-    return Math.max(12, Math.floor(player.hero.baseCooldown * player.stats.cooldownMult));
+    const fever = feverTimer > 0 ? 0.62 : 1;
+    return Math.max(10, Math.floor(player.hero.baseCooldown * player.stats.cooldownMult * fever));
   }
 
   function getDamage(mult = 1) {
     const buff = player.tempBuff > 0 ? 1.4 : 1;
-    return player.stats.damage * mult * buff * (1 + (player.stats.weaponLevel - 1) * 0.12);
+    const fever = feverTimer > 0 ? 1.25 : 1;
+    const comboBonus = 1 + Math.min(0.35, Math.floor(combo / 8) * 0.05);
+    return player.stats.damage * mult * buff * fever * comboBonus * (1 + (player.stats.weaponLevel - 1) * 0.12);
   }
 
   function nearestEnemy(maxDist = Infinity) {
@@ -1434,7 +1554,9 @@
     if (keys.ArrowUp || keys.KeyW) dy -= 1;
     if (keys.ArrowDown || keys.KeyS) dy += 1;
 
-    const spd = player.stats.speed * MOVE_MULT * (player.tempSpeed > 0 ? 1.35 : 1);
+    const spd = player.stats.speed * MOVE_MULT
+      * (player.tempSpeed > 0 ? 1.35 : 1)
+      * (feverTimer > 0 ? 1.22 : 1);
     if (dx !== 0 || dy !== 0) {
       const len = Math.hypot(dx, dy);
       player.vx = (dx / len) * spd;
@@ -1453,8 +1575,17 @@
     if (player.invulnerable > 0) player.invulnerable--;
     if (player.tempBuff > 0) player.tempBuff--;
     if (player.tempSpeed > 0) player.tempSpeed--;
+    if (feverTimer > 0) feverTimer--;
+    if (styleFlash > 0) styleFlash--;
+    if (comboTimer > 0) {
+      comboTimer--;
+      if (comboTimer <= 0 && combo > 0) breakCombo("timeout");
+    }
+    if (bountyTimer > 0) bountyTimer--;
+    else if (!bossPhase) markBounty();
+
     if (player.stats.regen > 0 && player.hp < player.maxHp) {
-      player.hp = Math.min(player.maxHp, player.hp + player.stats.regen / 60);
+      player.hp = Math.min(player.maxHp, player.hp + player.stats.regen / 60 * (feverTimer > 0 ? 1.5 : 1));
     }
 
     player.weaponTimer--;
@@ -1634,6 +1765,7 @@
         const dmg = Math.max(1, Math.floor(baseDmg * (1 - player.stats.damageReduction)));
         player.hp -= dmg;
         player.invulnerable = 32;
+        breakCombo("hit");
         addBurst(player.x, player.y, "#ff3333", 8, "spark");
         addScreenShake(e.isBoss ? 12 : 6);
       }
@@ -1648,6 +1780,7 @@
         player.hp -= dmg;
         player.invulnerable = 22;
         a.life = 0;
+        breakCombo("hit");
         addBurst(player.x, player.y, "#ffaa44", 6, "spark");
         addScreenShake(5);
         addFloatText(player.x, player.y - 24, String(dmg), "#ff8866", 12);
@@ -1663,8 +1796,10 @@
       if (e.isBoss) addScreenShake(16);
       kills++;
       if (!e.isBoss) levelKills++;
+      registerKill(e);
       if (!e.isBoss) {
-        dropXp(e.x, e.y, e.xp || (3 + Math.floor(getHeroLevel() / 2)));
+        const xp = Math.ceil((e.xp || (3 + Math.floor(getHeroLevel() / 2))) * getComboMult());
+        dropXp(e.x, e.y, xp);
       } else {
         dropXp(e.x, e.y, 30);
         if (level.fragment) fragments++;
@@ -1692,17 +1827,18 @@
       g.y += g.vy;
       g.vx *= 0.9;
       g.vy *= 0.9;
+      const magnetR = player.stats.magnet * (feverTimer > 0 ? 2.4 : 1);
       const dist = Math.hypot(player.x - g.x, player.y - g.y);
-      if (dist < player.stats.magnet) {
+      if (dist < magnetR) {
         const a = Math.atan2(player.y - g.y, player.x - g.x);
-        const pull = dist < 40 ? 7 : 4.5;
+        const pull = feverTimer > 0 ? (dist < 50 ? 10 : 7) : (dist < 40 ? 7 : 4.5);
         g.x += Math.cos(a) * pull;
         g.y += Math.sin(a) * pull;
       }
       if (dist < 18) {
         addXp(g.value);
         g.collected = true;
-        addBurst(g.x, g.y, "#00f5ff", 6, "spark");
+        addBurst(g.x, g.y, feverTimer > 0 ? "#ffd700" : "#00f5ff", 6, "spark");
       }
     });
     xpGems = xpGems.filter((g) => !g.collected);
@@ -2062,10 +2198,11 @@
     const px = player.x - camera.x + shake.x;
     const py = player.y - camera.y + shake.y;
     const calm = level.theme === "temple";
+    const fever = feverTimer > 0;
 
     const light = ctx.createRadialGradient(px, py, 20, px, py, calm ? 180 : 220);
-    light.addColorStop(0, level.accent + (calm ? "18" : "33"));
-    light.addColorStop(0.5, level.accent + (calm ? "08" : "11"));
+    light.addColorStop(0, (fever ? "#ffd700" : level.accent) + (calm ? "18" : fever ? "44" : "33"));
+    light.addColorStop(0.5, (fever ? "#ffd700" : level.accent) + (calm ? "08" : fever ? "18" : "11"));
     light.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = light;
     ctx.fillRect(0, 0, W, H);
@@ -2075,6 +2212,15 @@
     vig.addColorStop(1, calm ? "rgba(0,0,0,0.48)" : "rgba(0,0,0,0.62)");
     ctx.fillStyle = vig;
     ctx.fillRect(0, 0, W, H);
+
+    if (fever) {
+      const edge = 0.18 + Math.sin(gameTime * 0.2) * 0.08;
+      ctx.strokeStyle = `rgba(255,215,0,${edge})`;
+      ctx.lineWidth = 10;
+      ctx.strokeRect(8, 8, W - 16, H - 16);
+      ctx.fillStyle = "rgba(255,215,0,0.08)";
+      ctx.fillRect(0, 0, W, H);
+    }
   }
 
   function drawLevelBackground(level) {
@@ -2243,6 +2389,13 @@
       ctx.arc(p.x, p.y, 34 + Math.sin(gameTime * 0.2) * 2, 0, Math.PI * 2);
       ctx.stroke();
     }
+    if (feverTimer > 0) {
+      ctx.strokeStyle = `rgba(255,215,0,${0.35 + Math.sin(gameTime * 0.3) * 0.2})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 40 + Math.sin(gameTime * 0.25) * 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 
   function drawEnemyWerewolfFx(e, facingLeft) {
@@ -2295,6 +2448,26 @@
         ctx.arc(e.x, e.y, e.size + 28, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
+      }
+
+      if (e.isBounty) {
+        const pulse = 0.35 + Math.sin(gameTime * 0.25) * 0.2;
+        ctx.globalAlpha = pulse;
+        ctx.strokeStyle = "#ffd700";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.size + 16 + Math.sin(gameTime * 0.2) * 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = pulse * 0.45;
+        ctx.fillStyle = "#ffd700";
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.size + 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = "#ffd700";
+        ctx.font = "bold 11px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("★ TAGLIA", e.x, e.y - e.size - 28);
       }
 
       const wobbleY = Math.sin(gameTime * 0.16 + (e.wobblePhase || 0)) * 1.5;
@@ -2622,6 +2795,45 @@
     ctx.textAlign = "right";
     ctx.fillStyle = "#ffd700";
     ctx.fillText(`⭐ Frammenti: ${fragments}/7`, W - 14, 20);
+
+    // Combo / Fever HUD
+    if (combo >= 2 || feverTimer > 0) {
+      ctx.textAlign = "left";
+      const cx = 14;
+      const cy = 70;
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillRect(cx, cy, 168, feverTimer > 0 ? 44 : 28);
+      if (feverTimer > 0) {
+        ctx.fillStyle = "#ffd700";
+        ctx.font = "bold 13px sans-serif";
+        ctx.fillText(`FEVER ${Math.ceil(feverTimer / 60)}s`, cx + 8, cy + 16);
+        ctx.fillStyle = "#ffe8a0";
+        ctx.font = "12px sans-serif";
+        ctx.fillText(`Combo x${combo}  ·  XP x${getComboMult().toFixed(1)}`, cx + 8, cy + 34);
+      } else {
+        ctx.fillStyle = styleFlash > 0 ? "#fff0a0" : "#ffcc66";
+        ctx.font = "bold 13px sans-serif";
+        ctx.fillText(`COMBO x${combo}`, cx + 8, cy + 18);
+      }
+    }
+
+    // Bounty arrow on minimap-ish edge marker
+    const bounty = enemies.find((e) => e.isBounty);
+    if (bounty) {
+      const sx = bounty.x - camera.x;
+      const sy = bounty.y - camera.y;
+      if (sx < 20 || sx > W - 20 || sy < 70 || sy > H - 20) {
+        const ax = Math.max(24, Math.min(W - 24, sx));
+        const ay = Math.max(74, Math.min(H - 24, sy));
+        ctx.fillStyle = "#ffd700";
+        ctx.beginPath();
+        ctx.moveTo(ax, ay - 8);
+        ctx.lineTo(ax + 7, ay + 5);
+        ctx.lineTo(ax - 7, ay + 5);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
 
     const barX = W - 210;
     ctx.fillStyle = "#333";
