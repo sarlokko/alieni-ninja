@@ -38,6 +38,7 @@
     LEVEL_INTRO: "level_intro",
     PLAYING: "playing",
     LEVEL_UP: "level_up",
+    RESUME_PAUSE: "resume_pause",
     LEVEL_CLEAR: "level_clear",
     GAME_OVER: "game_over",
     VICTORY: "victory",
@@ -298,6 +299,8 @@
   let fragments = 0;
   let introTimer = 0;
   let titlePulse = 0;
+  let resumePauseTimer = 0;
+  let lastPickedUpgrade = null;
   let levelUpChoices = [];
   let levelUpSelected = 0;
 
@@ -581,6 +584,11 @@
   }
 
   function handleInput(code) {
+    if (state === STATE.RESUME_PAUSE) {
+      if (code === "Enter" || code === "Space") resumePauseTimer = 0;
+      return;
+    }
+
     if (state === STATE.LEVEL_UP) {
       if (code === "ArrowUp" || code === "KeyW") levelUpSelected = (levelUpSelected + 2) % 3;
       if (code === "ArrowDown" || code === "KeyS") levelUpSelected = (levelUpSelected + 1) % 3;
@@ -1329,9 +1337,21 @@
       case "weapon_up": player.stats.weaponLevel++; break;
     }
 
-    player.invulnerable = 45;
-    state = STATE.PLAYING;
+    lastPickedUpgrade = choice;
     levelUpChoices = [];
+    // Reset stick: tempo per rimettere le dita sul telefono
+    moveJoy.active = false;
+    moveJoy.id = null;
+    aimJoy.active = false;
+    aimJoy.id = null;
+    if (player) {
+      player.vx = 0;
+      player.vy = 0;
+      player.invulnerable = Math.max(player.invulnerable, 100);
+    }
+    Object.keys(keys).forEach((k) => { keys[k] = false; });
+    resumePauseTimer = 96; // ~1.6s
+    state = STATE.RESUME_PAUSE;
   }
 
   function triggerLevelUp() {
@@ -2985,10 +3005,49 @@
     drawLevelBanner();
   }
 
+  function drawResumePause() {
+    drawPlaying();
+
+    ctx.fillStyle = "rgba(0,0,0,0.48)";
+    ctx.fillRect(0, 0, W, H);
+
+    const secs = Math.max(1, Math.ceil(resumePauseTimer / 60));
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffd700";
+    ctx.font = "bold 28px sans-serif";
+    ctx.fillText("Riposiziona le dita", W / 2, H * 0.38);
+    ctx.fillStyle = "#e8e8e8";
+    ctx.font = "16px sans-serif";
+    if (lastPickedUpgrade) {
+      ctx.fillText(`${lastPickedUpgrade.icon || "✨"} ${lastPickedUpgrade.name}`, W / 2, H * 0.38 + 36);
+    }
+    ctx.fillStyle = "#00f5ff";
+    ctx.font = "bold 54px sans-serif";
+    ctx.fillText(String(secs), W / 2, H * 0.38 + 100);
+    ctx.fillStyle = "#aaa";
+    ctx.font = "14px sans-serif";
+    ctx.fillText("Il gioco riparte tra un attimo…", W / 2, H * 0.38 + 130);
+
+    // Ghost stick ben visibili durante la pausa
+    if (isTouchDevice) {
+      drawJoyGhost(touchJoyAnchors.move, "rgba(0,245,255,0.35)");
+      drawJoyGhost(touchJoyAnchors.aim, "rgba(255,120,80,0.35)");
+      drawJoy(moveJoy, "rgba(0,245,255,0.7)");
+      drawJoy(aimJoy, "rgba(255,120,80,0.75)");
+    }
+  }
+
   function update() {
     gameTime++;
     if (state === STATE.PLAYING) updatePlaying();
     if (state === STATE.LEVEL_INTRO && introTimer > 0) introTimer--;
+    if (state === STATE.RESUME_PAUSE) {
+      if (resumePauseTimer > 0) resumePauseTimer--;
+      else {
+        lastPickedUpgrade = null;
+        state = STATE.PLAYING;
+      }
+    }
   }
 
   function draw() {
@@ -2999,6 +3058,7 @@
       case STATE.LEVEL_INTRO: drawLevelIntro(); break;
       case STATE.PLAYING: drawPlaying(); break;
       case STATE.LEVEL_UP: drawLevelUp(); break;
+      case STATE.RESUME_PAUSE: drawResumePause(); break;
       case STATE.LEVEL_CLEAR: drawLevelClear(); break;
       case STATE.GAME_OVER: drawGameOver(); break;
       case STATE.VICTORY: drawVictory(); break;
