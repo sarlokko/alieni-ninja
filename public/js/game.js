@@ -15,7 +15,8 @@
     applyDepthFog: () => {},
     setGameTime: () => {},
   };
-  const M2 = window.Models2D5;
+  const R3 = window.WorldRenderer3D;
+  const M2 = null;
   const PLAYER_SCALE = 1.95;
   const ENEMY_SPRITE_SCALE = 2.15;
   const BOSS_SPRITE_SCALE = 2.5;
@@ -329,6 +330,7 @@
 
   let player = null;
   let enemies = [];
+  let enemyUid = 0;
   let projectiles = [];
   let enemyShots = [];
   let particles = [];
@@ -471,6 +473,13 @@
     if (player && state === STATE.PLAYING) {
       camera.x = Math.max(0, Math.min(WORLD_W - W, player.x - W / 2));
       camera.y = Math.max(0, Math.min(WORLD_H - H, player.y - H / 2));
+    }
+    const container = document.getElementById("game-container");
+    if (R3 && container && !R3.active) {
+      R3.init(container, W, H);
+    }
+    if (R3 && R3.active) {
+      R3.resize(W, H);
     }
   }
 
@@ -1431,6 +1440,7 @@
 
     if (isBoss && bossData) {
       enemies.push({
+        _uid: ++enemyUid,
         x: player.x,
         y: Math.max(80, player.y - 220),
         hp: bossData.hp, maxHp: bossData.hp,
@@ -1470,6 +1480,7 @@
     const dmgScale = 0.7 + (hl - 1) * 0.055;
     const spdMult = 1 + (hl - 1) * 0.02;
     enemies.push({
+      _uid: ++enemyUid,
       x, y,
       hp: Math.floor(level.enemyHp * etype.hpMult * scale),
       maxHp: Math.floor(level.enemyHp * etype.hpMult * scale),
@@ -3772,34 +3783,123 @@
     ctx.restore();
   }
 
+  function drawEnemyOverlays(e) {
+    if (!isOnScreen(e.x, e.y, 90)) return;
+    const facingLeft = e.x > player.x;
+
+    if (!e.isBoss && e.typeName && (e.typeId === "werewolf" || e.typeId === "hunter" || e.typeId === "shadow" || e.typeId === "archer")) {
+      ctx.fillStyle = "rgba(40,0,0,0.65)";
+      ctx.fillRect(e.x - 42, e.y - e.size - 24, 84, 13);
+      ctx.fillStyle = e.typeId === "shadow" ? "#dd66ff" : "#ff6644";
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(e.typeName, e.x, e.y - e.size - 14);
+    }
+
+    if (e.isBounty) {
+      ctx.fillStyle = "#ffb07a";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("★ TAGLIA", e.x, e.y - e.size - 28);
+    }
+
+    if (e.isBoss) {
+      const barW = 160;
+      const barY = e.y - 70;
+      ctx.fillStyle = "#111";
+      ctx.fillRect(e.x - barW / 2, barY, barW, 10);
+      ctx.fillStyle = "#333";
+      ctx.fillRect(e.x - barW / 2 + 1, barY + 1, barW - 2, 8);
+      ctx.fillStyle = "#ff3300";
+      ctx.fillRect(e.x - barW / 2 + 1, barY + 1, (barW - 2) * (e.hp / e.maxHp), 8);
+      ctx.fillStyle = "#ffccaa";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(e.name, e.x, barY - 8);
+    }
+  }
+
+  function drawPlayerOverlays() {
+    const p = player;
+    if (!p) return;
+    if (p.hero.weapon === "orbit_shuriken") {
+      orbiters.forEach((o, idx) => {
+        const ox = p.x + Math.cos(o.angle) * o.dist;
+        const oy = p.y + Math.sin(o.angle) * o.dist;
+        drawFancyShuriken(ox, oy, o.angle * 3 + idx, 8, "#d8e4ff", p.hero.accent || "#00f5ff");
+      });
+    }
+    if (p.tempBuff > 0) {
+      ctx.strokeStyle = "rgba(255,99,71,0.6)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 34 + Math.sin(gameTime * 0.2) * 2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    if (feverTimer > 0) {
+      ctx.strokeStyle = `rgba(255,215,0,${0.35 + Math.sin(gameTime * 0.3) * 0.2})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 40 + Math.sin(gameTime * 0.25) * 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
   function drawPlaying() {
     const level = LEVELS[currentLevel];
+    const use3D = R3 && R3.active;
 
-    ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
+    if (use3D) {
+      ctx.clearRect(0, 0, W, H);
+      R3.sync({
+        player,
+        enemies,
+        projectiles: [...projectiles, ...enemyShots],
+        xpGems,
+        pickups,
+        decor,
+        level,
+        camera,
+        gameTime,
+        selectedHero,
+        drgWorld: drg.getWorld3DData ? drg.getWorld3DData() : null,
+      });
+      R3.render();
+    } else {
+      ctx.imageSmoothingEnabled = false;
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, W, H);
 
-    // Cielo parallax (schermo, prima del mondo)
-    if (DR && DR.drawParallaxSkyScreen) {
-      DR.drawParallaxSkyScreen(ctx, level, camera.x, camera.y, W, H);
+      if (DR && DR.drawParallaxSkyScreen) {
+        DR.drawParallaxSkyScreen(ctx, level, camera.x, camera.y, W, H);
+      }
     }
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     ctx.translate(-Math.floor(camera.x + shake.x), -Math.floor(camera.y + shake.y));
 
-    drawWorldBackground(level);
-    drawAmbience(level);
+    if (!use3D) {
+      drawWorldBackground(level);
+      drawAmbience(level);
+      buildDepthDrawQueue(level).forEach((item) => item.draw());
+    } else {
+      drawShockwaves();
+      drawWaves();
+      drawParticles();
+      drawFloatTexts();
+      enemies.forEach((e) => drawEnemyOverlays(e));
+      drawPlayerOverlays();
+    }
 
-    // Y-sort 2.5D: decor, nemici, pickup, XP e player per profondità
-    buildDepthDrawQueue(level).forEach((item) => item.draw());
-
-    drawShockwaves();
-    drawWaves();
-    drawParticles();
-    drawProjectiles();
-    drawEnemyShots();
-    drawFloatTexts();
+    if (!use3D) {
+      drawShockwaves();
+      drawWaves();
+      drawParticles();
+      drawProjectiles();
+      drawEnemyShots();
+      drawFloatTexts();
+    }
 
     ctx.restore();
     drawScreenFX(level);

@@ -580,6 +580,14 @@
     }
   }
 
+  function getWorld3DData() {
+    return {
+      resourceNodes,
+      extractionPod,
+      showPod: phase === PHASE.EXTRACTION && !!extractionPod,
+    };
+  }
+
   function getNitraDamageMult() {
     return nitraBuff > 0 ? 1.2 : 1;
   }
@@ -612,6 +620,7 @@
     handleShopInput,
     handleOverclockInput,
     getNitraDamageMult,
+    getWorld3DData,
     consumeNitraBuff,
     isExtraction,
     isDeploy,

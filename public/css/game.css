@@ -34,20 +34,29 @@ body {
     0 0 28px rgba(255, 140, 0, 0.25),
     inset 0 0 40px rgba(0, 0, 0, 0.45);
   overflow: hidden;
-  background: #0c0c0e;
+  background: #06060c;
+}
+
+#game-gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
 }
 
 #game-canvas {
+  position: relative;
+  z-index: 2;
   display: block;
-  background: #0c0c0e;
+  background: transparent;
   cursor: crosshair;
   width: 100%;
   height: 100%;
   max-width: none;
   max-height: none;
   touch-action: none;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
 }
 
 #ui-overlay {
