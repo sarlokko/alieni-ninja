@@ -8,6 +8,7 @@
   const WORLD_W = 20000;
   const WORLD_H = 15000;
   const { SPRITES, drawSpriteCentered, drawSprite, drawPixelCircle, PX } = window.PixelSprites;
+  const DR = window.DepthRender;
   const PLAYER_SCALE = 1.95;
   const ENEMY_SPRITE_SCALE = 2.15;
   const BOSS_SPRITE_SCALE = 2.5;
@@ -397,10 +398,7 @@
   }
 
   function drawEntityShadow(x, y, radius) {
-    ctx.fillStyle = "rgba(0,0,0,0.35)";
-    ctx.beginPath();
-    ctx.ellipse(x, y + radius * 0.55, radius * 1.1, radius * 0.45, 0, 0, Math.PI * 2);
-    ctx.fill();
+    DR.drawGroundShadow(ctx, x, y, radius);
   }
 
   const MENU_STATES = new Set([
@@ -2063,35 +2061,28 @@
     const bottom = viewY + H + pad;
 
     ctx.imageSmoothingEnabled = false;
+
+    // Cielo parallax 2.5D
+    DR.drawParallaxSky(ctx, level, viewX, viewY, W, H);
+
     ctx.fillStyle = level.bg[0];
     ctx.fillRect(left, top, right - left, bottom - top);
 
-    // Pavimento a scacchi grandi (pochissimi fillRect)
+    // Pavimento profondo con prospettiva
+    DR.drawDepthFloor(ctx, level, viewX, viewY, W, H, WORLD_H);
+
+    // Tile-stamp di dettaglio (ridotto, più in profondità)
     const calmTemple = level.theme === "temple";
     const tile = calmTemple ? 128 : 96;
-    const aHi = calmTemple ? 0.2 : 0.55;
-    const aLo = calmTemple ? 0.08 : 0.28;
-    const startTX = Math.floor(left / tile) * tile;
-    const startTY = Math.floor(top / tile) * tile;
-    for (let x = startTX; x < right; x += tile) {
-      for (let y = startTY; y < bottom; y += tile) {
-        const parity = ((x / tile) + (y / tile)) % 2 === 0;
-        ctx.globalAlpha = parity ? aHi : aLo;
-        ctx.fillStyle = parity ? level.floor : level.bg[1];
-        ctx.fillRect(x, y, tile, tile);
-      }
-    }
-    ctx.globalAlpha = 1;
-
-    // Un solo tile-stamp ogni tanto per dettaglio (non griglia piena)
     const stamp = SPRITES["tile_" + level.theme] || SPRITES.tile_training;
     const stampEvery = calmTemple ? tile * 3 : tile * 2;
     const s0x = Math.floor(left / stampEvery) * stampEvery;
     const s0y = Math.floor(top / stampEvery) * stampEvery;
-    ctx.globalAlpha = calmTemple ? 0.16 : 0.55;
+    ctx.globalAlpha = calmTemple ? 0.12 : 0.35;
     for (let x = s0x; x < right; x += stampEvery) {
       for (let y = s0y; y < bottom; y += stampEvery) {
-        drawSprite(ctx, stamp, x + 16, y + 16, 2, false);
+        const depthSc = DR.depthScaleY(y, WORLD_H);
+        drawSprite(ctx, stamp, x + 16, y + 16, 2 * depthSc, false);
       }
     }
     ctx.globalAlpha = 1;
@@ -2099,8 +2090,9 @@
     const gx = player.x;
     const gy = player.y;
     const grad = ctx.createRadialGradient(gx, gy, 30, gx, gy, Math.max(W, H) * 0.65);
-    grad.addColorStop(0, level.bg[1] + "44");
-    grad.addColorStop(1, "rgba(0,0,0,0)");
+    grad.addColorStop(0, level.bg[1] + "55");
+    grad.addColorStop(0.6, level.bg[1] + "22");
+    grad.addColorStop(1, "rgba(0,0,0,0.15)");
     ctx.fillStyle = grad;
     ctx.fillRect(left, top, right - left, bottom - top);
 
@@ -2358,6 +2350,13 @@
     ctx.fillStyle = vig;
     ctx.fillRect(0, 0, W, H);
 
+    // Gradiente profondità: nord più scuro (orizzonte lontano)
+    const horizon = ctx.createLinearGradient(0, 0, 0, H * 0.45);
+    horizon.addColorStop(0, "rgba(0,0,0,0.35)");
+    horizon.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = horizon;
+    ctx.fillRect(0, 0, W, H);
+
     if (fever) {
       const edge = 0.18 + Math.sin(gameTime * 0.2) * 0.08;
       ctx.strokeStyle = `rgba(255,215,0,${edge})`;
@@ -2376,9 +2375,15 @@
     const bob = opts.bob || 0;
     const squash = opts.squash || 1;
     const flash = opts.flash || 0;
+    const groundY = y;
+    const lift = (sprite.h * scale) * 0.38;
+    const drawY = DR.spriteDrawY(groundY, lift) + bob;
+    const depthSc = DR.depthScaleY(groundY, WORLD_H) * (opts.depthScale || 1);
+
     ctx.save();
-    ctx.translate(x, y + bob);
-    ctx.scale(squash, 2 - squash);
+    DR.applyDepthFog(ctx, x, groundY, player.x, player.y);
+    ctx.translate(x, drawY);
+    ctx.scale(squash * depthSc, (2 - squash) * depthSc);
     drawSpriteCentered(ctx, sprite, 0, 0, scale, facingLeft);
     if (flash > 0) {
       ctx.globalAlpha = Math.min(0.7, flash / 12);
@@ -2390,111 +2395,147 @@
     ctx.restore();
   }
 
+  function getDecorSortY(d) {
+    switch (d.type) {
+      case "building": return d.y + (d.h || 80);
+      case "pillar": return d.y + (d.h || 80);
+      case "tree": return d.y + (d.r || 20) * 0.5;
+      case "crystal": return d.y;
+      default: return d.y;
+    }
+  }
+
   function drawDecor(d, level) {
     if (!isOnScreen(d.x, d.y, 160)) return;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     ctx.globalAlpha = 0.92;
+    DR.applyDepthFog(ctx, d.x, d.y, player.x, player.y);
     const s = DECOR_SCALE;
+    const depthSc = DR.depthScaleY(d.y, WORLD_H);
     switch (d.type) {
       case "holo_ring":
-        drawSpriteCentered(ctx, SPRITES.decor_holo, d.x, d.y, s * (d.r / 18), false);
+        drawSpriteCentered(ctx, SPRITES.decor_holo, d.x, d.y - 8 * depthSc, s * (d.r / 18) * depthSc, false);
         break;
       case "target_marker":
-        drawSpriteCentered(ctx, SPRITES.decor_target, d.x, d.y, s * (d.r / 12), false);
+        drawSpriteCentered(ctx, SPRITES.decor_target, d.x, d.y, s * (d.r / 12) * depthSc, false);
         break;
       case "building": {
-        const spr = SPRITES.decor_building;
-        const scaleX = d.w / (spr.w * s);
-        const scaleY = d.h / (spr.h * s);
-        const scale = Math.max(1.2, Math.min(scaleX, scaleY) * s);
-        drawSpriteCentered(ctx, spr, d.x + d.w / 2, d.y + d.h / 2, scale, false);
+        const bw = d.w || 60;
+        const bh = d.h || 90;
+        const dep = Math.min(36, bh * 0.28);
+        DR.drawExtrudedBox(ctx, d.x + bw / 2, d.y + bh * 0.15, bw * depthSc, bh * depthSc, dep, {
+          front: "#0c0620",
+          top: level.accent + "44",
+          side: "#08041a",
+        });
+        for (let wy = d.y - bh * 0.75; wy < d.y - bh * 0.1; wy += 14) {
+          for (let wx = d.x + 8; wx < d.x + bw - 8; wx += 12) {
+            if (((wx * 7 + wy * 13 + Math.floor(d.x)) | 0) % 3 === 0) continue;
+            ctx.fillStyle = level.accent;
+            ctx.globalAlpha = 0.5;
+            ctx.fillRect(wx, wy, 5, 7);
+          }
+        }
         break;
       }
       case "neon_sign":
-        drawSpriteCentered(ctx, SPRITES.decor_neon, d.x + d.w / 2, d.y, s, false);
+        drawSpriteCentered(ctx, SPRITES.decor_neon, d.x + d.w / 2, d.y - 12, s * depthSc, false);
         break;
-      case "tree":
-        drawSpriteCentered(ctx, SPRITES["decor_tree" + (d.variant || 0)] || SPRITES.decor_tree0, d.x, d.y, s * (d.r / 22), false);
+      case "tree": {
+        DR.drawGroundShadow(ctx, d.x, d.y, d.r * 0.9, { alpha: 0.28, rxMult: 1.4 });
+        drawSpriteCentered(ctx, SPRITES["decor_tree" + (d.variant || 0)] || SPRITES.decor_tree0, d.x, DR.spriteDrawY(d.y, d.r * 1.2), s * (d.r / 22) * depthSc, false);
         break;
+      }
       case "mushroom":
-        drawSpriteCentered(ctx, SPRITES.decor_mushroom, d.x, d.y, s * (d.r / 8), false);
+        drawSpriteCentered(ctx, SPRITES.decor_mushroom, d.x, DR.spriteDrawY(d.y, 12), s * (d.r / 8) * depthSc, false);
         break;
       case "vine":
-        drawSpriteCentered(ctx, SPRITES.decor_vine, d.x, d.y + d.h / 2, s, false);
+        drawSpriteCentered(ctx, SPRITES.decor_vine, d.x, d.y + d.h / 2 - 8, s * depthSc, false);
         break;
       case "pillar":
-        drawSpriteCentered(ctx, SPRITES.decor_pillar, d.x + 12, d.y + d.h / 2, s * (d.h / 100), false);
+        DR.drawExtrudedPillar(ctx, d.x + 12, d.y + 8, 22 * depthSc, (d.h || 80) * depthSc, "#5a4a30");
         break;
       case "torch":
-        drawSpriteCentered(ctx, SPRITES.decor_torch, d.x, d.y, s, false);
+        drawSpriteCentered(ctx, SPRITES.decor_torch, d.x, DR.spriteDrawY(d.y, 18), s * depthSc, false);
         break;
       case "stalactite":
-        drawSpriteCentered(ctx, SPRITES.decor_stalactite, d.x, d.h / 2, s * (d.h / 40), false);
+        drawSpriteCentered(ctx, SPRITES.decor_stalactite, d.x, d.h / 2, s * (d.h / 40) * depthSc, false);
         break;
       case "lava_pool":
-        drawSpriteCentered(ctx, SPRITES.decor_lava, d.x, d.y, s * (d.r / 14), false);
+        DR.drawGroundShadow(ctx, d.x, d.y, d.r, { alpha: 0.5, ryMult: 0.55 });
+        drawSpriteCentered(ctx, SPRITES.decor_lava, d.x, d.y, s * (d.r / 14) * depthSc, false);
         break;
       case "rune":
-        drawSpriteCentered(ctx, SPRITES.decor_rune, d.x, d.y, s * (d.r / 12), false);
+        drawSpriteCentered(ctx, SPRITES.decor_rune, d.x, d.y - 4, s * (d.r / 12) * depthSc, false);
         break;
       case "portal":
-        drawSpriteCentered(ctx, SPRITES.decor_portal, d.x, d.y, s * (d.r / 16), false);
+        drawSpriteCentered(ctx, SPRITES.decor_portal, d.x, DR.spriteDrawY(d.y, 24), s * (d.r / 16) * depthSc, false);
         break;
       case "crater":
-        drawSpriteCentered(ctx, SPRITES.decor_crater, d.x, d.y, s * (d.r / 16), false);
+        DR.drawGroundShadow(ctx, d.x, d.y, d.r * 1.1, { alpha: 0.45 });
+        drawSpriteCentered(ctx, SPRITES.decor_crater, d.x, d.y, s * (d.r / 16) * depthSc, false);
         break;
       case "moon_flag":
-        drawSpriteCentered(ctx, SPRITES.decor_flag, d.x, d.y, s, false);
+        drawSpriteCentered(ctx, SPRITES.decor_flag, d.x, DR.spriteDrawY(d.y, 28), s * depthSc, false);
         break;
       case "ruin":
-        drawSpriteCentered(ctx, SPRITES.decor_ruin, d.x + d.w / 2, d.y + d.h / 2, s * Math.max(d.w, d.h) / 40, false);
+        DR.drawExtrudedBox(ctx, d.x + d.w / 2, d.y + d.h * 0.2, d.w * depthSc, d.h * depthSc, 14, {
+          front: "#3a2540", top: "#4a3550", side: "#2a1830",
+        });
         break;
       case "fog_patch":
         ctx.globalAlpha = 0.35;
-        drawSpriteCentered(ctx, SPRITES.decor_fog, d.x, d.y, s * (d.r / 18), false);
+        drawSpriteCentered(ctx, SPRITES.decor_fog, d.x, d.y, s * (d.r / 18) * depthSc, false);
         break;
       case "crystal":
-        drawSpriteCentered(ctx, SPRITES.decor_crystal, d.x, d.y - d.h / 3, s * (d.h / 30), false);
+        DR.drawCrystal3D(ctx, d.x, d.y, (d.h || 30) * depthSc, level.accent);
         break;
       case "star_altar":
-        drawSpriteCentered(ctx, SPRITES.decor_altar, d.x, d.y, s * (d.r / 12), false);
+        DR.drawExtrudedBox(ctx, d.x, d.y + 8, 40 * depthSc, 18 * depthSc, 10, {
+          front: level.accent + "aa", top: level.accent, side: "#333",
+        });
         break;
       case "moon_rock":
-        drawSpriteCentered(ctx, SPRITES.decor_rock, d.x, d.y, s * (d.r / 14), false);
+        DR.drawGroundShadow(ctx, d.x, d.y, d.r);
+        drawSpriteCentered(ctx, SPRITES.decor_rock, d.x, d.y - d.r * 0.2, s * (d.r / 14) * depthSc, false);
         break;
       case "lunar_spire":
-        drawSpriteCentered(ctx, SPRITES.decor_spire, d.x, d.y - d.h / 3, s * (d.h / 50), false);
+        DR.drawExtrudedPillar(ctx, d.x, d.y, 18 * depthSc, (d.h || 50) * depthSc, "#6a6a75");
         break;
       case "grass":
-        drawSpriteCentered(ctx, SPRITES.decor_grass || SPRITES.decor_vine, d.x, d.y, s * 0.9, false);
+        drawSpriteCentered(ctx, SPRITES.decor_grass || SPRITES.decor_vine, d.x, d.y, s * 0.9 * depthSc, false);
         break;
       case "bush":
-        drawSpriteCentered(ctx, SPRITES.decor_bush || SPRITES.decor_tree0, d.x, d.y, s * 0.7, false);
+        DR.drawGroundShadow(ctx, d.x, d.y, 14);
+        drawSpriteCentered(ctx, SPRITES.decor_bush || SPRITES.decor_tree0, d.x, DR.spriteDrawY(d.y, 16), s * 0.7 * depthSc, false);
         break;
       case "flower":
-        drawSpriteCentered(ctx, SPRITES.decor_flower || SPRITES.decor_mushroom, d.x, d.y, s, false);
+        drawSpriteCentered(ctx, SPRITES.decor_flower || SPRITES.decor_mushroom, d.x, d.y - 4, s * depthSc, false);
         break;
       case "fern":
-        drawSpriteCentered(ctx, SPRITES.decor_fern || SPRITES.decor_vine, d.x, d.y, s, false);
+        drawSpriteCentered(ctx, SPRITES.decor_fern || SPRITES.decor_vine, d.x, d.y, s * depthSc, false);
         break;
       case "crate":
-        drawSpriteCentered(ctx, SPRITES.decor_crate || SPRITES.decor_ruin, d.x, d.y, s, false);
+        DR.drawExtrudedBox(ctx, d.x, d.y + 4, 28 * depthSc, 24 * depthSc, 10, {
+          front: "#6a5030", top: "#8a7050", side: "#4a3820",
+        });
         break;
       case "barrel":
-        drawSpriteCentered(ctx, SPRITES.decor_barrel || SPRITES.decor_rock, d.x, d.y, s, false);
+        DR.drawExtrudedPillar(ctx, d.x, d.y + 4, 20 * depthSc, 22 * depthSc, "#5a4030");
         break;
       case "bones":
-        drawSpriteCentered(ctx, SPRITES.decor_bones || SPRITES.decor_rock, d.x, d.y, s, false);
+        drawSpriteCentered(ctx, SPRITES.decor_bones || SPRITES.decor_rock, d.x, d.y, s * 0.85 * depthSc, false);
         break;
       case "lamp":
-        drawSpriteCentered(ctx, SPRITES.decor_lamp || SPRITES.decor_torch, d.x, d.y, s, false);
+        drawSpriteCentered(ctx, SPRITES.decor_lamp || SPRITES.decor_torch, d.x, DR.spriteDrawY(d.y, 20), s * depthSc, false);
         break;
       case "debris":
-        drawSpriteCentered(ctx, SPRITES.decor_debris || SPRITES.decor_rock, d.x, d.y, s * 0.85, false);
+        drawSpriteCentered(ctx, SPRITES.decor_debris || SPRITES.decor_rock, d.x, d.y, s * 0.85 * depthSc, false);
         break;
       case "statue":
-        drawSpriteCentered(ctx, SPRITES.decor_statue || SPRITES.decor_pillar, d.x, d.y, s * 0.9, false);
+        DR.drawExtrudedPillar(ctx, d.x, d.y + 6, 26 * depthSc, 48 * depthSc, "#7a7060");
+        drawSpriteCentered(ctx, SPRITES.decor_statue || SPRITES.decor_pillar, d.x, DR.spriteDrawY(d.y, 40), s * 0.9 * depthSc, false);
         break;
     }
     ctx.restore();
@@ -2565,84 +2606,150 @@
     ctx.globalAlpha = 1;
   }
 
-  function drawEnemies() {
-    enemies.forEach((e) => {
-      if (!isOnScreen(e.x, e.y, 90)) return;
-      const spriteKey = e.sprite || (e.isBoss ? "cat_boss" : "cat_tabby");
-      const sprite = SPRITES[spriteKey] || SPRITES.cat_tabby;
-      let scale = ENEMY_SPRITE_SCALE;
-      if (e.typeId === "werewolf") scale = 2.35;
-      if (e.typeId === "hunter" || e.typeId === "archer") scale = 2.15;
-      if (e.typeId === "kitten") scale = 1.85;
-      if (e.isBoss) scale = BOSS_SPRITE_SCALE;
-      const facingLeft = e.x > player.x;
+  function drawSingleEnemy(e) {
+    if (!isOnScreen(e.x, e.y, 90)) return;
+    const spriteKey = e.sprite || (e.isBoss ? "cat_boss" : "cat_tabby");
+    const sprite = SPRITES[spriteKey] || SPRITES.cat_tabby;
+    let scale = ENEMY_SPRITE_SCALE;
+    if (e.typeId === "werewolf") scale = 2.35;
+    if (e.typeId === "hunter" || e.typeId === "archer") scale = 2.15;
+    if (e.typeId === "kitten") scale = 1.85;
+    if (e.isBoss) scale = BOSS_SPRITE_SCALE;
+    const facingLeft = e.x > player.x;
 
-      if (e.isBoss) {
-        ctx.globalAlpha = 0.25 + Math.sin(gameTime * 0.12) * 0.1;
-        ctx.fillStyle = "#ff2200";
-        ctx.beginPath();
-        ctx.arc(e.x, e.y, e.size + 18, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 0.15;
-        ctx.fillStyle = e.color;
-        ctx.beginPath();
-        ctx.arc(e.x, e.y, e.size + 28, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-      }
+    if (e.isBoss) {
+      ctx.globalAlpha = 0.25 + Math.sin(gameTime * 0.12) * 0.1;
+      ctx.fillStyle = "#ff2200";
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.size + 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 0.15;
+      ctx.fillStyle = e.color;
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.size + 28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
 
-      if (e.isBounty) {
-        const pulse = 0.35 + Math.sin(gameTime * 0.25) * 0.2;
-        ctx.globalAlpha = pulse;
-        ctx.strokeStyle = "#ff8c42";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(e.x, e.y, e.size + 16 + Math.sin(gameTime * 0.2) * 3, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = pulse * 0.4;
-        ctx.fillStyle = "#ff8c42";
-        ctx.beginPath();
-        ctx.arc(e.x, e.y, e.size + 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = "#ffb07a";
-        ctx.font = "bold 11px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("★ TAGLIA", e.x, e.y - e.size - 28);
-      }
+    if (e.isBounty) {
+      const pulse = 0.35 + Math.sin(gameTime * 0.25) * 0.2;
+      ctx.globalAlpha = pulse;
+      ctx.strokeStyle = "#ff8c42";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.size + 16 + Math.sin(gameTime * 0.2) * 3, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = pulse * 0.4;
+      ctx.fillStyle = "#ff8c42";
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.size + 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#ffb07a";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("★ TAGLIA", e.x, e.y - e.size - 28);
+    }
 
-      const wobbleY = Math.sin(gameTime * 0.16 + (e.wobblePhase || 0)) * 1.5;
-      drawEntityShadow(e.x, e.y, e.size * 0.55);
-      drawAnimatedSprite(sprite, e.x, e.y + wobbleY, scale, facingLeft, {
-        squash: 1 + (e.hitFlash > 0 ? 0.12 : 0),
-        flash: e.hitFlash || 0,
-      });
-      drawEnemyWerewolfFx(e, facingLeft);
-
-      if (!e.isBoss && e.typeName && (e.typeId === "werewolf" || e.typeId === "hunter" || e.typeId === "shadow" || e.typeId === "archer")) {
-        ctx.fillStyle = "rgba(40,0,0,0.65)";
-        ctx.fillRect(e.x - 42, e.y - e.size - 24, 84, 13);
-        ctx.fillStyle = e.typeId === "shadow" ? "#dd66ff" : "#ff6644";
-        ctx.font = "bold 9px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(e.typeName, e.x, e.y - e.size - 14);
-      }
-
-      if (e.isBoss) {
-        const barW = 160;
-        const barY = e.y - 70;
-        ctx.fillStyle = "#111";
-        ctx.fillRect(e.x - barW / 2, barY, barW, 10);
-        ctx.fillStyle = "#333";
-        ctx.fillRect(e.x - barW / 2 + 1, barY + 1, barW - 2, 8);
-        ctx.fillStyle = "#ff3300";
-        ctx.fillRect(e.x - barW / 2 + 1, barY + 1, (barW - 2) * (e.hp / e.maxHp), 8);
-        ctx.fillStyle = "#ffccaa";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(e.name, e.x, barY - 8);
-      }
+    const wobbleY = Math.sin(gameTime * 0.16 + (e.wobblePhase || 0)) * 1.5;
+    drawEntityShadow(e.x, e.y, e.size * 0.55);
+    drawAnimatedSprite(sprite, e.x, e.y + wobbleY, scale, facingLeft, {
+      squash: 1 + (e.hitFlash > 0 ? 0.12 : 0),
+      flash: e.hitFlash || 0,
     });
+    drawEnemyWerewolfFx(e, facingLeft);
+
+    if (!e.isBoss && e.typeName && (e.typeId === "werewolf" || e.typeId === "hunter" || e.typeId === "shadow" || e.typeId === "archer")) {
+      ctx.fillStyle = "rgba(40,0,0,0.65)";
+      ctx.fillRect(e.x - 42, e.y - e.size - 24, 84, 13);
+      ctx.fillStyle = e.typeId === "shadow" ? "#dd66ff" : "#ff6644";
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(e.typeName, e.x, e.y - e.size - 14);
+    }
+
+    if (e.isBoss) {
+      const barW = 160;
+      const barY = e.y - 70;
+      ctx.fillStyle = "#111";
+      ctx.fillRect(e.x - barW / 2, barY, barW, 10);
+      ctx.fillStyle = "#333";
+      ctx.fillRect(e.x - barW / 2 + 1, barY + 1, barW - 2, 8);
+      ctx.fillStyle = "#ff3300";
+      ctx.fillRect(e.x - barW / 2 + 1, barY + 1, (barW - 2) * (e.hp / e.maxHp), 8);
+      ctx.fillStyle = "#ffccaa";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(e.name, e.x, barY - 8);
+    }
+  }
+
+  function drawEnemies() {
+    enemies.forEach((e) => drawSingleEnemy(e));
+  }
+
+  function buildDepthDrawQueue(level) {
+    const queue = [];
+
+    decor.forEach((d) => {
+      if (!isOnScreen(d.x, d.y, 160)) return;
+      queue.push({ sortY: getDecorSortY(d), draw: () => drawDecor(d, level) });
+    });
+
+    enemies.forEach((e) => {
+      queue.push({ sortY: e.y, draw: () => drawSingleEnemy(e) });
+    });
+
+    pickups.forEach((p) => {
+      if (!isOnScreen(p.x, p.y, 40)) return;
+      queue.push({ sortY: p.y, draw: () => drawSinglePickup(p) });
+    });
+
+    xpGems.forEach((g) => {
+      if (!isOnScreen(g.x, g.y, 30)) return;
+      queue.push({ sortY: g.y, draw: () => drawSingleXpGem(g) });
+    });
+
+    if (player) {
+      queue.push({ sortY: player.y + 1, draw: () => drawPlayer() });
+    }
+
+    drg.getDepthDrawables(ctx, camera).forEach((item) => queue.push(item));
+
+    queue.sort((a, b) => a.sortY - b.sortY);
+    return queue;
+  }
+
+  function drawSinglePickup(p) {
+    const meta = PICKUP_META[p.type];
+    const bob = Math.sin((p.bob || 0)) * 4;
+    DR.drawGroundShadow(ctx, p.x, p.y, 14, { alpha: 0.22 });
+    ctx.save();
+    DR.applyDepthFog(ctx, p.x, p.y, player.x, player.y);
+    ctx.globalAlpha = 0.35 + (p.life % 30) / 60;
+    ctx.fillStyle = meta.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y + bob - 8, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.font = "16px serif";
+    ctx.textAlign = "center";
+    ctx.fillText({ heal: "💚", damage: "💥", speed: "💨", magnet: "🧲" }[p.type], p.x, p.y + bob - 4);
+    ctx.restore();
+  }
+
+  function drawSingleXpGem(g) {
+    ctx.save();
+    DR.applyDepthFog(ctx, g.x, g.y, player.x, player.y);
+    const bob = Math.sin(g.phase || 0) * 3;
+    ctx.fillStyle = feverTimer > 0 ? "#ffd700" : "#00f5ff";
+    ctx.beginPath();
+    ctx.moveTo(g.x, g.y + bob - 5);
+    ctx.lineTo(g.x + 4, g.y + bob);
+    ctx.lineTo(g.x, g.y + bob + 5);
+    ctx.lineTo(g.x - 4, g.y + bob);
+    ctx.fill();
+    ctx.restore();
   }
 
   function drawFancyShuriken(x, y, angle, size, color, accent) {
@@ -3658,18 +3765,16 @@
 
     drawWorldBackground(level);
     drawAmbience(level);
-    decor.forEach((d) => drawDecor(d, level));
+
+    // Y-sort 2.5D: decor, nemici, pickup, XP e player per profondità
+    buildDepthDrawQueue(level).forEach((item) => item.draw());
+
     drawShockwaves();
     drawWaves();
-    drawXpGems();
-    drawPickups();
     drawParticles();
     drawProjectiles();
     drawEnemyShots();
-    drawEnemies();
-    drawPlayer();
     drawFloatTexts();
-    drg.drawWorld(ctx, camera);
 
     ctx.restore();
     drawScreenFX(level);
@@ -3715,6 +3820,7 @@
 
   function update() {
     gameTime++;
+    DR.setGameTime(gameTime);
     if (state === STATE.PLAYING) updatePlaying();
     if (state === STATE.LEVEL_INTRO && introTimer > 0) introTimer--;
     if (state === STATE.RESUME_PAUSE) {

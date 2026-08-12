@@ -364,59 +364,67 @@
     game.advanceSector();
   }
 
-  function drawWorld(ctx, camera) {
+  function drawResourceNode(ctx, node) {
+    const DR = window.DepthRender;
+    const sx = node.x;
+    const sy = node.y;
+    const pulse = 1 + Math.sin(node.pulse) * 0.12;
+    const h = (node.type === "nitra" ? 22 : 18) * pulse;
+    ctx.save();
+    if (DR) {
+      DR.drawGroundShadow(ctx, sx, sy, 12, { alpha: 0.3 });
+      DR.drawCrystal3D(ctx, sx, sy, h, node.type === "gold" ? UI.cyan : UI.nitra);
+    }
+    if (node.progress > 0) {
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.fillRect(sx - 16, sy + 10, 32 * node.progress, 4);
+    }
+    ctx.restore();
+  }
+
+  function drawExtractionPod(ctx) {
+    if (!extractionPod || phase !== PHASE.EXTRACTION) return;
+    const DR = window.DepthRender;
+    const { x, y } = extractionPod;
+    ctx.save();
+    if (DR) {
+      DR.drawGroundShadow(ctx, x, y, CFG.EXTRACTION.podRadius * 0.45, { alpha: 0.25, ryMult: 0.35 });
+      DR.drawExtrudedBox(ctx, x, y - 8, 44, 36, 18, {
+        front: UI.orangeDim,
+        top: UI.orange,
+        side: "#994400",
+      });
+    }
+    ctx.strokeStyle = UI.orange;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.arc(x, y, CFG.EXTRACTION.podRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = UI.orange;
+    ctx.font = "bold 11px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("DROP POD", x, y - 28);
+    ctx.restore();
+  }
+
+  function getDepthDrawables(drawCtx, camera) {
+    const items = [];
     resourceNodes.forEach((node) => {
       if (node.mined) return;
-      const sx = node.x;
-      const sy = node.y;
-      if (sx < camera.x - 60 || sx > camera.x + game.viewW + 60) return;
-      if (sy < camera.y - 60 || sy > camera.y + game.viewH + 60) return;
-      const pulse = 1 + Math.sin(node.pulse) * 0.12;
-      const r = (node.type === "nitra" ? 14 : 12) * pulse;
-      ctx.save();
-      if (node.type === "gold") {
-        ctx.fillStyle = UI.cyanDim;
-        ctx.strokeStyle = UI.cyan;
-      } else {
-        ctx.fillStyle = "#601818";
-        ctx.strokeStyle = UI.nitra;
-      }
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy - r);
-      ctx.lineTo(sx + r * 0.7, sy);
-      ctx.lineTo(sx, sy + r);
-      ctx.lineTo(sx - r * 0.7, sy);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      if (node.progress > 0) {
-        ctx.fillStyle = "rgba(255,255,255,0.8)";
-        ctx.fillRect(sx - 16, sy + r + 6, 32 * node.progress, 4);
-      }
-      ctx.restore();
+      if (node.x < camera.x - 60 || node.x > camera.x + game.viewW + 60) return;
+      if (node.y < camera.y - 60 || node.y > camera.y + game.viewH + 60) return;
+      items.push({ sortY: node.y, draw: () => drawResourceNode(drawCtx, node) });
     });
-
     if (extractionPod && phase === PHASE.EXTRACTION) {
-      const { x, y } = extractionPod;
-      ctx.save();
-      ctx.strokeStyle = UI.orange;
-      ctx.lineWidth = 3;
-      ctx.setLineDash([8, 6]);
-      ctx.beginPath();
-      ctx.arc(x, y, CFG.EXTRACTION.podRadius, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = UI.orangeDim;
-      ctx.beginPath();
-      ctx.arc(x, y, 22, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = UI.orange;
-      ctx.font = "bold 11px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("DROP POD", x, y + 4);
-      ctx.restore();
+      items.push({ sortY: extractionPod.y, draw: () => drawExtractionPod(drawCtx) });
     }
+    return items;
+  }
+
+  function drawWorld(drawCtx, camera) {
+    getDepthDrawables(drawCtx, camera).forEach((item) => item.draw());
   }
 
   function drawHUD(ctx, viewW) {
@@ -586,6 +594,7 @@
     resetLevel,
     update,
     drawWorld,
+    getDepthDrawables,
     drawHUD,
     drawShop,
     drawOverclock,

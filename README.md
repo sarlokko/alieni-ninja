@@ -16,6 +16,7 @@ public/
     game.js         # Motore di gioco canvas
     drg-config.js   # Config DRG:Survivor (shop, miniera, threat)
     drg-systems.js  # Sistemi missione DRG
+    depth-render.js # Rendering 2.5D profondo (parallax, ombre, Y-sort)
 package.json
 ```
 
@@ -87,6 +88,14 @@ Il gameplay unisce il survivor attuale con meccaniche ispirate a **DRG: Survivor
 - **Armi secondarie:** fino a 3 slot (Torretta Plasma, Granata Stellare, Bobina del Vuoto…)
 - **Overclock armi** ai livelli 3 e 5 (Bilanciato / Sovraccarico / Area Estesa)
 - **UI industriale** arancio/ciano
+
+### Grafica 2.5D (quasi 3D)
+- **Parallax** cielo e montagne lontane
+- **Pavimento prospettico** con linee di profondità
+- **Y-sorting**: personaggi passano davanti/dietro a decor e nemici
+- **Ombre volumetriche** sotto ogni entità
+- **Oggetti extruded** (edifici, casse, pilastri, cristalli) con facce 3D
+- **Nebbia di profondità** sugli oggetti lontani
 
 ### Controlli (survivor auto-attack)
 - **WASD / Frecce** — solo movimento (le armi attaccano automaticamente)
