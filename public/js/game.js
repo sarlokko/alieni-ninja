@@ -5,7 +5,7 @@
   const ctx = canvas.getContext("2d");
   let W = 1600;
   let H = 900;
-  const GAME_VERSION = "44b";
+  const GAME_VERSION = "45";
   const WORLD_W = 20000;
   const WORLD_H = 15000;
   const { SPRITES, drawSpriteCentered, drawSprite, drawPixelCircle, PX } = window.PixelSprites;
