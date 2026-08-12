@@ -2054,7 +2054,7 @@
   function drawWorldBackground(level) {
     const viewX = camera.x + shake.x;
     const viewY = camera.y + shake.y;
-    const pad = 48;
+    const pad = 64;
     const left = viewX - pad;
     const top = viewY - pad;
     const right = viewX + W + pad;
@@ -2062,37 +2062,30 @@
 
     ctx.imageSmoothingEnabled = false;
 
-    // Cielo parallax 2.5D
-    DR.drawParallaxSky(ctx, level, viewX, viewY, W, H);
+    if (DR && DR.drawWorldDepthFloor) {
+      DR.drawWorldDepthFloor(ctx, level, left, top, right, bottom, WORLD_W, WORLD_H);
+    } else {
+      ctx.fillStyle = level.floor;
+      ctx.fillRect(left, top, right - left, bottom - top);
+    }
 
-    ctx.fillStyle = level.bg[0];
-    ctx.fillRect(left, top, right - left, bottom - top);
-
-    // Pavimento profondo con prospettiva
-    DR.drawDepthFloor(ctx, level, viewX, viewY, W, H, WORLD_H);
-
-    // Tile-stamp di dettaglio (ridotto, più in profondità)
-    const calmTemple = level.theme === "temple";
-    const tile = calmTemple ? 128 : 96;
     const stamp = SPRITES["tile_" + level.theme] || SPRITES.tile_training;
-    const stampEvery = calmTemple ? tile * 3 : tile * 2;
-    const s0x = Math.floor(left / stampEvery) * stampEvery;
-    const s0y = Math.floor(top / stampEvery) * stampEvery;
-    ctx.globalAlpha = calmTemple ? 0.12 : 0.35;
-    for (let x = s0x; x < right; x += stampEvery) {
-      for (let y = s0y; y < bottom; y += stampEvery) {
-        const depthSc = DR.depthScaleY(y, WORLD_H);
-        drawSprite(ctx, stamp, x + 16, y + 16, 2 * depthSc, false);
+    const stampEvery = level.theme === "temple" ? 384 : 256;
+    ctx.globalAlpha = 0.28;
+    for (let x = Math.floor(left / stampEvery) * stampEvery; x < right; x += stampEvery) {
+      for (let y = Math.floor(top / stampEvery) * stampEvery; y < bottom; y += stampEvery) {
+        const depthSc = DR ? DR.depthScaleY(y, WORLD_H) : 1;
+        drawSprite(ctx, stamp, x + 16, y + 16, 2.2 * depthSc, false);
       }
     }
     ctx.globalAlpha = 1;
 
     const gx = player.x;
     const gy = player.y;
-    const grad = ctx.createRadialGradient(gx, gy, 30, gx, gy, Math.max(W, H) * 0.65);
-    grad.addColorStop(0, level.bg[1] + "55");
-    grad.addColorStop(0.6, level.bg[1] + "22");
-    grad.addColorStop(1, "rgba(0,0,0,0.15)");
+    const grad = ctx.createRadialGradient(gx, gy, 40, gx, gy, Math.max(W, H) * 0.7);
+    grad.addColorStop(0, level.bg[1] + "66");
+    grad.addColorStop(0.55, level.bg[1] + "22");
+    grad.addColorStop(1, "rgba(0,0,0,0.2)");
     ctx.fillStyle = grad;
     ctx.fillRect(left, top, right - left, bottom - top);
 
@@ -3758,6 +3751,11 @@
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
+
+    // Cielo parallax (schermo, prima del mondo)
+    if (DR && DR.drawParallaxSkyScreen) {
+      DR.drawParallaxSkyScreen(ctx, level, camera.x, camera.y, W, H);
+    }
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;

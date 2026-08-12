@@ -2,136 +2,112 @@
   "use strict";
 
   const DepthRender = {
-    /** Quanto sollevare gli sprite sopra i piedi (illusione altezza) */
-    LIFT_MULT: 0.72,
-    /** Parallax moltiplicatori per strati lontani */
-    PARALLAX: [0.12, 0.28, 0.48],
-    /** Nebbia profondità: distanza massima */
-    FOG_DIST: 1400,
+    LIFT_MULT: 1.15,
+    PARALLAX: [0.18, 0.38, 0.62],
+    FOG_DIST: 1100,
+    TILE_H: 88,
 
-    /** Scala leggera: nord = più lontano = leggermente più piccolo */
     depthScaleY(y, worldH) {
       const t = Math.max(0, Math.min(1, y / worldH));
-      return 0.9 + t * 0.1;
+      return 0.78 + t * 0.22;
     },
 
-    /** Y di disegno sprite (piedi a groundY, corpo sollevato) */
     spriteDrawY(groundY, entityHeight) {
       return groundY - entityHeight * this.LIFT_MULT;
     },
 
-    /** Ombra volumetrica a terra */
     drawGroundShadow(ctx, x, y, radius, opts = {}) {
-      const rx = radius * (opts.rxMult || 1.15);
-      const ry = radius * (opts.ryMult || 0.42);
-      const alpha = opts.alpha || 0.38;
-
+      const rx = radius * (opts.rxMult || 1.35);
+      const ry = radius * (opts.ryMult || 0.38);
+      const alpha = opts.alpha || 0.55;
       ctx.save();
-      ctx.fillStyle = `rgba(0,0,0,${alpha * 0.35})`;
+      ctx.fillStyle = `rgba(0,0,0,${alpha * 0.4})`;
       ctx.beginPath();
-      ctx.ellipse(x, y + radius * 0.08, rx * 1.35, ry * 1.25, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, y + radius * 0.1, rx * 1.5, ry * 1.4, 0, 0, Math.PI * 2);
       ctx.fill();
-
       ctx.fillStyle = `rgba(0,0,0,${alpha})`;
       ctx.beginPath();
-      ctx.ellipse(x, y + radius * 0.55, rx, ry, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, y + radius * 0.58, rx, ry, 0, 0, Math.PI * 2);
       ctx.fill();
-
-      ctx.fillStyle = `rgba(0,0,0,${alpha * 0.55})`;
+      ctx.fillStyle = "rgba(0,0,0,0.65)";
       ctx.beginPath();
-      ctx.ellipse(x, y + radius * 0.62, rx * 0.55, ry * 0.45, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, y + radius * 0.65, rx * 0.45, ry * 0.35, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     },
 
-    /** Blocco 3D extruded (vista obliqua: faccia frontale + lato destro + top) */
     drawExtrudedBox(ctx, cx, baseY, width, height, depth, colors) {
       const w = width;
       const h = height;
-      const d = depth;
+      const d = depth * 1.4;
       const x = cx - w / 2;
       const y = baseY - h;
       const top = colors.top || colors.front;
       const front = colors.front || "#444";
-      const side = colors.side || this.shadeColor(front, -0.22);
-      const edge = colors.edge || this.shadeColor(front, -0.35);
-
+      const side = colors.side || this.shadeColor(front, -0.28);
+      const edge = colors.edge || this.shadeColor(front, -0.4);
       ctx.save();
       ctx.imageSmoothingEnabled = false;
-
-      // Lato destro (profondità)
       ctx.fillStyle = side;
       ctx.beginPath();
       ctx.moveTo(x + w, y);
-      ctx.lineTo(x + w + d, y - d * 0.55);
-      ctx.lineTo(x + w + d, y + h - d * 0.55);
+      ctx.lineTo(x + w + d, y - d * 0.62);
+      ctx.lineTo(x + w + d, y + h - d * 0.62);
       ctx.lineTo(x + w, y + h);
       ctx.closePath();
       ctx.fill();
-
-      // Top
       ctx.fillStyle = top;
       ctx.beginPath();
       ctx.moveTo(x, y);
-      ctx.lineTo(x + d, y - d * 0.55);
-      ctx.lineTo(x + w + d, y - d * 0.55);
+      ctx.lineTo(x + d, y - d * 0.62);
+      ctx.lineTo(x + w + d, y - d * 0.62);
       ctx.lineTo(x + w, y);
       ctx.closePath();
       ctx.fill();
-
-      // Fronte
       ctx.fillStyle = front;
       ctx.fillRect(x, y, w, h);
-
-      // Highlight bordo
       ctx.strokeStyle = edge;
       ctx.lineWidth = 2;
       ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-
       ctx.restore();
     },
 
-    /** Pilastro/cilindro 3D */
     drawExtrudedPillar(ctx, cx, baseY, width, height, color) {
       const w = width;
       const h = height;
       const x = cx - w / 2;
       const y = baseY - h;
-      const side = this.shadeColor(color, -0.25);
-      const top = this.shadeColor(color, 0.15);
-
       ctx.save();
-      ctx.fillStyle = side;
-      ctx.fillRect(x + w * 0.65, y + 4, w * 0.35, h - 4);
+      ctx.fillStyle = this.shadeColor(color, -0.32);
+      ctx.fillRect(x + w * 0.62, y + 2, w * 0.42, h);
       ctx.fillStyle = color;
-      ctx.fillRect(x, y, w * 0.72, h);
-      ctx.fillStyle = top;
-      ctx.fillRect(x - 2, y - 6, w * 0.76 + 4, 8);
+      ctx.fillRect(x, y, w * 0.68, h);
+      ctx.fillStyle = this.shadeColor(color, 0.2);
+      ctx.fillRect(x - 3, y - 8, w * 0.74 + 6, 10);
       ctx.restore();
     },
 
-    /** Cristallo 3D */
     drawCrystal3D(ctx, cx, baseY, h, color) {
       ctx.save();
       const top = baseY - h;
-      ctx.fillStyle = this.shadeColor(color, -0.3);
+      ctx.fillStyle = this.shadeColor(color, -0.35);
       ctx.beginPath();
-      ctx.moveTo(cx, top);
-      ctx.lineTo(cx + 10, baseY);
-      ctx.lineTo(cx, baseY - 4);
+      ctx.moveTo(cx + 4, top + 4);
+      ctx.lineTo(cx + 14, baseY);
+      ctx.lineTo(cx, baseY - 2);
       ctx.closePath();
       ctx.fill();
       ctx.fillStyle = color;
-      ctx.globalAlpha = 0.85;
+      ctx.globalAlpha = 0.9;
       ctx.beginPath();
       ctx.moveTo(cx, top);
-      ctx.lineTo(cx - 10, baseY);
-      ctx.lineTo(cx + 10, baseY);
+      ctx.lineTo(cx - 14, baseY);
+      ctx.lineTo(cx + 14, baseY);
       ctx.closePath();
       ctx.fill();
       ctx.fillStyle = "#ffffff";
-      ctx.globalAlpha = 0.35;
-      ctx.fillRect(cx - 2, top + h * 0.15, 3, h * 0.4);
+      ctx.globalAlpha = 0.5;
+      ctx.fillRect(cx - 2, top + h * 0.12, 4, h * 0.45);
       ctx.restore();
     },
 
@@ -147,116 +123,112 @@
       return `rgb(${r},${g},${b})`;
     },
 
-    /** Cielo parallax + montagne lontane */
-    drawParallaxSky(ctx, level, viewX, viewY, viewW, viewH) {
-      const t = (gameTime || 0) * 0.002;
+    /** Cielo parallax — coordinate SCHERMO (chiamare prima del translate mondo) */
+    drawParallaxSkyScreen(ctx, level, camX, camY, viewW, viewH) {
+      const t = gameTime || 0;
       ctx.save();
       ctx.imageSmoothingEnabled = false;
-
-      // Gradiente cielo profondo
-      const skyGrad = ctx.createLinearGradient(0, viewY, 0, viewY + viewH * 0.55);
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, viewH * 0.55);
       skyGrad.addColorStop(0, level.bg[0]);
-      skyGrad.addColorStop(1, level.bg[1] + "cc");
+      skyGrad.addColorStop(0.55, level.bg[1]);
+      skyGrad.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = skyGrad;
-      ctx.fillRect(viewX - 40, viewY - 80, viewW + 80, viewH * 0.62);
+      ctx.fillRect(0, 0, viewW, viewH);
 
-      // Strati parallax
       this.PARALLAX.forEach((mult, i) => {
-        const px = -viewX * mult;
-        const py = -viewY * mult * 0.35;
-        ctx.globalAlpha = 0.12 + i * 0.08;
-        ctx.fillStyle = i === 0 ? level.bg[1] : level.accent;
-        const spacing = 280 + i * 120;
-        const h = 60 + i * 40;
-        for (let x = Math.floor((viewX * mult + px) / spacing) * spacing - spacing; x < viewX + viewW + spacing; x += spacing) {
-          const mx = x - viewX * mult + px;
-          const my = viewY + viewH * (0.08 + i * 0.06) + py;
+        ctx.globalAlpha = 0.22 + i * 0.12;
+        ctx.fillStyle = i === 0 ? this.shadeColor(level.bg[1], 0.1) : level.accent;
+        const spacing = 220 + i * 90;
+        const mh = 90 + i * 50;
+        const scroll = camX * mult;
+        for (let x = -spacing; x < viewW + spacing; x += spacing) {
+          const mx = x - (scroll % spacing);
+          const my = viewH * (0.12 + i * 0.05) - camY * mult * 0.15;
           ctx.beginPath();
-          ctx.moveTo(mx, my + h);
-          ctx.lineTo(mx + spacing * 0.35, my);
-          ctx.lineTo(mx + spacing * 0.7, my + h * 0.35);
-          ctx.lineTo(mx + spacing, my + h);
+          ctx.moveTo(mx, my + mh);
+          ctx.lineTo(mx + spacing * 0.32, my);
+          ctx.lineTo(mx + spacing * 0.68, my + mh * 0.4);
+          ctx.lineTo(mx + spacing, my + mh);
           ctx.closePath();
           ctx.fill();
         }
       });
 
-      // Stelle / particelle lontane
-      ctx.globalAlpha = 0.25;
+      ctx.globalAlpha = 0.45;
       ctx.fillStyle = "#ffffff";
-      for (let i = 0; i < 40; i++) {
-        const sx = viewX + ((i * 173 + Math.floor(viewX * 0.08)) % (viewW + 1));
-        const sy = viewY + ((i * 97 + Math.floor(t * 40)) % Math.floor(viewH * 0.45));
-        ctx.fillRect(sx, sy, 2, 2);
+      for (let i = 0; i < 55; i++) {
+        const sx = (i * 173 + Math.floor(camX * 0.06) + Math.floor(t * 0.4)) % viewW;
+        const sy = (i * 97 + Math.floor(t * 0.25)) % Math.floor(viewH * 0.42);
+        ctx.fillRect(sx, sy, i % 3 === 0 ? 3 : 2, i % 3 === 0 ? 3 : 2);
       }
-
       ctx.restore();
     },
 
-    /** Pavimento con profondità prospettica (bande che convergono verso nord) */
-    drawDepthFloor(ctx, level, viewX, viewY, viewW, viewH, worldH) {
+    /** Pavimento isometrico in coordinate MONDO */
+    drawWorldDepthFloor(ctx, level, left, top, right, bottom, worldW, worldH) {
       ctx.save();
       ctx.imageSmoothingEnabled = false;
+      const tileW = 64;
+      const tileH = this.TILE_H;
+      const startX = Math.floor(left / tileW) * tileW - tileW;
+      const startY = Math.floor(top / tileH) * tileH - tileH;
 
-      const bands = 18;
-      for (let i = 0; i < bands; i++) {
-        const t0 = i / bands;
-        const t1 = (i + 1) / bands;
-        const wy0 = viewY + (viewH * 0.08) + t0 * viewH * 0.92;
-        const wy1 = viewY + (viewH * 0.08) + t1 * viewH * 0.92;
-        const worldY = viewY + t0 * viewH;
-        const depthT = Math.max(0, Math.min(1, worldY / (viewY + viewH)));
-        const parity = i % 2 === 0;
+      for (let wy = startY; wy < bottom + tileH; wy += tileH) {
+        const depthT = Math.max(0, Math.min(1, wy / worldH));
+        const rowBright = 0.55 + depthT * 0.45;
+        const parity = Math.floor(wy / tileH) % 2;
 
-        ctx.globalAlpha = 0.35 + depthT * 0.45;
-        ctx.fillStyle = parity ? level.floor : level.bg[1];
-        ctx.fillRect(viewX - 20, wy0, viewW + 40, wy1 - wy0 + 1);
+        for (let wx = startX; wx < right + tileW; wx += tileW) {
+          const cx = wx + tileW / 2;
+          const cy = wy + tileH / 2;
+          const p = parity ^ (Math.floor(wx / tileW) % 2);
 
-        // Linee orizzontali di profondità
-        ctx.globalAlpha = 0.08 + depthT * 0.12;
+          ctx.globalAlpha = rowBright;
+          ctx.fillStyle = p ? level.floor : this.shadeColor(level.floor, -0.12);
+          this.drawIsoTile(ctx, cx, cy, tileW * 0.92, tileH * 0.48);
+
+          ctx.globalAlpha = 0.18 + depthT * 0.2;
+          ctx.strokeStyle = level.accent;
+          ctx.lineWidth = 1;
+          this.strokeIsoTile(ctx, cx, cy, tileW * 0.92, tileH * 0.48);
+        }
+
+        ctx.globalAlpha = 0.15 + depthT * 0.15;
         ctx.strokeStyle = level.accent;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(viewX - 20, wy1);
-        ctx.lineTo(viewX + viewW + 20, wy1);
+        ctx.moveTo(left - 40, wy + tileH);
+        ctx.lineTo(right + 40, wy + tileH);
         ctx.stroke();
       }
-
-      // Linee prospettiche verticali (convergenza verso nord)
-      const vanishX = viewX + viewW / 2;
-      const vanishY = viewY + viewH * 0.05;
-      const cols = 14;
-      ctx.globalAlpha = 0.06;
-      ctx.strokeStyle = level.accent;
-      for (let c = 0; c <= cols; c++) {
-        const bx = viewX + (viewW / cols) * c;
-        ctx.beginPath();
-        ctx.moveTo(vanishX, vanishY);
-        ctx.lineTo(bx, viewY + viewH + 20);
-        ctx.stroke();
-      }
-
-      // Vignette profondità ai bordi
-      const vig = ctx.createRadialGradient(
-        viewX + viewW / 2, viewY + viewH / 2, Math.min(viewW, viewH) * 0.2,
-        viewX + viewW / 2, viewY + viewH / 2, Math.max(viewW, viewH) * 0.75
-      );
-      vig.addColorStop(0, "rgba(0,0,0,0)");
-      vig.addColorStop(1, "rgba(0,0,0,0.35)");
-      ctx.fillStyle = vig;
-      ctx.globalAlpha = 1;
-      ctx.fillRect(viewX - 20, viewY - 20, viewW + 40, viewH + 40);
 
       ctx.restore();
     },
 
-    /** Oscuramento per entità lontane dal giocatore */
+    drawIsoTile(ctx, cx, cy, w, h) {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - h);
+      ctx.lineTo(cx + w / 2, cy);
+      ctx.lineTo(cx, cy + h);
+      ctx.lineTo(cx - w / 2, cy);
+      ctx.closePath();
+      ctx.fill();
+    },
+
+    strokeIsoTile(ctx, cx, cy, w, h) {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - h);
+      ctx.lineTo(cx + w / 2, cy);
+      ctx.lineTo(cx, cy + h);
+      ctx.lineTo(cx - w / 2, cy);
+      ctx.closePath();
+      ctx.stroke();
+    },
+
     applyDepthFog(ctx, x, y, px, py) {
       const dist = Math.hypot(x - px, y - py);
-      const fog = Math.min(0.42, (dist / this.FOG_DIST) * 0.42);
-      if (fog > 0.02) {
-        ctx.globalAlpha *= 1 - fog;
-      }
+      const fog = Math.min(0.55, (dist / this.FOG_DIST) * 0.55);
+      if (fog > 0.02) ctx.globalAlpha *= 1 - fog;
     },
 
     sortByY(items, yKey = "y") {
@@ -266,6 +238,5 @@
 
   let gameTime = 0;
   DepthRender.setGameTime = (t) => { gameTime = t; };
-
   window.DepthRender = DepthRender;
 })();
