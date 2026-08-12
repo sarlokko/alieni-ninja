@@ -1,5 +1,5 @@
 /* Minimal service worker: enables install prompt and caches the app shell. */
-const CACHE = "alieni-ninja-v31";
+const CACHE = "alieni-ninja-v37";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,9 @@ const ASSETS = [
   "./css/game.css",
   "./js/main.js",
   "./js/sprites.js",
+  "./js/depth-render.js",
+  "./js/drg-config.js",
+  "./js/drg-systems.js",
   "./js/game.js",
   "./img/logo.png",
   "./icons/icon-192.png",
