@@ -5,7 +5,7 @@
   const ctx = canvas.getContext("2d");
   let W = 1600;
   let H = 900;
-  const WORLD_W = 20000;
+  const GAME_VERSION = "41";
   const WORLD_H = 15000;
   const { SPRITES, drawSpriteCentered, drawSprite, drawPixelCircle, PX } = window.PixelSprites;
   const DR = window.DepthRender || {
@@ -3268,6 +3268,9 @@
     ctx.textAlign = "right";
     ctx.fillStyle = "#ffd700";
     ctx.fillText(`⭐ Frammenti: ${fragments}/7`, W - 14, 20);
+    ctx.fillStyle = R3 && R3.active ? "#00f5ff" : "#666";
+    ctx.font = "10px monospace";
+    ctx.fillText(`3D v${GAME_VERSION}`, W - 14, 52);
 
     // Combo / Fever: un solo pannello chiaro con timer
     if (combo >= 2 || feverTimer > 0) {
@@ -3481,6 +3484,10 @@
     ctx.fillStyle = "#b026ff";
     ctx.font = `${Math.max(17, Math.floor(W * 0.015))}px sans-serif`;
     ctx.fillText("Tocca lo schermo per iniziare", W / 2, H - Math.max(40, H * 0.06));
+    ctx.fillStyle = "#00f5ff";
+    ctx.font = "11px monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(`Grafica 3D · v${GAME_VERSION}`, W - 16, H - 14);
   }
 
   function drawStory() {
