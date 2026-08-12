@@ -1,0 +1,70 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #020208;
+}
+
+body {
+  display: block;
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Riquadro azzurro a quasi tutto schermo */
+#game-container {
+  position: fixed;
+  inset: 0.6vmin;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  border: 3px solid rgba(255, 140, 0, 0.65);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(255, 140, 0, 0.2),
+    0 0 28px rgba(255, 140, 0, 0.25),
+    inset 0 0 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  background: #06060c;
+}
+
+#game-gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+#game-canvas {
+  position: relative;
+  z-index: 2;
+  display: block;
+  background: transparent;
+  cursor: crosshair;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  touch-action: none;
+}
+
+#ui-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+#ui-overlay .interactive {
+  pointer-events: auto;
+}
