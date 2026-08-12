@@ -8,7 +8,13 @@
   const WORLD_W = 20000;
   const WORLD_H = 15000;
   const { SPRITES, drawSpriteCentered, drawSprite, drawPixelCircle, PX } = window.PixelSprites;
-  const DR = window.DepthRender;
+  const DR = window.DepthRender || {
+    depthScaleY: () => 1,
+    spriteDrawY: (y) => y,
+    drawGroundShadow: () => {},
+    applyDepthFog: () => {},
+    setGameTime: () => {},
+  };
   const PLAYER_SCALE = 1.95;
   const ENEMY_SPRITE_SCALE = 2.15;
   const BOSS_SPRITE_SCALE = 2.5;
