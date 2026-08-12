@@ -32,5 +32,5 @@ jobs:
       - name: Verify gh-pages branch
         run: |
           sleep 8
-          curl -fsSL "https://raw.githubusercontent.com/sarlokko/alieni-ninja/gh-pages/game.html" | grep -q "v=47"
+          curl -fsSL "https://raw.githubusercontent.com/sarlokko/alieni-ninja/gh-pages/game.html" | grep -q "v=48"
           echo "gh-pages branch OK"

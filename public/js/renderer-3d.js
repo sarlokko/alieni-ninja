@@ -8,18 +8,12 @@
   }
 
   const S = 16 * 1.3; // ~30% più grande rispetto a v46
-  const TERRAIN_SIZE = 4800;
-  const TERRAIN_SEGS = 72;
   let renderer = null;
   let scene = null;
   let camera = null;
   let container = null;
   let canvas3d = null;
   let ground = null;
-  let terrainMesh = null;
-  let terrainGeo = null;
-  let lastTerrainCx = null;
-  let lastTerrainCz = null;
   let sun = null;
   let fill = null;
   let rim = null;
@@ -263,82 +257,17 @@
     return g;
   }
 
-  function terrainHeightAt(wx, wz) {
-    const a = Math.sin(wx * 0.007) * Math.cos(wz * 0.006) * 3.2 * S;
-    const b = Math.sin(wx * 0.019 + wz * 0.017) * 1.6 * S;
-    const c = Math.sin(wx * 0.041) * Math.sin(wz * 0.038) * 0.75 * S;
-    const d = Math.sin(wx * 0.003 + wz * 0.004) * 5 * S;
-    return a + b + c + d;
-  }
-
-  function buildTerrainGeometry() {
-    const geo = new T.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, TERRAIN_SEGS, TERRAIN_SEGS);
-    geo.setAttribute("color", new T.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 3), 3));
-    geo.rotateX(-Math.PI / 2);
-    return geo;
-  }
-
-  function updateTerrainChunk(cx, cz) {
-    if (!terrainMesh || !terrainGeo) return;
-    if (lastTerrainCx === cx && lastTerrainCz === cz) return;
-    lastTerrainCx = cx;
-    lastTerrainCz = cz;
-    terrainMesh.position.set(cx, 0, cz);
-
-    const pos = terrainGeo.attributes.position;
-    const colors = terrainGeo.attributes.color;
-    const base = new T.Color(ground?.material?.color || 0x1a2838);
-    const low = base.clone().multiplyScalar(0.55);
-    const high = base.clone().multiplyScalar(1.35);
-    const tmp = new T.Color();
-
-    for (let i = 0; i < pos.count; i++) {
-      const lx = pos.getX(i);
-      const lz = -pos.getZ(i);
-      const wx = cx + lx;
-      const wz = cz + lz;
-      const h = terrainHeightAt(wx, wz);
-      pos.setY(i, h);
-      const t = Math.max(0, Math.min(1, (h + 2 * S) / (8 * S)));
-      tmp.copy(low).lerp(base, t * 0.65).lerp(high, t * 0.4);
-      colors.setXYZ(i, tmp.r, tmp.g, tmp.b);
-    }
-    pos.needsUpdate = true;
-    colors.needsUpdate = true;
-    terrainGeo.computeVertexNormals();
-  }
-
-  function groundY(wx, wz) {
-    return terrainHeightAt(wx, wz);
-  }
-
-  function scatterTerrainDetails() {
-    for (let i = 0; i < 220; i++) {
-      const wx = (Math.random() - 0.5) * 18000;
-      const wz = (Math.random() - 0.5) * 14000;
-      const h = terrainHeightAt(wx, wz);
-      const rock = createRock(6 + (i % 4) * 2);
-      rock.position.set(wx, h, wz);
+  function scatterCaveRocks() {
+    for (let i = 0; i < 180; i++) {
+      const rock = createRock(8 + (i % 5) * 3);
+      rock.position.set(
+        (Math.random() - 0.5) * 18000,
+        0,
+        (Math.random() - 0.5) * 14000
+      );
       rock.rotation.y = Math.random() * Math.PI * 2;
       scene.add(rock);
     }
-    for (let i = 0; i < 90; i++) {
-      const wx = (Math.random() - 0.5) * 16000;
-      const wz = (Math.random() - 0.5) * 12000;
-      const h = terrainHeightAt(wx, wz);
-      const mound = new T.Mesh(
-        new T.ConeGeometry(2.5 * S + Math.random() * S, 1.8 * S + Math.random(), 5),
-        mat(0x2a3540, { roughness: 0.92 })
-      );
-      mound.position.set(wx, h + 0.4 * S, wz);
-      mound.rotation.y = Math.random() * Math.PI * 2;
-      mound.castShadow = mound.receiveShadow = true;
-      scene.add(mound);
-    }
-  }
-
-  function scatterCaveRocks() {
-    scatterTerrainDetails();
   }
 
   function initRenderer3D(parent, width, height) {
@@ -387,32 +316,16 @@
 
     ground = new T.Mesh(
       new T.PlaneGeometry(24000, 24000),
-      new T.MeshStandardMaterial({ color: 0x0a1018, roughness: 1, metalness: 0 })
+      new T.MeshStandardMaterial({ color: 0x1a2838, roughness: 0.94, metalness: 0.08 })
     );
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -8 * S;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    terrainGeo = buildTerrainGeometry();
-    terrainMesh = new T.Mesh(
-      terrainGeo,
-      new T.MeshStandardMaterial({
-        color: 0xffffff,
-        vertexColors: true,
-        roughness: 0.92,
-        metalness: 0.06,
-        flatShading: true,
-      })
-    );
-    terrainMesh.receiveShadow = true;
-    terrainMesh.castShadow = false;
-    scene.add(terrainMesh);
-
     const grid = new T.GridHelper(24000, 80, 0x00d4aa, 0x152030);
-    grid.material.opacity = 0.1;
+    grid.material.opacity = 0.14;
     grid.material.transparent = true;
-    grid.position.y = 2;
+    grid.position.y = 1;
     scene.add(grid);
 
     scatterCaveRocks();
@@ -481,30 +394,22 @@
     }
 
     const bob = Math.sin(gameTime * 0.14) * 0.8 * S;
-
-    if (ground && level) {
-      const floorCol = parseInt(String(level.floor || "#152238").replace("#", "0x"), 16) || 0x152238;
-      ground.material.color.setHex(floorCol);
-      scene.fog.color.setHex(parseInt(String(level.bg?.[0] || "#0a0812").replace("#", "0x"), 16) || 0x0a0812);
-    }
-
-    const terrainSnap = 400;
-    updateTerrainChunk(
-      Math.floor(p.x / terrainSnap) * terrainSnap,
-      Math.floor(p.z / terrainSnap) * terrainSnap
-    );
-
-    const playerY = groundY(p.x, p.z);
-    playerGroup.position.set(p.x, playerY + bob, p.z);
+    playerGroup.position.set(p.x, bob, p.z);
     playerGroup.rotation.y = aim;
 
     if (aimMarker) {
       const d = 22 * S * 0.08;
       aimMarker.position.set(
         p.x + Math.cos(aim) * d,
-        playerY + 1.5 * S,
+        1.5 * S,
         p.z + Math.sin(aim) * d
       );
+    }
+
+    if (ground && level) {
+      const floorCol = parseInt(String(level.floor || "#152238").replace("#", "0x"), 16) || 0x152238;
+      ground.material.color.setHex(floorCol);
+      scene.fog.color.setHex(parseInt(String(level.bg?.[0] || "#0a0812").replace("#", "0x"), 16) || 0x0a0812);
     }
 
     const seenEnemies = new Set();
@@ -519,8 +424,7 @@
       }
       const pos = worldTo3(e.x, e.y);
       const wobble = Math.sin(gameTime * 0.16 + (e.wobblePhase || 0)) * 1.5;
-      const ey = groundY(pos.x, pos.z);
-      mesh.position.set(pos.x, ey + wobble, pos.z);
+      mesh.position.set(pos.x, wobble, pos.z);
       mesh.rotation.y = Math.atan2(player.x - e.x, player.y - e.y);
       if (e.hitFlash > 0) {
         mesh.traverse((c) => {
@@ -557,7 +461,7 @@
       const m = pools.projectiles[i];
       m.visible = true;
       const pos = worldTo3(pr.x, pr.y);
-      m.position.set(pos.x, groundY(pos.x, pos.z) + 1.4 * S, pos.z);
+      m.position.set(pos.x, 1.4 * S, pos.z);
       const col = pr.type === "plasma" ? 0xff6347 : pr.type === "dart" ? 0xff69b4 : pr.type === "arrow" ? 0xc8a060 : 0xc0c0c0;
       m.material.color.setHex(col);
       m.material.emissive.setHex(col);
@@ -575,7 +479,7 @@
       const m = pools.gems[i];
       m.visible = true;
       const pos = worldTo3(g.x, g.y);
-      m.position.set(pos.x, groundY(pos.x, pos.z) + (0.9 + Math.sin((gameTime + i) * 0.1) * 0.25) * S, pos.z);
+      m.position.set(pos.x, (0.9 + Math.sin((gameTime + i) * 0.1) * 0.25) * S, pos.z);
       m.rotation.y = gameTime * 0.06;
     });
     for (let i = xpGems.length; i < pools.gems.length; i++) pools.gems[i].visible = false;
@@ -591,7 +495,7 @@
       m.visible = true;
       const pos = worldTo3(pk.x, pk.y);
       const bob = Math.sin((pk.bob || 0)) * 0.3 * S;
-      m.position.set(pos.x, groundY(pos.x, pos.z) + (1 + bob) * S, pos.z);
+      m.position.set(pos.x, (1 + bob) * S, pos.z);
       m.rotation.y = gameTime * 0.04 + i;
       const cols = { heal: 0x39ff14, damage: 0xff6347, speed: 0x00f5ff, magnet: 0xffd700 };
       const c = cols[pk.type] || 0xffffff;
@@ -621,7 +525,7 @@
         pools.decor.set(key, mesh);
       }
       const pos = worldTo3(d.x, d.y);
-      mesh.position.set(pos.x, groundY(pos.x, pos.z), pos.z);
+      mesh.position.set(pos.x, 0, pos.z);
       mesh.visible = true;
     });
     pools.decor.forEach((mesh, key) => {
@@ -645,7 +549,7 @@
         }
         const pos = worldTo3(node.x, node.y);
         const pulse = 1 + Math.sin(node.pulse || 0) * 0.1;
-        mesh.position.set(pos.x, groundY(pos.x, pos.z), pos.z);
+        mesh.position.set(pos.x, 0, pos.z);
         mesh.scale.setScalar(pulse);
         mesh.visible = true;
       });
@@ -660,7 +564,7 @@
     if (podGroup) {
       if (drgWorld && drgWorld.extractionPod && drgWorld.showPod) {
         const pos = worldTo3(drgWorld.extractionPod.x, drgWorld.extractionPod.y);
-        podGroup.position.set(pos.x, groundY(pos.x, pos.z), pos.z);
+        podGroup.position.set(pos.x, 0, pos.z);
         podGroup.visible = true;
         podGroup.rotation.y = gameTime * 0.02;
       } else {
