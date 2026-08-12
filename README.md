@@ -14,6 +14,8 @@ public/
   js/
     main.js         # Bottone "Lancia missione"
     game.js         # Motore di gioco canvas
+    drg-config.js   # Config DRG:Survivor (shop, miniera, threat)
+    drg-systems.js  # Sistemi missione DRG
 package.json
 ```
 
@@ -75,7 +77,18 @@ Custode delle Stelle, Matrona degli Arcani, Guardiano Dimensionale, Drago Stella
 ### Obiettivo
 Recuperare i 7 frammenti della **Lancia delle Stelle** e sconfiggere il Re dei Gatti Mannari.
 
-### Controlli (stile Vampire Survivors)
+### Stile Deep Rock Galactic: Survivor (ibrido)
+Il gameplay unisce il survivor attuale con meccaniche ispirate a **DRG: Survivor**:
+
+- **Fasi missione:** Deploy → Survive → Elite (boss) → Estrazione (drop pod)
+- **Alien Threat Level:** difficoltà crescente con ondate e avvisi orda
+- **Miniera:** cristalli **Oro** e **Nitra** da estrarre nel mondo
+- **Bar tra settori:** spendi Oro/Nitra per potenziamenti permanenti
+- **Armi secondarie:** fino a 3 slot (Torretta Plasma, Granata Stellare, Bobina del Vuoto…)
+- **Overclock armi** ai livelli 3 e 5 (Bilanciato / Sovraccarico / Area Estesa)
+- **UI industriale** arancio/ciano
+
+### Controlli (survivor auto-attack)
 - **WASD / Frecce** — solo movimento (le armi attaccano automaticamente)
 - **↑↓ + Invio** — scegli power-up al level-up
 - **Invio** — avanzare tra schermate
