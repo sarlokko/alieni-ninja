@@ -40,9 +40,13 @@
     LEVEL_UP: "level_up",
     RESUME_PAUSE: "resume_pause",
     LEVEL_CLEAR: "level_clear",
+    SHOP: "shop",
+    OVERCLOCK: "overclock",
     GAME_OVER: "game_over",
     VICTORY: "victory",
   };
+
+  const drg = window.DRGSystems;
 
   const HEROES = [
     {
@@ -401,7 +405,8 @@
 
   const MENU_STATES = new Set([
     STATE.TITLE, STATE.STORY, STATE.SELECT, STATE.LEVEL_INTRO,
-    STATE.LEVEL_UP, STATE.LEVEL_CLEAR, STATE.GAME_OVER, STATE.VICTORY,
+    STATE.LEVEL_UP, STATE.LEVEL_CLEAR, STATE.SHOP, STATE.OVERCLOCK,
+    STATE.GAME_OVER, STATE.VICTORY,
   ]);
 
   function isMenuState() {
@@ -600,6 +605,16 @@
       return;
     }
 
+    if (state === STATE.SHOP) {
+      drg.handleShopInput(code);
+      return;
+    }
+
+    if (state === STATE.OVERCLOCK) {
+      drg.handleOverclockInput(code);
+      return;
+    }
+
     if (state === STATE.LEVEL_UP) {
       if (code === "ArrowUp" || code === "KeyW") levelUpSelected = (levelUpSelected + 2) % 3;
       if (code === "ArrowDown" || code === "KeyS") levelUpSelected = (levelUpSelected + 1) % 3;
@@ -624,6 +639,7 @@
     if (state === STATE.STORY) { state = STATE.SELECT; return; }
     if (state === STATE.LEVEL_INTRO && introTimer <= 0) { startLevel(); return; }
     if (state === STATE.LEVEL_CLEAR) { nextLevel(); return; }
+    if (state === STATE.SHOP) { drg.handleShopInput("Space"); return; }
     if (state === STATE.GAME_OVER || state === STATE.VICTORY) { resetGame(); return; }
     if (state === STATE.LEVEL_UP && levelUpChoices.length) {
       applyPowerUp(levelUpChoices[levelUpSelected]);
@@ -670,6 +686,17 @@
     const now = Date.now();
     if (now - lastMenuTap < 400) return;
     lastMenuTap = now;
+
+    if (state === STATE.SHOP) {
+      handleMenuConfirm();
+      return;
+    }
+
+    if (state === STATE.OVERCLOCK) {
+      drg.applyOverclock("balanced");
+      state = STATE.PLAYING;
+      return;
+    }
 
     if (state === STATE.LEVEL_UP) {
       for (let i = 0; i < levelUpChoices.length; i++) {
@@ -776,6 +803,7 @@
     selectedHero = HEROES[idx];
     currentLevel = 0;
     fragments = 0;
+    drg.resetRun();
     initLevel(true);
     state = STATE.PLAYING;
     showLevelBanner(LEVELS[0]);
@@ -786,6 +814,7 @@
     selectedHero = null;
     currentLevel = 0;
     fragments = 0;
+    drg.resetRun();
     player = null;
     enemies = [];
     projectiles = [];
@@ -852,6 +881,7 @@
     levelKills = 0;
     pendingLevelUps = 0;
     resetFunState();
+    drg.resetLevel();
     const openCount = Math.min(14, 3 + Math.floor(getHeroLevel() * 0.7));
     for (let i = 0; i < openCount; i++) spawnEnemy();
   }
@@ -1181,7 +1211,8 @@
     const buff = player.tempBuff > 0 ? 1.3 : 1;
     const fever = feverTimer > 0 ? 1.2 : 1;
     const comboBonus = 1 + Math.min(0.25, Math.floor(combo / 10) * 0.05);
-    return player.stats.damage * mult * buff * fever * comboBonus * (1 + (player.stats.weaponLevel - 1) * 0.12);
+    const nitraMult = drg.getNitraDamageMult();
+    return player.stats.damage * mult * buff * fever * comboBonus * nitraMult * (1 + (player.stats.weaponLevel - 1) * 0.12);
   }
 
   function nearestEnemy(maxDist = Infinity) {
@@ -1427,9 +1458,10 @@
 
     const etype = pickEnemyType();
     const hl = getHeroLevel();
+    const threatMult = drg.getThreatHpMult();
     const scale = bossPhase
       ? 1.06 + (hl - 1) * 0.025
-      : 1 + getKillProgress() * 0.08 + (hl - 1) * 0.04;
+      : (1 + getKillProgress() * 0.08 + (hl - 1) * 0.04) * threatMult;
     const dmgScale = 0.7 + (hl - 1) * 0.055;
     const spdMult = 1 + (hl - 1) * 0.02;
     enemies.push({
@@ -1493,6 +1525,20 @@
 
   function applyPowerUp(choice) {
     if (!choice) return;
+
+    if (choice.kind === "secondary") {
+      drg.applySecondaryChoice(choice);
+      lastPickedUpgrade = choice;
+      levelUpChoices = [];
+      if (pendingLevelUps > 0) {
+        pendingLevelUps--;
+        triggerLevelUp();
+        return;
+      }
+      resumeAfterLevelUp();
+      return;
+    }
+
     const up = player.upgrades;
     up[choice.id] = (up[choice.id] || 0) + 1;
 
@@ -1506,7 +1552,15 @@
       case "magnete": player.stats.magnet *= 1.4; break;
       case "rigenerazione": player.stats.regen += 0.35; break;
       case "scudo": player.stats.damageReduction = Math.min(0.45, player.stats.damageReduction + 0.08); break;
-      case "weapon_up": player.stats.weaponLevel++; break;
+      case "weapon_up":
+        player.stats.weaponLevel++;
+        if (drg.checkOverclock(player.stats.weaponLevel)) {
+          lastPickedUpgrade = choice;
+          levelUpChoices = [];
+          state = STATE.OVERCLOCK;
+          return;
+        }
+        break;
     }
 
     lastPickedUpgrade = choice;
@@ -1519,6 +1573,10 @@
       return;
     }
 
+    resumeAfterLevelUp();
+  }
+
+  function resumeAfterLevelUp() {
     moveJoy.active = false;
     moveJoy.id = null;
     aimJoy.active = false;
@@ -1580,6 +1638,13 @@
       levelUpChoices.push(weightedPick(rest));
     }
 
+    const secChoices = drg.getSecondaryChoices();
+    secChoices.forEach((c) => {
+      if (levelUpChoices.length < 3 && !levelUpChoices.find((x) => x.secId === c.secId)) {
+        levelUpChoices.push(c);
+      }
+    });
+
     levelUpSelected = 0;
     addBurst(player.x, player.y, "#ffd700", 16, "spark");
     addShockwave(player.x, player.y, "#b026ff", 55);
@@ -1615,6 +1680,8 @@
 
   function updatePlaying() {
     const level = LEVELS[currentLevel];
+
+    drg.update();
 
     updateMouseWorld();
     player.aimAngle = getAimAngle();
@@ -1693,7 +1760,7 @@
         const floor = Math.max(14, 34 - hl * 1.4);
         spawnTimer = Math.max(
           floor,
-          level.spawnRate - Math.floor(getKillProgress() * accel) - Math.floor(hl * 1.1)
+          level.spawnRate - Math.floor(getKillProgress() * accel) - Math.floor(hl * 1.1) - drg.getThreatSpawnBonus()
         );
       }
     } else {
@@ -1892,11 +1959,7 @@
             }
           }, 2000);
         } else if (!level.finalBoss || finalBossSpawned) {
-          if (currentLevel >= LEVELS.length - 1) {
-            state = STATE.VICTORY;
-          } else {
-            advanceWorldContinuous();
-          }
+          drg.onBossKilled();
         }
       }
     });
@@ -3265,9 +3328,9 @@
     ctx.fillStyle = "#e8e8ff";
     ctx.font = `${Math.max(16, Math.floor(W * 0.014))}px sans-serif`;
     const lines = [
-      "Elimina le orde di Gatti Mannari!",
-      "Muoviti, le armi attaccano da sole.",
-      "Raccogli XP, potenzia il tuo ninja.",
+      "Survivor tattico stile Deep Rock Galactic!",
+      "Estrai cristalli · Sopravvivi · Elimina l'elite.",
+      "Raccogli Oro e Nitra al bar tra i settori.",
       "", "Recupera la Lancia delle Stelle!",
     ];
     const lineStart = titleY + Math.floor(H * 0.06);
@@ -3606,11 +3669,13 @@
     drawEnemies();
     drawPlayer();
     drawFloatTexts();
+    drg.drawWorld(ctx, camera);
 
     ctx.restore();
     drawScreenFX(level);
     drawCrosshair();
     drawHUD();
+    drg.drawHUD(ctx, W);
     drawLevelBanner();
   }
 
@@ -3672,9 +3737,19 @@
       case STATE.LEVEL_UP: drawLevelUp(); break;
       case STATE.RESUME_PAUSE: drawResumePause(); break;
       case STATE.LEVEL_CLEAR: drawLevelClear(); break;
+      case STATE.SHOP: drawShop(); break;
+      case STATE.OVERCLOCK: drawOverclock(); break;
       case STATE.GAME_OVER: drawGameOver(); break;
       case STATE.VICTORY: drawVictory(); break;
     }
+  }
+
+  function drawShop() {
+    drg.drawShop(ctx, W, H, LEVELS[currentLevel], player);
+  }
+
+  function drawOverclock() {
+    drg.drawOverclock(ctx, W, H);
   }
 
   function loop() {
@@ -3682,6 +3757,42 @@
     draw();
     requestAnimationFrame(loop);
   }
+
+  drg.bind({
+    get player() { return player; },
+    get enemies() { return enemies; },
+    worldW: WORLD_W,
+    worldH: WORLD_H,
+    viewW: W,
+    viewH: H,
+    get currentLevel() { return currentLevel; },
+    levelCount: LEVELS.length,
+    get state() { return state; },
+    addFloatText,
+    addBurst,
+    addScreenShake,
+    spawnEnemy,
+    nearestEnemy,
+    nearestEnemies,
+    hurtEnemy,
+    getDamage,
+    addProjectile: (p) => projectiles.push(p),
+    addWave: (x, y, maxR, damage, color) => {
+      waves.push({ x, y, r: 8, maxR, expand: 6, damage, color, life: 22, hit: new Set() });
+    },
+    showBanner: (title, subtitle, accent) => {
+      levelBanner = { title, subtitle, life: 140, maxLife: 140, accent: accent || "#ff8c00" };
+    },
+    setState: (s) => {
+      if (s === "shop") state = STATE.SHOP;
+      else if (s === "victory") state = STATE.VICTORY;
+      else if (s === "playing") state = STATE.PLAYING;
+    },
+    advanceSector: () => {
+      drg.consumeNitraBuff();
+      advanceWorldContinuous();
+    },
+  });
 
   loop();
 })();
