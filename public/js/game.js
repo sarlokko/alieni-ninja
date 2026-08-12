@@ -5,7 +5,8 @@
   const ctx = canvas.getContext("2d");
   let W = 1600;
   let H = 900;
-  const GAME_VERSION = "41";
+  const GAME_VERSION = "42";
+  const WORLD_W = 20000;
   const WORLD_H = 15000;
   const { SPRITES, drawSpriteCentered, drawSprite, drawPixelCircle, PX } = window.PixelSprites;
   const DR = window.DepthRender || {
@@ -447,6 +448,16 @@
     aim: { x: W * 0.84, y: H * 0.82 },
   };
 
+  function ensure3DRenderer() {
+    const container = document.getElementById("game-container");
+    if (R3 && container && !R3.active) {
+      R3.init(container, W, H);
+    }
+    if (R3 && R3.active) {
+      R3.resize(W, H);
+    }
+  }
+
   function resizeGame() {
     // Riquadro grande a schermo: risoluzione ampia (max 1920x1080)
     const rect = canvas.getBoundingClientRect();
@@ -473,12 +484,8 @@
     if (player && state === STATE.PLAYING) {
       camera.x = Math.max(0, Math.min(WORLD_W - W, player.x - W / 2));
       camera.y = Math.max(0, Math.min(WORLD_H - H, player.y - H / 2));
-    }
-    const container = document.getElementById("game-container");
-    if (R3 && container && !R3.active) {
-      R3.init(container, W, H);
-    }
-    if (R3 && R3.active) {
+      ensure3DRenderer();
+    } else if (R3 && R3.active) {
       R3.resize(W, H);
     }
   }
@@ -896,6 +903,7 @@
     pendingLevelUps = 0;
     resetFunState();
     drg.resetLevel();
+    ensure3DRenderer();
     const openCount = Math.min(14, 3 + Math.floor(getHeroLevel() * 0.7));
     for (let i = 0; i < openCount; i++) spawnEnemy();
   }
@@ -3453,6 +3461,8 @@
   }
 
   function drawTitle() {
+    ctx.fillStyle = "#06060c";
+    ctx.fillRect(0, 0, W, H);
     drawLevelBackground(LEVELS[0]);
     titlePulse += 0.05;
 
@@ -3857,6 +3867,7 @@
     const use3D = R3 && R3.active;
 
     if (use3D) {
+      ensure3DRenderer();
       ctx.clearRect(0, 0, W, H);
       R3.sync({
         player,
