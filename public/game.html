@@ -6,6 +6,8 @@
   <title>Alieni Ninja vs Gatti Mannari</title>
   <meta name="description" content="Survivor arcade: elimina i Gatti Mannari e recupera la Lancia delle Stelle.">
   <meta name="theme-color" content="#00f5ff">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Alieni Ninja">
@@ -15,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="css/game.css?v=43">
+  <link rel="stylesheet" href="css/game.css?v=44">
 </head>
 <body>
   <div id="game-container">
@@ -23,18 +25,18 @@
     <div id="ui-overlay"></div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="js/sprites.js?v=43"></script>
-  <script src="js/renderer-3d.js?v=43"></script>
-  <script src="js/drg-config.js?v=43"></script>
-  <script src="js/drg-systems.js?v=43"></script>
-  <script src="js/game.js?v=43"></script>
+  <script src="js/sprites.js?v=44"></script>
+  <script src="js/renderer-3d.js?v=44"></script>
+  <script src="js/drg-config.js?v=44"></script>
+  <script src="js/drg-systems.js?v=44"></script>
+  <script src="js/game.js?v=44"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", async () => {
         try {
           const regs = await navigator.serviceWorker.getRegistrations();
           for (const r of regs) await r.unregister();
-          await navigator.serviceWorker.register("./sw.js?v=43");
+          await navigator.serviceWorker.register("./sw.js?v=44");
         } catch (_) {}
       });
     }
