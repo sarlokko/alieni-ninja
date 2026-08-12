@@ -1,5 +1,5 @@
 /* Service worker — network-first per JS/HTML così gli aggiornamenti arrivano subito */
-const CACHE = "alieni-ninja-v44";
+const CACHE = "alieni-ninja-v44b";
 
 const PRECACHE = [
   "./icons/icon-192.png",
