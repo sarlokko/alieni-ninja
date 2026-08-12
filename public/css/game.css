@@ -35,8 +35,6 @@ body {
     inset 0 0 40px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   background: #0c0c0e;
-  perspective: 1100px;
-  perspective-origin: 50% 58%;
 }
 
 #game-canvas {
@@ -50,9 +48,6 @@ body {
   touch-action: none;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  transform: rotateX(16deg) scale(1.04);
-  transform-origin: center 72%;
-  filter: drop-shadow(0 28px 48px rgba(0, 0, 0, 0.65));
 }
 
 #ui-overlay {

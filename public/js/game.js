@@ -15,6 +15,7 @@
     applyDepthFog: () => {},
     setGameTime: () => {},
   };
+  const M2 = window.Models2D5;
   const PLAYER_SCALE = 1.95;
   const ENEMY_SPRITE_SCALE = 2.15;
   const BOSS_SPRITE_SCALE = 2.5;
@@ -2372,24 +2373,19 @@
 
   function drawAnimatedSprite(sprite, x, y, scale, facingLeft, opts = {}) {
     const bob = opts.bob || 0;
-    const squash = opts.squash || 1;
     const flash = opts.flash || 0;
-    const groundY = y;
-    const lift = (sprite.h * scale) * 0.38;
-    const drawY = DR.spriteDrawY(groundY, lift) + bob;
-    const depthSc = DR.depthScaleY(groundY, WORLD_H) * (opts.depthScale || 1);
+    const groundY = y + bob;
+    const depth = opts.depth || (M2 ? M2.DEPTH_ENEMY : 12);
 
     ctx.save();
     DR.applyDepthFog(ctx, x, groundY, player.x, player.y);
-    ctx.translate(x, drawY);
-    ctx.scale(squash * depthSc, (2 - squash) * depthSc);
-    drawSpriteCentered(ctx, sprite, 0, 0, scale, facingLeft);
-    if (flash > 0) {
-      ctx.globalAlpha = Math.min(0.7, flash / 12);
-      ctx.fillStyle = "#ffffff";
-      const w = sprite.w * scale;
-      const h = sprite.h * scale;
-      ctx.fillRect(-w / 2, -h / 2, w, h);
+
+    if (M2 && M2.drawExtrudedSprite) {
+      M2.drawExtrudedSprite(ctx, sprite, x, groundY, scale, facingLeft, { depth, bob: 0, flash });
+    } else {
+      const lift = (sprite.h * scale) * 0.38;
+      const drawY = DR.spriteDrawY(groundY, lift);
+      drawSpriteCentered(ctx, sprite, x, drawY, scale, facingLeft);
     }
     ctx.restore();
   }
@@ -2441,11 +2437,13 @@
       case "neon_sign":
         drawSpriteCentered(ctx, SPRITES.decor_neon, d.x + d.w / 2, d.y - 12, s * depthSc, false);
         break;
-      case "tree": {
-        DR.drawGroundShadow(ctx, d.x, d.y, d.r * 0.9, { alpha: 0.28, rxMult: 1.4 });
-        drawSpriteCentered(ctx, SPRITES["decor_tree" + (d.variant || 0)] || SPRITES.decor_tree0, d.x, DR.spriteDrawY(d.y, d.r * 1.2), s * (d.r / 22) * depthSc, false);
+      case "tree":
+        if (M2 && M2.drawTreeModel) {
+          M2.drawTreeModel(ctx, d.x, d.y, d.r, { trunk: "#4a3020", leaf: "#1a7a28" }, depthSc);
+        } else {
+          drawSpriteCentered(ctx, SPRITES["decor_tree" + (d.variant || 0)] || SPRITES.decor_tree0, d.x, DR.spriteDrawY(d.y, d.r * 1.2), s * (d.r / 22) * depthSc, false);
+        }
         break;
-      }
       case "mushroom":
         drawSpriteCentered(ctx, SPRITES.decor_mushroom, d.x, DR.spriteDrawY(d.y, 12), s * (d.r / 8) * depthSc, false);
         break;
@@ -2496,8 +2494,11 @@
         });
         break;
       case "moon_rock":
-        DR.drawGroundShadow(ctx, d.x, d.y, d.r);
-        drawSpriteCentered(ctx, SPRITES.decor_rock, d.x, d.y - d.r * 0.2, s * (d.r / 14) * depthSc, false);
+        if (M2 && M2.drawRockModel) M2.drawRockModel(ctx, d.x, d.y, d.r * depthSc * 0.85, "#6a6a75");
+        else {
+          DR.drawGroundShadow(ctx, d.x, d.y, d.r);
+          drawSpriteCentered(ctx, SPRITES.decor_rock, d.x, d.y - d.r * 0.2, s * (d.r / 14) * depthSc, false);
+        }
         break;
       case "lunar_spire":
         DR.drawExtrudedPillar(ctx, d.x, d.y, 18 * depthSc, (d.h || 50) * depthSc, "#6a6a75");
@@ -2545,9 +2546,6 @@
     const facingLeft = Math.cos(p.aimAngle) < 0;
     const moving = Math.hypot(p.vx, p.vy) > 0.2;
     const bob = moving ? Math.sin(p.animPhase) * 2.5 : Math.sin(gameTime * 0.08) * 0.8;
-    const squash = moving ? 1 + Math.sin(p.animPhase * 2) * 0.06 : 1;
-
-    drawEntityShadow(p.x, p.y, 22);
 
     if (p.hero.weapon === "orbit_shuriken") {
       orbiters.forEach((o, idx) => {
@@ -2557,11 +2555,17 @@
       });
     }
 
-    drawAnimatedSprite(SPRITES[p.hero.id], p.x, p.y, PLAYER_SCALE, facingLeft, {
-      bob,
-      squash,
-      flash: p.invulnerable > 0 && p.invulnerable % 4 < 2 ? 6 : 0,
-    });
+    ctx.save();
+    DR.applyDepthFog(ctx, p.x, p.y, player.x, player.y);
+    if (M2 && M2.drawExtrudedSprite) {
+      M2.drawExtrudedSprite(ctx, SPRITES[p.hero.id], p.x, p.y + bob, PLAYER_SCALE, facingLeft, {
+        depth: M2.DEPTH_HERO,
+        flash: p.invulnerable > 0 && p.invulnerable % 4 < 2 ? 6 : 0,
+      });
+    } else {
+      drawAnimatedSprite(SPRITES[p.hero.id], p.x, p.y, PLAYER_SCALE, facingLeft, { bob, flash: 0 });
+    }
+    ctx.restore();
 
     if (p.tempBuff > 0) {
       ctx.strokeStyle = "rgba(255,99,71,0.6)";
@@ -2651,12 +2655,29 @@
     }
 
     const wobbleY = Math.sin(gameTime * 0.16 + (e.wobblePhase || 0)) * 1.5;
-    drawEntityShadow(e.x, e.y, e.size * 0.55);
-    drawAnimatedSprite(sprite, e.x, e.y + wobbleY, scale, facingLeft, {
-      squash: 1 + (e.hitFlash > 0 ? 0.12 : 0),
-      flash: e.hitFlash || 0,
-    });
-    drawEnemyWerewolfFx(e, facingLeft);
+    ctx.save();
+    DR.applyDepthFog(ctx, e.x, e.y, player.x, player.y);
+
+    if (e.isBoss && M2 && M2.drawExtrudedSprite) {
+      M2.drawExtrudedSprite(ctx, sprite, e.x, e.y + wobbleY, scale, facingLeft, {
+        depth: M2.DEPTH_BOSS,
+        flash: e.hitFlash || 0,
+      });
+    } else if (M2 && M2.drawCatModel) {
+      const pal = M2.catPalette(e.typeId, false);
+      M2.drawCatModel(ctx, e.x, e.y + wobbleY, e.size * 0.62, pal, facingLeft, {
+        bob: 0,
+        sprite: sprite,
+      });
+    } else {
+      drawEntityShadow(e.x, e.y, e.size * 0.55);
+      drawAnimatedSprite(sprite, e.x, e.y + wobbleY, scale, facingLeft, {
+        flash: e.hitFlash || 0,
+      });
+    }
+    ctx.restore();
+
+    if (!M2 || e.isBoss) drawEnemyWerewolfFx(e, facingLeft);
 
     if (!e.isBoss && e.typeName && (e.typeId === "werewolf" || e.typeId === "hunter" || e.typeId === "shadow" || e.typeId === "archer")) {
       ctx.fillStyle = "rgba(40,0,0,0.65)";
